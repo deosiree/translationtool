@@ -61,6 +61,30 @@ describe('columnBuilder', () => {
     expect(col.onFilter('test', { entrySource: 'test source' })).toBe(true)
   })
 
+  it('needFilter 为 true 时 isExist 仍为内置 filters、无 customFilterDropdown', () => {
+    const col = buildCol(
+      { label: '存在状态', value: 'isExist', index: 3 },
+      {},
+      100,
+      true
+    )
+    expect(col.customFilterDropdown).toBeUndefined()
+    expect(col.filters).toEqual([
+      { text: '已存在', value: 1 },
+      { text: '新建', value: 0 },
+    ])
+  })
+
+  it('needFilter 为 true 时 entry 有 customFilterDropdown', () => {
+    const col = buildCol(
+      { label: '词条', value: 'entry', index: 1 },
+      {},
+      100,
+      true
+    )
+    expect(col.customFilterDropdown).toBe(true)
+  })
+
   it('buildTable 应解析动态 dataIndex 并排除当前语种列', () => {
     const task = {
       transMap: {

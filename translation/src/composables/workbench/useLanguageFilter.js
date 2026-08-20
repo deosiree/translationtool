@@ -1,9 +1,10 @@
 import { message } from "ant-design-vue";
 import { filterSourceLanguage } from "@/http/api/workbench";
+import { startLoading, endLoading } from "@/composables/useLoading";
 
 /**
  * 工作台语种过滤（Options API vm 调用）
- * @param {Object} vm 含 filterLanguage / allData / dataSource / filterSource / loading
+ * @param {Object} vm 含 filterLanguage / allData / dataSource / filterSource
  */
 export function filterLanguageChange(vm) {
   if (vm.filterLanguage === "全部") {
@@ -13,16 +14,17 @@ export function filterLanguageChange(vm) {
     const params = {
       languageType: vm.filterLanguage,
     };
-    vm.loading = true;
+    startLoading();
     filterSourceLanguage(params, vm.allData)
       .then((res) => {
         vm.dataSource = res.data.list;
         vm.filterSource = res.data.list;
-        vm.loading = false;
       })
       .catch((err) => {
-        vm.loading = false;
         message.error("12", err.message);
+      })
+      .finally(() => {
+        endLoading();
       });
   }
 }

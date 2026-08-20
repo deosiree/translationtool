@@ -1,4 +1,5 @@
 <template>
+  <!-- 审核阶段：行内审核状态标签（通过/驳回），供 examineModal bodyCell 使用 -->
   <div class="editable-row-operations">
     <span>
       <a-checkable-tag

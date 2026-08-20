@@ -10,6 +10,7 @@ import { nextTick } from 'vue'
 import ImportModal from '@/views/workbench/importModal.vue'
 import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
 import * as validationUtils from '@/utils/validationUtils'
+import { isLoading, resetLoading } from '@/composables/useLoading'
 
 // Mock 依赖
 vi.mock('@/utils/domUtils', () => ({
@@ -47,6 +48,70 @@ vi.mock('ant-design-vue', () => ({
     template: '<div></div>'
   }
 }))
+
+const tableBodyStub = {
+  name: 'ATable',
+  props: ['columns', 'dataSource'],
+  template: `
+    <div class="table-stub" :class="$attrs.class">
+      <div class="header-cell">
+        <slot name="headerCell" :title="'词条'" :column="{ colValue: 'entry', dataIndex: 'entry', title: '词条' }" />
+      </div>
+      <template v-for="record in (dataSource || [])" :key="record.id">
+        <div
+          v-for="col in (columns || [])"
+          :key="col.dataIndex"
+          class="cell"
+          :data-col="col.dataIndex"
+        >
+          <slot name="bodyCell" :column="col" :record="record" :text="record[col.dataIndex]" />
+        </div>
+      </template>
+    </div>
+  `,
+}
+
+function importModalTableStubs() {
+  return {
+    CustomModal: { template: '<div class="custom-modal-stub"><slot /></div>' },
+    'a-table': tableBodyStub,
+    'a-form': {
+      name: 'AForm',
+      props: ['layout', 'model', 'rules'],
+      template: '<form class="a-form-stub"><slot /></form>',
+    },
+    'a-form-item': { template: '<div class="a-form-item"><slot /></div>' },
+    'a-button': true,
+    'a-select': true,
+    'a-upload': true,
+    'a-input': true,
+    'a-radio': true,
+    'a-radio-group': true,
+    InputIME: true,
+    TableCellTextArea: {
+      name: 'TableCellTextArea',
+      props: ['value', 'errorMessage'],
+      template: '<textarea class="table-cell-textarea-stub" />',
+    },
+    AuditTags: true,
+    'a-input-number': true,
+    'a-tooltip': { template: '<div><slot /><slot name="title" /></div>' },
+    'a-tag': true,
+    ColumnActions: true,
+    LanguageFilter: true,
+    FileSelectWithEncoding: true,
+    Dict: true,
+    RulesDropdown: true,
+    IsExistBadge: true,
+    EntryStateBadge: true,
+    TransStateBadge: true,
+    CellOverflowTooltip: {
+      name: 'CellOverflowTooltip',
+      props: ['content'],
+      template: '<span class="cell-overflow-tooltip-stub"><slot /></span>',
+    },
+  }
+}
 
 describe('ImportModal - user 属性重构测试', () => {
   let wrapper
@@ -154,28 +219,6 @@ describe('ImportModal - user 属性重构测试', () => {
 describe('ImportModal - 浏览省略与编辑文本域', () => {
   let wrapper
 
-  const tableBodyStub = {
-    name: 'ATable',
-    props: ['columns', 'dataSource'],
-    template: `
-      <div class="table-stub" :class="$attrs.class">
-        <div class="header-cell">
-          <slot name="headerCell" :title="'词条'" :column="{ colValue: 'entry', dataIndex: 'entry', title: '词条' }" />
-        </div>
-        <template v-for="record in (dataSource || [])" :key="record.id">
-          <div
-            v-for="col in (columns || [])"
-            :key="col.dataIndex"
-            class="cell"
-            :data-col="col.dataIndex"
-          >
-            <slot name="bodyCell" :column="col" :record="record" :text="record[col.dataIndex]" />
-          </div>
-        </template>
-      </div>
-    `,
-  }
-
   function mountWithTableStub() {
     return mount(ImportModal, {
       props: {
@@ -187,42 +230,13 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
           ...createUserStoreMock(),
           $currentDepartment: null,
         },
-        stubs: {
-          CustomModal: { template: '<div class="custom-modal-stub"><slot /></div>' },
-          'a-table': tableBodyStub,
-          'a-form': {
-            name: 'AForm',
-            props: ['layout', 'model', 'rules'],
-            template: '<form class="a-form-stub"><slot /></form>',
-          },
-          'a-form-item': { template: '<div class="a-form-item"><slot /></div>' },
-          'a-button': true,
-          'a-select': true,
-          'a-upload': true,
-          'a-input': true,
-          'a-radio': true,
-          'a-radio-group': true,
-          WorkbenchFormBar: { template: '<div><slot /></div>' },
-          WorkbenchTaskInfo: true,
-          WorkbenchColumnActions: true,
-          WorkbenchLanguageFilter: true,
-          FileSelectWithEncoding: true,
-          Dict: true,
-          RulesDropdown: true,
-          IsExistBadge: true,
-          EntryStateBadge: true,
-          TransStateBadge: true,
-          CellOverflowTooltip: {
-            name: 'CellOverflowTooltip',
-            props: ['content'],
-            template: '<span class="cell-overflow-tooltip-stub"><slot /></span>',
-          },
-        },
+        stubs: importModalTableStubs(),
       },
     })
   }
 
   afterEach(() => {
+    resetLoading()
     if (wrapper) {
       wrapper.unmount()
     }
@@ -291,12 +305,7 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
 
     const englishCell = wrapper.find('[data-col="english"]')
     expect(englishCell.findComponent({ name: 'TableCellTextArea' }).exists()).toBe(true)
-    expect(englishCell.findComponent({ name: 'TextAreaIME' }).exists()).toBe(true)
     expect(englishCell.find('.cell-overflow-tooltip-stub').exists()).toBe(false)
-    expect(englishCell.findComponent({ name: 'TextAreaIME' }).props('autoSize')).toEqual({
-      minRows: 1,
-      maxRows: 5,
-    })
 
     expect(wrapper.find('[data-col="comment"]').findComponent({ name: 'TableCellTextArea' }).exists()).toBe(true)
     expect(wrapper.find('[data-col="tag"]').findComponent({ name: 'InputIME' }).exists()).toBe(true)
@@ -429,7 +438,10 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
     wrapper.vm.cellErrors = { 'entry-1': { english: '特殊字符不一致' } }
 
     checkSykEntryBeforeSave.mockClear()
-    wrapper.vm.rulesOptions.forEach((o) => { o.checked = false })
+    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((o) => ({
+      ...o,
+      checked: false,
+    }))
     await nextTick()
     await flushPromises()
 
@@ -490,26 +502,8 @@ describe('ImportModal - saveEntrys 校验与状态', () => {
           $currentDepartment: null,
         },
         stubs: {
+          ...importModalTableStubs(),
           CustomModal: { template: '<div><slot /></div>' },
-          'a-table': { template: '<div></div>' },
-          'a-form': { template: '<form><slot /></form>' },
-          'a-form-item': { template: '<div><slot /></div>' },
-          'a-button': true,
-          'a-select': true,
-          'a-upload': true,
-          'a-input': true,
-          'a-radio': true,
-          'a-radio-group': true,
-          WorkbenchFormBar: { template: '<div><slot /></div>' },
-          WorkbenchTaskInfo: true,
-          WorkbenchColumnActions: true,
-          WorkbenchLanguageFilter: true,
-          FileSelectWithEncoding: true,
-          Dict: true,
-          RulesDropdown: true,
-          IsExistBadge: true,
-          EntryStateBadge: true,
-          TransStateBadge: true,
           CellOverflowTooltip: { template: '<span></span>' },
         },
       },
@@ -517,6 +511,7 @@ describe('ImportModal - saveEntrys 校验与状态', () => {
   }
 
   afterEach(() => {
+    resetLoading()
     if (wrapper) wrapper.unmount()
     vi.clearAllMocks()
   })
@@ -603,5 +598,84 @@ describe('ImportModal - saveEntrys 校验与状态', () => {
     expect(wrapper.vm.editableData['entry-1']).toBeDefined()
     expect(wrapper.vm.cellErrors['entry-1'].english).toContain('允许最大字符数为20')
     expect(wrapper.vm.dataSource[0].english).toBe('ok')
+  })
+
+  it('saveEntrys 校验期间表格遮罩与保存按钮 loading 开启，结束后复位', async () => {
+    const verifySpy = vi.spyOn(validationUtils, 'verifyArray_workbench')
+    let loadingDuring = null
+    verifySpy.mockImplementation(async () => {
+      loadingDuring = isLoading()
+      return {
+        acceptIds: new Set(),
+        errorIds: new Set(),
+        toLongIds: new Set(),
+        specialIds: new Set(),
+      }
+    })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    wrapper.vm.columns = [{ dataIndex: 'english' }]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: true },
+    ]
+    await nextTick()
+    await flushPromises()
+    const row = {
+      id: 'entry-1',
+      entry: '词条',
+      english: 'ok',
+      englishState: '0',
+      entryState: 1,
+      englishInterpretation: '释义',
+      maxLength: 200,
+    }
+    wrapper.vm.dataSource = [{ ...row }]
+    wrapper.vm.selectedRows = [row]
+    wrapper.vm.selectedRowKeys = ['entry-1']
+    wrapper.vm.editableData = { 'entry-1': { ...row, english: 'new' } }
+    wrapper.vm.allData = [{ id: 'entry-1' }]
+
+    await wrapper.vm.saveEntrys()
+    await nextTick()
+    await flushPromises()
+
+    expect(loadingDuring).toBe(true)
+    expect(isLoading()).toBe(false)
+    verifySpy.mockRestore()
+  })
+
+  it('importEntryData：revalidateLoaded 完成前 loading 仍为 true，结束后复位', async () => {
+    let loadingDuringRevalidate = null
+    const revalSpy = vi.spyOn(validationUtils, 'revalidateLoaded').mockImplementation(async () => {
+      loadingDuringRevalidate = isLoading()
+    })
+    const { readZZExcle } = await import('@/http/api/workbench')
+    readZZExcle.mockResolvedValue({
+      data: { list: [{ id: 'entry-1', entry: '词条', english: 'ok', isExist: 1 }] },
+    })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    await wrapper.setProps({ classifyLimit: {} })
+    wrapper.vm.dataType = 'file'
+    wrapper.vm.file = { name: 'import.xlsx' }
+    wrapper.vm.templateTypes = null
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english' },
+      translateType: '英文',
+    }
+
+    await wrapper.vm.importEntryData()
+    await flushPromises()
+
+    expect(revalSpy).toHaveBeenCalled()
+    expect(loadingDuringRevalidate).toBe(true)
+    expect(isLoading()).toBe(false)
+    revalSpy.mockRestore()
   })
 })

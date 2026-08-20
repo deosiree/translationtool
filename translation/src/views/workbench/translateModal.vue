@@ -1,14 +1,33 @@
 <template>
-  <Modal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" okText="保存" :okLoading="saveLoading" :fullFlag="true"
+  <Modal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" okText="保存" :okLoading="loading" :fullFlag="true"
     @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div class="content">
       <div class="table">
-        <WorkbenchTaskInfo :task="task">
-          <template #extra>
+        <!-- 工具栏壳：校验规则 + 栅格搜索区（展示列嵌在右侧列） -->
+        <PipelinePanel
+          :task="task"
+          :table-host="this"
+          :columns="columns"
+          :data-source="dataSource"
+          :loading="loading"
+          :pagination="pagination"
+          :scroll="tableHeight"
+          :row-selection="translateRowSelection"
+          :custom-row="customRow"
+          :edit="translateEditCols"
+          :editable-data="editableData"
+          :cell-errors="cellErrors"
+          :show-expand-icon="false"
+          :children-column-name="dataSource.length ? 'child' : undefined"
+          @cell-input="onCellInput"
+          @save-edit="editSave"
+          @cancel-edit="editCancel"
+          ref="tableContainer"
+          class="translate-toolbar"
+        >
+          <template #taskExtra>
             <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
           </template>
-        </WorkbenchTaskInfo>
-        <WorkbenchFormBar style="margin-bottom: 6px">
           <a-row :gutter="8" justify="space-between">
             <a-col :span="12">
               <a-row :gutter="8" justify="start" class="search-row">
@@ -76,123 +95,20 @@
                   </a-dropdown>
                 </a-col>
                 <a-col>
-                  <WorkbenchColumnActions
+                  <!-- 展示列（工具栏按钮，非表头放大镜） -->
+                  <ColumnActions
                     v-model="checkedColumn"
                     :columns="columnSettingsList"
                     :overlay-style="overlayStyle"
                     col-pref-name="colPref-translateModal"
                     :normal-width="100"
-                    :need-filter="false"
                     @change="syncColumnsFromPref"
                   />
                 </a-col>
               </a-row>
             </a-col>
           </a-row>
-        </WorkbenchFormBar>
-        <a-table bordered class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
-          :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :childrenColumnName="dataSource.length ? 'child' : undefined"
-          :expandIconColumnIndex="2" ref="tableContainer"
-          @resizeColumn="handleResizeColumn" :row-selection="{selectedRowKeys: selectedRowKeys, 
-                    onChange: onSelectChange,
-                    selections:[
-                        {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
-                        {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                    ]
-                }" :customRow="customRow">
-          <template #headerCell="{ title, column }">
-            <CellOverflowTooltip v-if="column.colValue" :content="title">
-              {{ title }}
-            </CellOverflowTooltip>
-          </template>
-          <template #bodyCell="{ column, text, record }">
-            <template v-if="column.dataIndex === 'entry'">
-              <CellOverflowTooltip :content="formatEntryText(text)">
-                {{ formatEntryText(text) }}
-              </CellOverflowTooltip>
-            </template>
-            <template v-else-if="editableTextAreaColumns.includes(column.dataIndex)">
-              <template v-if="editableData[record.id]">
-                <TableCellTextArea
-                  :value="editableData[record.id][column.dataIndex] ?? ''"
-                  @update:value="(val) => onCellInput(val, record, column)"
-                  :error-message="cellErrors[record.id]?.[column.dataIndex]"
-                />
-              </template>
-              <template v-else>
-                <CellOverflowTooltip :content="formatCellText(text)" />
-              </template>
-            </template>
-            <template v-else-if="column.dataIndex === 'tag'">
-              <CellOverflowTooltip :content="formatTagText(text)">
-                <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
-                    {{tag}}
-                  </a-tag>
-                </span>
-              </CellOverflowTooltip>
-            </template>
-            <template v-else-if="translateStateList.includes(column.dataIndex)">
-              <CellOverflowTooltip :content="translateStateLabel(text)">
-                <TransStateBadge :translateState="text" />
-              </CellOverflowTooltip>
-            </template>
-            <template v-else-if="column.dataIndex === 'editOperation'">
-              <div class="editable-row-operations">
-                <span v-if="editableData[record.id]">
-                  <a-tooltip placement="top">
-                    <template #title>
-                      <span>保存</span>
-                    </template>
-                    <CheckOutlined style="color:#369FFF;margin-left:8px" @click="editSave(record)" />
-                  </a-tooltip>
-                  <a-tooltip placement="top">
-                    <template #title>
-                      <span>取消</span>
-                    </template>
-                    <CloseOutlined style="color:red;margin-left:8px" @click="editCancel(record)" />
-                  </a-tooltip>
-                </span>
-              </div>
-            </template>
-            <template v-else-if="column.dataIndex === 'maxLength'">
-              <template v-if="editableData[record.id]">
-                <a-input-number
-                  v-model:value="editableData[record.id].maxLength"
-                  :min="0"
-                  :precision="0"
-                  style="width: 100%"
-                  placeholder="0 表示无限制"
-                  @change="(val) => onCellInput(val, record, column)"
-                />
-              </template>
-              <template v-else>
-                <CellOverflowTooltip :content="formatMaxLengthText(text)" />
-              </template>
-            </template>
-            <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
-              <CellOverflowTooltip :content="formatCellText(text)" />
-            </template>
-          </template>
-          <!-- 设置筛选菜单 -->
-          <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-            <div style="padding: 8px">
-              <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)" />
-              <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)">
-                <template #icon>
-                  <SearchOutlined />
-                </template>搜索</a-button>
-              <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
-            </div>
-          </template>
-          <!-- 设置筛选图标 -->
-          <template #customFilterIcon="{ filtered }">
-            <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-          </template>
-        </a-table>
+        </PipelinePanel>
       </div>
       <div class="suggest">
         <div style="height:30px">
@@ -288,7 +204,7 @@
       </div>
     </div>
   </Modal>
-  <Modal :visible="preTranslateVisible" modalTitle="预翻译" :okLoading="preTranslateOkLoading" @handleClose="preTranslateClose"
+  <Modal :visible="preTranslateVisible" modalTitle="预翻译" :okLoading="loading" @handleClose="preTranslateClose"
     @handleOK="preTranslateOK" @afterClose="preTranslateAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="formRef" name="custom-validation" autocomplete='off' :label-col="labelCol" :model="preTran">
@@ -368,7 +284,6 @@ import {
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
 import {
   QuestionCircleOutlined,
-  SearchOutlined,
   InfoCircleOutlined,
   DownOutlined,
   SettingOutlined,
@@ -408,6 +323,7 @@ import {
   setRefRules,
   useRefRules,
   verifyArray_workbench,
+  verifyArray_workbench_page,
   openSetEdit,
   clearCellErrorsForRecords,
   onEditableCellInput,
@@ -419,8 +335,9 @@ import {
   showEditOperation as showEditOp,
   hideEditOperation as hideEditOp,
 } from "@/utils/validationUtils"; // 引入工具函数
+import { loading, startLoading, endLoading, resetLoading } from "@/composables/useLoading";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
-import { WorkbenchFormBar, WorkbenchTaskInfo, WorkbenchColumnActions } from "@/components/Workbench";
+import { PipelinePanel, ColumnActions } from "@/views/workbench/components";
 import {
   selectAllEntry as selectAllEntryUtil,
   clearAllEntry as clearAllEntryUtil,
@@ -429,10 +346,13 @@ import {
 import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
 import { createVNode } from "vue";
 export default {
+  // 全局单一 loading 状态（hook 导出，响应式）：表格/保存按钮/预翻译按钮统一绑定
+  setup() {
+    return { loading };
+  },
   components: {
     Modal,
     QuestionCircleOutlined,
-    SearchOutlined,
     InfoCircleOutlined,
     DownOutlined,
     CheckOutlined,
@@ -444,9 +364,8 @@ export default {
     InputIME,
     TableCellTextArea,
     CellOverflowTooltip,
-    WorkbenchFormBar,
-    WorkbenchTaskInfo,
-    WorkbenchColumnActions,
+    PipelinePanel,
+    ColumnActions,
   },
   emits: ["handleClose", "handleOK", "afterSave"],
   props: {
@@ -476,7 +395,6 @@ export default {
       },
       // tableHeight: { x: "100%", y: 415 },
       tableHeight: { x: "max-content", y: 415 },
-      loading: false,
       columns: [],
       dataSourceAll: [], // 所有数据
       dataSource: [], // 展示的数据（可能经历过过滤）
@@ -516,13 +434,11 @@ export default {
         resolvePresetCols(entryPresets.export, entryAllCols),
       ),
       accept: ".xls,.xlsx",
-      preTranslateOkLoading: false,
       state: {
         searchText: "",
         searchedColumn: "",
       },
       antClearFilter: null,
-      saveLoading: false,
       replaceVisible: false,
       replaceModal: {
         sourceStr: null,
@@ -551,11 +467,24 @@ export default {
     };
   },
   computed: {
+    translateEditCols() {
+      return [...this.editableTextAreaColumns, "maxLength"];
+    },
     editableTextAreaColumns() {
       return editTextCols(this, { withEditList: false });
     },
     canShowDelete() {
       return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
+    },
+    translateRowSelection() {
+      return {
+        selectedRowKeys: this.selectedRowKeys,
+        onChange: this.onSelectChange,
+        selections: [
+          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
+          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
+        ],
+      };
     },
   },
   watch: {
@@ -595,7 +524,7 @@ export default {
               },
               colPrefName: "colPref-translateModal",
               normalWidth: 100,
-              needFilter: false,
+              needFilter: true,
               filterCols: filterWbColsForCtx,
               lockCellSize: true,
             });
@@ -722,7 +651,7 @@ export default {
     },
     // 根据查询条件，过滤dataSource
     getSearch() {
-      this.loading = true;
+      startLoading();
       this.selectedRowKeys = [];
       this.selectedRows = [];
       this.selectedRowIndex = null;
@@ -736,7 +665,7 @@ export default {
       });
       this.pagination.current = 1;
       this.pagination.total = this.dataSource.length;
-      this.loading = false;
+      endLoading();
     },
     onCellInput(value, record, column) {
       onEditableCellInput(this, record.id, column.dataIndex, value);
@@ -758,7 +687,7 @@ export default {
     },
     // 获取待翻译词条
     async getTranslateEntry() {
-      this.loading = true;
+      startLoading();
       this.selectedRowKeys = [];
       this.selectedRows = [];
       this.selectedRowIndex = null;
@@ -794,8 +723,9 @@ export default {
         .catch((err) => {
           message.error(err.message);
         })
-        .finally(() => {
-          this.loading = false;
+        .finally(async () => {
+          await revalidateLoaded(this, this.language.value);
+          endLoading();
         });
     },
     async handleOK() {
@@ -803,8 +733,8 @@ export default {
         message.info("请选择需要保存的数据！");
         return;
       }
-      this.saveLoading = true;
-      this.loading = true;
+      // 保存/校验期间触发全局遮罩（引用计数成对，防连点由遮罩拦截）
+      startLoading();
       const currentLang = this.language.value;
       let arr = {
         acceptIds: new Set(), // 所有校验通过
@@ -880,42 +810,38 @@ export default {
         taskID: this.task.id,
       };
       // console.log("5.更新词条",arrCount)
-      await updateEntryList(updateParams, arrCount.updateArr)
-        .then(async (res) => {
-          const failCount = res.data.totalNum;
-          const successCount = arrCount.updateNum - failCount;
-          if (successCount) messageTextParts.push(`更新翻译${successCount}条`);
-          if (failCount) messageTextParts.push(`更新翻译失败${failCount}条`);
-          await this.getTranslateEntry(); //刷新
-          if (this.allData.length == 0) this.handleClose();
-        })
-        .catch((err) => {
-          message.error("操作失败！", err, 1);
-        })
-        .finally(() => {
-          this.saveLoading = false;
-          this.loading = false;
-        });
+      try {
+        await updateEntryList(updateParams, arrCount.updateArr)
+          .then(async (res) => {
+            const failCount = res.data.totalNum;
+            const successCount = arrCount.updateNum - failCount;
+            if (successCount) messageTextParts.push(`更新翻译${successCount}条`);
+            if (failCount) messageTextParts.push(`更新翻译失败${failCount}条`);
+            await this.getTranslateEntry(); //刷新
+            if (this.allData.length == 0) this.handleClose();
+          })
+          .catch((err) => {
+            message.error("操作失败！", err, 1);
+          });
 
-      // 6.弹窗
-      if (messageTextParts.length > 0) {
-        message.success("已更新翻译！" + messageTextParts.join("，"));
-        // console.log("弹窗信息",messageTextParts)
-        // console.log("当前数据", this.dataSource);
-      }
-
-      // 7.无数据则关闭弹窗；有数据则检验当前页
-      if (this.dataSource.length === 0) {
-        this.handleClose();
-      } else {
-        try {
-          // 校验当前页数据的长度
-          await verifyArray_workbench_page(this.pagination, currentLang, this);
-        } catch (err) {
-          // 仅兜底：不阻断保存流程
-          // eslint-disable-next-line no-console
-          console.warn("[translateModal] verifyArray_workbench_page failed", err);
+        // 6.弹窗
+        if (messageTextParts.length > 0) {
+          message.success("已更新翻译！" + messageTextParts.join("，"));
         }
+
+        // 7.无数据则关闭弹窗；有数据则检验当前页（须在 endLoading 前完成）
+        if (this.dataSource.length === 0) {
+          this.handleClose();
+        } else {
+          try {
+            await verifyArray_workbench_page(this.pagination, currentLang, this);
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.warn("[translateModal] verifyArray_workbench_page failed", err);
+          }
+        }
+      } finally {
+        endLoading();
       }
     },
     // async handleOK_bak() {
@@ -924,7 +850,7 @@ export default {
     //     return;
     //   }
     //   this.saveLoading = true;
-    //   this.loading = true;
+    //   startLoading();
 
     //   // 1.保存编辑数据
     //   for (let key in this.editableData) {
@@ -1077,7 +1003,7 @@ export default {
     //     })
     //     .finally(() => {
     //       this.saveLoading = false;
-    //       this.loading = false;
+    //       endLoading();
     //     });
     // },
     handleClose() {
@@ -1325,7 +1251,7 @@ export default {
       setModalAriaHidden(this, document);
     },
     preTranslateOK() {
-      this.preTranslateOkLoading = true;
+      startLoading();
       let params = {
         taskID: this.task.id,
         priority: this.preTran.priority,
@@ -1338,7 +1264,6 @@ export default {
         // 有勾选的词条，就翻译勾选
         dataPreTranslate = this.selectedRows;
       }
-      this.loading = true;
       // 将 预翻译数据 翻译都变成空，以便被预翻译覆盖
       dataPreTranslate.forEach((item) => {
         if (
@@ -1363,22 +1288,20 @@ export default {
           message.error("预翻译失败！", err.message);
         })
         .finally(async () => {
-          // 校验当前页数据
           await verifyArray_workbench_page(
             this.pagination,
             this.language.value,
             this
           );
-
-          this.loading = false;
+          endLoading();
           this.preTranslateVisible = false;
-          this.preTranslateOkLoading = false;
         });
     },
     preTranslateClose() {
       this.preTranslateVisible = false;
     },
     preTranslateAfterClose() {
+      resetLoading();
       this.preTran.priority = null;
     },
     clickInput(event) {
@@ -1388,6 +1311,7 @@ export default {
       record.translateID = "";
     },
     afterClose() {
+      resetLoading();
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
       this.selectedRowKeys = [];
@@ -1458,6 +1382,7 @@ export default {
         });
     },
     exportAfterClose() {
+      resetLoading();
       this.exportModal.field = ["abbr", "词条"];
     },
     beforeUpload(file, fileList) {
@@ -1469,7 +1394,7 @@ export default {
       let formData = new FormData();
       formData.append("file", file);
       formData.append("taskID", this.task.id);
-      this.loading = true;
+      startLoading();
       workImportExcleTrans(formData)
         .then((res) => {
           // this.dataSource = res.data.list
@@ -1489,8 +1414,9 @@ export default {
         .catch((err) => {
           message.error("导入失败！", err.message);
         })
-        .finally(() => {
-          this.loading = false;
+        .finally(async () => {
+          await revalidateLoaded(this, this.language.value);
+          endLoading();
         });
     },
     // 下一个词条 快捷键
@@ -1769,6 +1695,7 @@ export default {
         });
     },
     replaceAfterClose() {
+      resetLoading();
       this.replaceModal = {
         sourceStr: null,
         replaceStr: null,
@@ -1793,6 +1720,9 @@ export default {
 @import url("@/assets/style/common.less");
 </style>
 <style scoped lang="less">
+.translate-toolbar {
+  margin-bottom: 6px;
+}
 .search-row .ant-col {
   margin-bottom: 4px !important; /* 使用 !important 确保覆盖 Ant Design 默认样式 */
 }

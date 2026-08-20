@@ -115,16 +115,6 @@ function applyFilterBehaviors(col, needFilter) {
       return cellValue.toString() === filterValue;
     };
   }
-
-  if (col.dataIndex === "isExist") {
-    col.customFilterDropdown = true;
-    col.filteredValue = null;
-    col.filters = [
-      { text: "已存在", value: 1 },
-      { text: "新建", value: 0 },
-    ];
-    col.onFilter = (filterValue, record) => record.isExist === filterValue;
-  }
 }
 
 /**
@@ -154,7 +144,7 @@ function applyValueBehaviors(col, def, needFilter) {
     col.sorter = (a, b) => a.entry.localeCompare(b.entry);
     col.sortDirections = ["ascend", "descend"];
   }
-  if (v === "isExist" && !needFilter) {
+  if (v === "isExist") {
     col.filteredValue = null;
     col.filters = [
       { text: "已存在", value: 1 },

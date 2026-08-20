@@ -189,7 +189,11 @@ import {
   pageChange,
 } from "@/utils/selectionUtils";
 import commonParam from "@/constants/commonParam";
+import { loading, startLoading, endLoading } from "@/composables/useLoading";
 export default {
+  setup() {
+    return { loading };
+  },
   components: {
     SearchBox,
     SearchForm,
@@ -227,7 +231,6 @@ export default {
       },
       tableHeight: { x: "max-content", y: 0 },
       // tableHeight: { x: "100%", y: 0 },
-      loading: false,
       currentPageBranch: 0, // 当前页的分支数量
       columns: [
         {
@@ -452,7 +455,7 @@ export default {
       }
 
       // 设置加载状态
-      this.loading = true;
+      startLoading();
 
       // 调用正确的onExpand函数（通过props传递进来的）
       if (typeof onExpand === "function") {
@@ -479,7 +482,7 @@ export default {
       await this.getBranchPending();// 只获得展开分支的任务执行状态
 
       // 清除加载状态
-      this.loading = false;
+      endLoading();
     },
     // 获取展开的分支的任务执行状态
     async getBranchPending() {
@@ -799,7 +802,7 @@ export default {
     },
     // 根据条件获取任务
     async getTaskByCondition(data) {
-      this.loading = true;
+      startLoading();
       // console.log("根据条件获取任务");
       this.checkSearchChange();
       let params = {
@@ -829,13 +832,13 @@ export default {
           message.error("数据获取失败！", err.message);
         })
         .finally(() => {
-          this.loading = false;
+          endLoading();
         });
     },
     // 刷新当前任务的红点标红
     async refreshCurrentTask(task) {
       // console.log("刷新当前任务的红点标红", task);
-      this.loading = true;
+      startLoading();
 
       if (this.isTreeOr2D == "tree") {
         // 层级展示
@@ -879,7 +882,7 @@ export default {
           this.dataSource[taskIndex] = updatedTask;
         }
       }
-      this.loading = false;
+      endLoading();
     },
     // 构建树结构数据
     buildTreeData(taskList) {

@@ -1,32 +1,48 @@
 <template>
-  <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" :okLoading="saveLoading" okText="保存"
+  <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" okText="保存" :okLoading="loading"
     @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div class="content">
-      <WorkbenchTaskInfo :task="task">
-        <template #extra>
+      <!-- 工具栏壳：校验规则 + 查询/批量审核 + 展示列/CoverButton + 过滤语种 -->
+      <PipelinePanel
+        :task="task"
+        :table-host="this"
+        :columns="columns"
+        :data-source="dataSource"
+        :loading="loading"
+        :row-selection="examineRowSelection"
+        :pagination="pagination"
+        :scroll="tableHeight"
+        :custom-row="doubleClick"
+        :edit="examineEditCols"
+        :editable-data="editableData"
+        :cell-errors="cellErrors"
+        @columns-change="syncColumnsFromPref"
+        @cell-input="onCellInput"
+        @save-edit="edit"
+        @cancel-edit="cancel"
+        @audit-pass="passTagChange"
+        @audit-reject="rejectTagChange"
+        ref="workTable"
+      >
+        <template #taskExtra>
           <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
         </template>
-      </WorkbenchTaskInfo>
-      <WorkbenchFormBar>
         词条：
         <a-textarea v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' :auto-size="{ minRows: 1 }" />
         <span style="margin-left:10px">词条状态：</span>
         <EntryStateSelect :entryState="entryState" @update:entryState="entryState = $event" :size="'small'" :style="'width: 300px'"
           :filter="new Set(['0'])" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
-        <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="selectAll">{{selectAllName}}</a-button> -->
         <AuditButtons @pass="pass" @reject="reject" />
         <a-button type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
-        <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="aggregation">聚合</a-button>
-                <a-button type="primary" size="small" style="margin-left:8px" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button> -->
-        <WorkbenchActionGroup inline-offset>
-          <WorkbenchColumnActions
+        <template #columnActions>
+          <!-- 展示列 + 释义覆盖（工具栏按钮，非表头放大镜） -->
+          <ColumnActions
             v-model="checkedColumn"
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
             col-pref-name="colPref-examineModal"
             :normal-width="100"
-            :need-filter="false"
             show-cover-button
             :cover-button-props="{
               translate: task.translateType,
@@ -37,170 +53,17 @@
             @show-edit-operation="showEditOperation"
             @change="syncColumnsFromPref"
           />
-        </WorkbenchActionGroup>
-      </WorkbenchFormBar>
-      <div class="select">
-        <WorkbenchLanguageFilter
-          v-model="filterLanguage"
-          @change="filterLanguageChange"
-        />
-      </div>
-      <a-table bordered class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :row-selection="{ selectedRowKeys: selectedRowKeys, 
-                onChange: onSelectChange,
-                checkStrictly: false,
-                selections:[
-                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
-                    {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                ]
-            }" :row-key="record => record.id" :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName"
-        :customRow="doubleClick" :expandIconColumnIndex="2" ref="workTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
-        <template #headerCell="{ title, column }">
-          <CellOverflowTooltip v-if="column.colValue" :content="title">
-            {{ title }}
-          </CellOverflowTooltip>
         </template>
-        <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'entry'">
-            <CellOverflowTooltip :content="formatEntryText(text)">
-              {{ formatEntryText(text) }}
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="editableTextAreaColumns.includes(column.dataIndex)">
-            <template v-if="editableData[record.id]">
-              <TableCellTextArea
-                :value="editableData[record.id][column.dataIndex] ?? ''"
-                @update:value="(val) => onCellInput(val, record, column)"
-                :error-message="cellErrors[record.id]?.[column.dataIndex]"
-              />
-            </template>
-            <template v-else>
-              <CellOverflowTooltip :content="formatCellText(text)" />
-            </template>
-          </template>
-          <template v-else-if="column.dataIndex === 'diFileName'">
-            <template v-if="editableData[record.id]">
-              <InputIME
-                :value="editableData[record.id][column.dataIndex]"
-                @update:value="(val) => onCellInput(val, record, column)"
-              />
-            </template>
-            <template v-else>
-              <CellOverflowTooltip :content="formatCellText(text)" />
-            </template>
-          </template>
-          <template v-else-if="column.dataIndex === 'tag'">
-            <template v-if="editableData[record.id]">
-              <InputIME
-                :value="editableData[record.id][column.dataIndex]"
-                @update:value="(val) => onCellInput(val, record, column)"
-              />
-              <a-tooltip placement="top">
-                <template #title>
-                  <span>多个Tag按分号分割！</span>
-                </template>
-                <InfoCircleOutlined style="margin-left:3px" />
-              </a-tooltip>
-            </template>
-            <template v-else>
-              <CellOverflowTooltip :content="formatTagText(text)">
-                <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
-                    {{tag}}
-                  </a-tag>
-                </span>
-              </CellOverflowTooltip>
-            </template>
-          </template>
-          <template v-else-if="column.dataIndex === 'isExist'">
-            <CellOverflowTooltip :content="isExistLabel(text)">
-              <IsExistBadge :isExist="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="column.dataIndex === 'entryState'">
-            <CellOverflowTooltip :content="entryStateLabel(text)">
-              <EntryStateBadge :entryState="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="translateStateList.includes(column.dataIndex)">
-            <CellOverflowTooltip :content="translateStateLabel(text)">
-              <TransStateBadge :translateState="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="column.dataIndex === 'operation'">
-            <AuditTags
-              :audit-state="record.auditState"
-              :disabled="!!record.parentID"
-              @pass="passTagChange(record)"
-              @reject="rejectTagChange(record)"
+        <template #subToolbar>
+          <!-- 过滤语种（工具栏下方第二行） -->
+          <div class="select">
+            <LanguageFilter
+              v-model="filterLanguage"
+              @change="filterLanguageChange"
             />
-          </template>
-          <template v-else-if="column.dataIndex === 'editOperation'">
-            <div class="editable-row-operations">
-              <span v-if="editableData[record.id]">
-                <a-tooltip placement="top">
-                  <template #title>
-                    <span>保存</span>
-                  </template>
-                  <CheckOutlined style="color:#369FFF;margin-left:8px" @click="edit(record)" />
-                </a-tooltip>
-                <a-tooltip placement="top">
-                  <template #title>
-                    <span>取消</span>
-                  </template>
-                  <CloseOutlined style="color:red;margin-left:8px" @click="cancel(record)" />
-                </a-tooltip>
-              </span>
-            </div>
-          </template>
-          <template v-else-if="column.dataIndex === 'maxLength'">
-            <template v-if="editableData[record.id]">
-              <a-input-number
-                v-model:value="editableData[record.id].maxLength"
-                :min="0"
-                :precision="0"
-                style="width: 100%"
-                placeholder="0 表示无限制"
-                @change="(val) => onCellInput(val, record, column)"
-              />
-            </template>
-            <template v-else>
-              <CellOverflowTooltip :content="formatMaxLengthText(text)" />
-            </template>
-          </template>
-          <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
-            <CellOverflowTooltip :content="formatCellText(text)" />
-          </template>
-        </template>
-        <template #expandIcon="props">
-          <span v-if="props.record.children != null && props.record.children.length > 0">
-            <div v-if="props.expanded" style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
-              <CaretDownOutlined />
-            </div>
-            <div v-else style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
-              <CaretRightOutlined />
-            </div>
-          </span>
-          <span v-else style="margin-right:23px"></span>
-        </template>
-        <!-- 设置筛选菜单 -->
-        <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-          <div style="padding: 8px">
-            <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-              style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)" />
-            <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-              @click="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)">
-              <template #icon>
-                <SearchOutlined />
-              </template>搜索</a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
           </div>
         </template>
-        <!-- 设置筛选图标 -->
-        <template #customFilterIcon="{ filtered }">
-          <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-        </template>
-      </a-table>
+      </PipelinePanel>
     </div>
     <template v-slot:leftBottomBtn>
       <a-button type="primary" size="small" style="margin-left:8px;float:left" class="resetBtn" @click="aggregation">聚合</a-button>
@@ -242,10 +105,7 @@ import {
   CheckOutlined,
   CloseOutlined,
   ExclamationCircleOutlined,
-  CaretDownOutlined,
-  CaretRightOutlined,
   SettingOutlined,
-  SearchOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
@@ -254,14 +114,12 @@ import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import {
-  WorkbenchFormBar,
-  WorkbenchActionGroup,
-  WorkbenchTaskInfo,
-  WorkbenchColumnActions,
-  WorkbenchLanguageFilter,
+  PipelinePanel,
+  ColumnActions,
+  LanguageFilter,
   AuditTags,
   AuditButtons,
-} from "@/components/Workbench";
+} from "@/views/workbench/components";
 import { filterLanguageChange as applyLanguageFilter } from "@/composables/workbench/useLanguageFilter";
 import { defaultPagination, pageChange as wbPageChange } from "@/views/workbench/composables/page";
 import {
@@ -297,15 +155,17 @@ import {
   showEditOperation as showEditOp,
   hideEditOperation as hideEditOp,
 } from "@/utils/validationUtils";
+import { loading, startLoading, endLoading, resetLoading } from "@/composables/useLoading";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
+  // 全局单一 loading 状态（hook 导出，响应式）：表格遮罩/保存按钮统一绑定
+  setup() {
+    return { loading };
+  },
   components: {
     CheckOutlined,
     CloseOutlined,
-    CaretDownOutlined,
-    CaretRightOutlined,
     SettingOutlined,
-    SearchOutlined,
     InfoCircleOutlined,
     CustomModal,
     RulesDropdown,
@@ -316,11 +176,9 @@ export default {
     InputIME,
     TableCellTextArea,
     CellOverflowTooltip,
-    WorkbenchFormBar,
-    WorkbenchActionGroup,
-    WorkbenchTaskInfo,
-    WorkbenchColumnActions,
-    WorkbenchLanguageFilter,
+    PipelinePanel,
+    ColumnActions,
+    LanguageFilter,
     AuditTags,
     AuditButtons,
   },
@@ -349,7 +207,6 @@ export default {
       keyWords: "",
       // tableHeight: { x: "100%", y: "415px" },
       tableHeight: { x: "max-content", y: "415px" },
-      loading: false,
       columns: [],
       dataSource: [],
       allData: [],
@@ -381,7 +238,6 @@ export default {
       // 历史字段 filteredData：曾由 handleTableChange 写入，仓库内无读取方；批量勾选走 this.filters + selectionUtils（AND）。
       antClearFilter: null,
       selectAllName: "全选",
-      saveLoading: false,
       rejectReasonVisible: false,
       rejectReason: {
         reason: "",
@@ -393,8 +249,22 @@ export default {
   created() {},
   mounted() {  },
   computed: {
+    examineEditCols() {
+      return [...this.editableTextAreaColumns, "diFileName", "tag", "maxLength"];
+    },
     editableTextAreaColumns() {
       return editTextCols(this, { withEditList: true });
+    },
+    examineRowSelection() {
+      return {
+        selectedRowKeys: this.selectedRowKeys,
+        onChange: this.onSelectChange,
+        checkStrictly: false,
+        selections: [
+          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
+          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
+        ],
+      };
     },
   },
   watch: {
@@ -434,7 +304,7 @@ export default {
               },
               colPrefName: "colPref-examineModal",
               normalWidth: 100,
-              needFilter: false,
+              needFilter: true,
               filterCols: filterWbColsForCtx,
               lockCellSize: true,
             });
@@ -489,45 +359,42 @@ export default {
       return map[value] ?? "未翻译";
     },
     // 获取待审核词条
-    getTaskEntry() {
+    async getTaskEntry() {
       let params = {
         taskID: this.task.id,
         entryState: this.entryState,
         entry: this.keyWords,
       };
-      this.loading = true;
-      getEntryInfoList(params, [])
-        .then((res) => {
-          // 更新成功：刷新所有任务的小红点
-          this.$emit("afterSave", this.currentTask);
+      startLoading();
+      try {
+        const res = await getEntryInfoList(params, []);
+        // 更新成功：刷新所有任务的小红点
+        this.$emit("afterSave", this.currentTask);
 
-          this.dataSource = res.data.list;
-          // 排序  将已存在的词条放到前面
-          this.dataSource.sort(function (a, b) {
-            return b.isExist - a.isExist;
-          });
-          this.dataSource.forEach((item) => {
-            item.auditState = -1;
-
-            // 装置部：行上展示模块上限（词条表不落这些字段）
-            item.maxByte = this.classifyLimit[item.classfy1]?.["maxByte"];
-            item.foreignMaxByte =
-              this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
-            // console.log("打印词条", item);
-          });
-          this.allData = this.dataSource;
-          this.loading = false;
-          // this.select()
-        })
-        .catch((err) => {
-          this.loading = false;
-          message.error("1", err.message);
-          // console.log("err1", err);
+        this.dataSource = res.data.list;
+        // 排序  将已存在的词条放到前面
+        this.dataSource.sort(function (a, b) {
+          return b.isExist - a.isExist;
         });
+        this.dataSource.forEach((item) => {
+          item.auditState = -1;
+
+          // 装置部：行上展示模块上限（词条表不落这些字段）
+          item.maxByte = this.classifyLimit[item.classfy1]?.["maxByte"];
+          item.foreignMaxByte =
+            this.classifyLimit[item.classfy1]?.["foreignMaxByte"];
+        });
+        this.allData = this.dataSource;
+        await revalidateLoaded(this, this.task.transMap.value);
+      } catch (err) {
+        message.error("1", err.message);
+      } finally {
+        endLoading();
+      }
     },
     async handleOK() {
-      this.saveLoading = true;
-      this.loading = true;
+      // 保存/校验期间触发全局遮罩（引用计数成对，防连点由遮罩拦截）
+      startLoading();
 
       const transCol = this.task.transMap.value;
       const methods = getMethods(this);
@@ -543,8 +410,7 @@ export default {
         if (verifyResult.errorIds.size > 0) {
           await openFailRows(this, updateArrCandidate, verifyResult, transCol);
           message.warn(`校验不通过 ${verifyResult.errorIds.size} 条，请检查翻译列红字`);
-          this.saveLoading = false;
-          this.loading = false;
+          endLoading();
           return;
         }
       }
@@ -674,8 +540,7 @@ export default {
           }
         })
         .finally(() => {
-          this.saveLoading = false;
-          this.loading = false;
+          endLoading();
         });
     },
     handleClose() {
@@ -898,6 +763,7 @@ export default {
       this.selectedRows = [];
     },
     afterClose() {
+      resetLoading();
       this.editableData = {};
       this.selectedRows = [];
       this.selectedRowKeys = [];

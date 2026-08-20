@@ -1,5 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { flushPromises } from '@vue/test-utils'
 import { filterLanguageChange } from '@/composables/workbench/useLanguageFilter'
+import { isLoading, resetLoading } from '@/composables/useLoading'
 
 vi.mock('@/http/api/workbench', () => ({
   filterSourceLanguage: vi.fn(),
@@ -21,9 +23,13 @@ describe('useLanguageFilter', () => {
       allData: [{ id: 1 }, { id: 2 }],
       dataSource: [],
       filterSource: [],
-      loading: false,
     }
     vi.clearAllMocks()
+    resetLoading()
+  })
+
+  afterEach(() => {
+    resetLoading()
   })
 
   it('选择「全部」时应恢复 allData', () => {
@@ -47,17 +53,17 @@ describe('useLanguageFilter', () => {
 
     filterLanguageChange(vm)
 
-    expect(vm.loading).toBe(true)
+    expect(isLoading()).toBe(true)
     expect(filterSourceLanguage).toHaveBeenCalledWith(
       { languageType: '中文' },
       vm.allData
     )
 
-    await Promise.resolve()
+    await flushPromises()
 
     expect(vm.dataSource).toEqual(filtered)
     expect(vm.filterSource).toEqual(filtered)
-    expect(vm.loading).toBe(false)
+    expect(isLoading()).toBe(false)
   })
 
   it('API 失败时应关闭 loading 并提示错误', async () => {
@@ -66,7 +72,7 @@ describe('useLanguageFilter', () => {
 
     filterLanguageChange(vm)
     await vi.waitFor(() => {
-      expect(vm.loading).toBe(false)
+      expect(isLoading()).toBe(false)
     })
 
     expect(message.error).toHaveBeenCalled()

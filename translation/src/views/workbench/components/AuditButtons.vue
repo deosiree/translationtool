@@ -1,4 +1,5 @@
 <template>
+  <!-- 审核阶段：行内操作按钮（通过/驳回/撤销），供 examineModal bodyCell 使用 -->
   <span class="audit-buttons">
     <a-button
       type="primary"

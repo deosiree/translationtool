@@ -1,314 +1,801 @@
 <template>
-  <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :showCancel="false" :okLoading="saveLoading" :fullFlag="true"
-    okText="保存" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <CustomModal
+    :visible="visible"
+    :modalTitle="modalTitle"
+    :modalWidth="modalWidth"
+    :showCancel="false"
+    :okLoading="loading"
+    :fullFlag="true"
+    okText="保存"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+    @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
+  >
     <div class="content">
-      <WorkbenchTaskInfo :task="task">
-        <template #extra>
-          <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
+      <!-- 工具栏壳：任务信息 + 导入区 + 表格查询 + trailing 展示列 -->
+      <PipelinePanel
+        :task="task"
+        :table-host="this"
+        :columns="columns"
+        :data-source="dataSource"
+        :loading="loading"
+        :pagination="pagination"
+        :scroll="tableHeight"
+        :row-selection="importRowSelection"
+        :custom-row="customRow"
+        :edit="importEditCols"
+        :editable-data="editableData"
+        :cell-errors="cellErrors"
+        @cell-input="onCellInput"
+        @save-edit="editSave"
+        @cancel-edit="cancel"
+        ref="workTable"
+      >
+        <template #taskExtra>
+          <RulesDropdown
+            :options="rulesOptions"
+            @update:options="rulesOptions"
+          ></RulesDropdown>
         </template>
-      </WorkbenchTaskInfo>
-      <div class="platformBox">
-        <div style="width:100%;">
-          <a-form layout="inline" style="margin-top: 10px;">
-            <a-form-item label="数据类型">
-              <a-radio-group v-model:value="dataType" @change="dataTypeChange">
-                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('file')" :value="'file'">文件</a-radio>
-                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('ts')" :value="'ts'">TS</a-radio>
-                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('database')" :value="'database'">实时库</a-radio>
-                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('dictionary')" :value="'dictionary'">辞典</a-radio>
-                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('config')" :value="'config'">配置文件</a-radio>
-                <a-radio v-if="$currentDepartment && $currentDepartment.importTypes.includes('enum')" :value="'enum'">枚举文件</a-radio>
-              </a-radio-group>
-            </a-form-item>
-            <a-form-item v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" label="IP">
-              <a-select v-model:value="ip" :options="ips" @change="ipChange" style="width:250px" placeholder="请选择IP" allowClear></a-select>
-            </a-form-item>
-          </a-form>
-        </div>
-        <div class="dataTypeBox file-import-row" v-if="dataType === 'file'" ref="fileRef">
-          <a-row :gutter="12" type="flex" align="middle">
-            <a-col :flex="'auto'" style="min-width: 0">
-              <a-form-item label="词条文件" name="filefilename" class="file-import-item">
-                <div class="file-import-controls">
-                  <FileSelectWithEncoding
-                    v-model:encoding="fileEncoding"
-                    v-model:filePath="filePath"
-                    :accept="accept"
-                    :encoding-locked="true"
-                    showPathInput
-                    path-placeholder="请选择词条文件"
-                    :path-input-style="{ width: '140px', maxWidth: '140px', flexShrink: 0 }"
-                    button-text="选择文件"
-                    size="small"
-                    :before-upload="beforeUpload"
-                    @change="handleChange"
-                  />
-                  <a class="template-download-link" @click="templateFileDownload">下载模板</a>
-                </div>
-              </a-form-item>
-            </a-col>
-            <a-col flex="none">
-              <a-form-item
-                v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
-                label="回写辞典"
-                name="diFileName"
-                class="file-import-item"
-              >
-                <a-select
-                  v-model:value="filediFileName"
-                  allowClear
-                  placeholder="请选择回写辞典目录"
-                  style="width: 160px"
-                  :options="dictionaryOptions"
-                  size="small"
-                  show-search
-                  :filter-option="(input, option) => option.label.toLowerCase().includes(input.toLowerCase())"
-                />
-                <a-tooltip placement="top">
-                  <template #title>
-                    <span>添加辞典</span>
-                  </template>
-                  <PlusSquareOutlined @click="createDictionary" style="color:#369FFF;margin-left:6px" />
-                </a-tooltip>
-              </a-form-item>
-              <a-form-item v-else-if="templateTypes" label="选择模板" name="templateType" class="file-import-item">
-                <a-select
-                  v-model:value="templateType"
-                  allowClear
-                  placeholder="请选择模板类型"
-                  style="width: 160px"
-                  size="small"
-                  :options="templateTypes"
-                />
-              </a-form-item>
-            </a-col>
-            <a-col flex="none">
-              <a-form-item class="file-import-item">
-                <a-button type="primary" ghost size="small" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-              </a-form-item>
-            </a-col>
-          </a-row>
-        </div>
-        <div class="dataTypeBox" v-if="dataType === 'ts'">
-          <a-form ref="tsFormRef" :model="tsFile" style="width:100%">
-            <a-form-item :label="selectTitle" name="tsFileValue" :rules="[{ required: true, message: '请选择ts文件!' }]">
-              <a-select v-model:value="tsFile.tsFileValue" v-model:searchValue="searchTSValue" mode="multiple" :max-tag-count="4" allowClear
-                style="width: 70%;margin-left:10px" placeholder="请选择" size="small" :options="tsOptions" @search="onTSSearch" @change="onTSChange"
-                @blur="onTSBlur">
-                <template #dropdownRender="{ menuNode: menu }">
-                  <v-nodes :vnodes="menu" />
-                  <a-divider style="margin: 4px 0" />
-                  <div style="padding: 4px 8px; cursor: pointer;" @mousedown="e => e.preventDefault()">
-                    <a-button type="link" @click="selectAllTs">全选</a-button>
-                    <a-button type="link" @click="clearAllTs">清空</a-button>
-                  </div>
-                </template>
-              </a-select>
-              <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-            </a-form-item>
-          </a-form>
-        </div>
-        <div class="dataTypeBox" v-if="dataType === 'dictionary'" ref="dicRef">
-          <a-form ref="dictSelectRef" name="advanced_search" class="ant-advanced-search-form" :model="dict" style="width:100%">
-            <a-row :gutter="24">
-              <a-col :span="12">
-                <a-form-item label="辞典" name="dictionaryType" :rules="[{ required: true, message: '请选择辞典!' }]">
-                  <a-tree-select v-model:value="dict.dictionaryType" v-model:searchValue="searchDicValue" show-search tree-checkable
-                    style="width: 100%" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }" placeholder="请选择" allow-clear multiple
-                    :tree-data="notEffectiveDicts" :max-tag-count="2" size="small" tree-node-filter-prop="label" @search="onDicSearch"
-                    @change="onDicChange" @blur="onDicBlur">
-                  </a-tree-select>
+        <template #beforeFormBar>
+          <!-- 本阶段专有：数据源选择与导入 -->
+          <div class="platformBox">
+            <div style="width: 100%">
+              <a-form layout="inline" style="margin-top: 10px">
+                <a-form-item label="数据类型">
+                  <a-radio-group
+                    v-model:value="dataType"
+                    @change="dataTypeChange"
+                  >
+                    <a-radio
+                      v-if="
+                        $currentDepartment &&
+                        $currentDepartment.importTypes.includes('file')
+                      "
+                      :value="'file'"
+                      >文件</a-radio
+                    >
+                    <a-radio
+                      v-if="
+                        $currentDepartment &&
+                        $currentDepartment.importTypes.includes('ts')
+                      "
+                      :value="'ts'"
+                      >TS</a-radio
+                    >
+                    <a-radio
+                      v-if="
+                        $currentDepartment &&
+                        $currentDepartment.importTypes.includes('database')
+                      "
+                      :value="'database'"
+                      >实时库</a-radio
+                    >
+                    <a-radio
+                      v-if="
+                        $currentDepartment &&
+                        $currentDepartment.importTypes.includes('dictionary')
+                      "
+                      :value="'dictionary'"
+                      >辞典</a-radio
+                    >
+                    <a-radio
+                      v-if="
+                        $currentDepartment &&
+                        $currentDepartment.importTypes.includes('config')
+                      "
+                      :value="'config'"
+                      >配置文件</a-radio
+                    >
+                    <a-radio
+                      v-if="
+                        $currentDepartment &&
+                        $currentDepartment.importTypes.includes('enum')
+                      "
+                      :value="'enum'"
+                      >枚举文件</a-radio
+                    >
+                  </a-radio-group>
                 </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-        <div class="dataTypeBox" v-if="dataType === 'database'" style="padding-top:0px" ref="dataSourceRef">
-          <a-tabs v-model:activeKey="dataLibrary.type" size="small" style="width:100%" @change="changeDataLibraryType">
-            <a-tab-pane key="field" tab="对象数据"></a-tab-pane>
-            <a-tab-pane key="alias" tab="元数据"></a-tab-pane>
-            <a-tab-pane key="allData" tab="全量"></a-tab-pane>
-          </a-tabs>
-          <a-form ref="fieldFormRef" name="advanced_search" class="ant-advanced-search-form" :model="dataLibrary" style="width:100%"
-            v-if="dataLibrary.type === 'field'">
-            <a-row :gutter="24">
-              <a-col :span="8">
-                <a-form-item label="数据库" name="table" :rules="[{ required: true, message: '请选择数据库!' }]">
-                  <a-tree-select v-model:value="dataLibrary.table" v-model:searchValue="searchValue" allowClear tree-data-simple-mode show-search
-                    style="width: 100%" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }" :tree-data="treeData" placeholder="请选择表"
-                    :load-data="onLoadData" :show-checked-strategy="SHOW_PARENT" @select="treeSelect" tree-node-filter-prop="title" size="small">
-                    <template #title="{ title }">
-                      <template v-for="(fragment, i) in title
-                                                            .toString()
-                                                            .split(new RegExp(`(?<=${searchValue})|(?=${searchValue})`, 'i'))">
-                        <span v-if="fragment.toLowerCase() === searchValue.toLowerCase()" :key="i" style="color: #08c">
-                          {{ fragment }}
-                        </span>
-                        <template v-else>{{ fragment }}</template>
+                <a-form-item
+                  v-if="
+                    $currentDepartment && $currentDepartment.ops.has('needIP')
+                  "
+                  label="IP"
+                >
+                  <a-select
+                    v-model:value="ip"
+                    :options="ips"
+                    @change="ipChange"
+                    style="width: 250px"
+                    placeholder="请选择IP"
+                    allowClear
+                  ></a-select>
+                </a-form-item>
+              </a-form>
+            </div>
+            <div
+              class="dataTypeBox file-import-row"
+              v-if="dataType === 'file'"
+              ref="fileRef"
+            >
+              <a-row :gutter="12" type="flex" align="middle">
+                <a-col :flex="'auto'" style="min-width: 0">
+                  <a-form-item
+                    label="词条文件"
+                    name="filefilename"
+                    class="file-import-item"
+                  >
+                    <div class="file-import-controls">
+                      <FileSelectWithEncoding
+                        v-model:encoding="fileEncoding"
+                        v-model:filePath="filePath"
+                        :accept="accept"
+                        :encoding-locked="true"
+                        showPathInput
+                        path-placeholder="请选择词条文件"
+                        :path-input-style="{
+                          width: '140px',
+                          maxWidth: '140px',
+                          flexShrink: 0,
+                        }"
+                        button-text="选择文件"
+                        size="small"
+                        :before-upload="beforeUpload"
+                        @change="handleChange"
+                      />
+                      <a
+                        class="template-download-link"
+                        @click="templateFileDownload"
+                        >下载模板</a
+                      >
+                    </div>
+                  </a-form-item>
+                </a-col>
+                <a-col flex="none">
+                  <a-form-item
+                    v-if="
+                      $currentDepartment && $currentDepartment.ops.has('needIP')
+                    "
+                    label="回写辞典"
+                    name="diFileName"
+                    class="file-import-item"
+                  >
+                    <a-select
+                      v-model:value="filediFileName"
+                      allowClear
+                      placeholder="请选择回写辞典目录"
+                      style="width: 160px"
+                      :options="dictionaryOptions"
+                      size="small"
+                      show-search
+                      :filter-option="
+                        (input, option) =>
+                          option.label
+                            .toLowerCase()
+                            .includes(input.toLowerCase())
+                      "
+                    />
+                    <a-tooltip placement="top">
+                      <template #title>
+                        <span>添加辞典</span>
                       </template>
-                    </template>
-                  </a-tree-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="8">
-                <a-form-item label="字段" name="field" :rules="[{ required: true, message: '请选择字段!' }]">
-                  <a-select v-model:value="dataLibrary.field" mode="multiple" allowClear placeholder="请选择字段" :options="fieldOptions"
-                    :max-tag-count="3" size="small">
+                      <PlusSquareOutlined
+                        @click="createDictionary"
+                        style="color: #369fff; margin-left: 6px"
+                      />
+                    </a-tooltip>
+                  </a-form-item>
+                  <a-form-item
+                    v-else-if="templateTypes"
+                    label="选择模板"
+                    name="templateType"
+                    class="file-import-item"
+                  >
+                    <a-select
+                      v-model:value="templateType"
+                      allowClear
+                      placeholder="请选择模板类型"
+                      style="width: 160px"
+                      size="small"
+                      :options="templateTypes"
+                    />
+                  </a-form-item>
+                </a-col>
+                <a-col flex="none">
+                  <a-form-item class="file-import-item">
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      :loading="loading"
+                      @click="importEntryData"
+                      >导入</a-button
+                    >
+                  </a-form-item>
+                </a-col>
+              </a-row>
+            </div>
+            <div class="dataTypeBox" v-if="dataType === 'ts'">
+              <a-form ref="tsFormRef" :model="tsFile" style="width: 100%">
+                <a-form-item
+                  :label="selectTitle"
+                  name="tsFileValue"
+                  :rules="[{ required: true, message: '请选择ts文件!' }]"
+                >
+                  <a-select
+                    v-model:value="tsFile.tsFileValue"
+                    v-model:searchValue="searchTSValue"
+                    mode="multiple"
+                    :max-tag-count="4"
+                    allowClear
+                    style="width: 70%; margin-left: 10px"
+                    placeholder="请选择"
+                    size="small"
+                    :options="tsOptions"
+                    @search="onTSSearch"
+                    @change="onTSChange"
+                    @blur="onTSBlur"
+                  >
                     <template #dropdownRender="{ menuNode: menu }">
                       <v-nodes :vnodes="menu" />
                       <a-divider style="margin: 4px 0" />
-                      <div style="padding: 4px 8px; cursor: pointer;" @mousedown="e => e.preventDefault()">
-                        <a-button type="link" @click="selectAllField">全选</a-button>
-                        <a-button type="link" @click="clearAllField">清空</a-button>
+                      <div
+                        style="padding: 4px 8px; cursor: pointer"
+                        @mousedown="(e) => e.preventDefault()"
+                      >
+                        <a-button type="link" @click="selectAllTs"
+                          >全选</a-button
+                        >
+                        <a-button type="link" @click="clearAllTs"
+                          >清空</a-button
+                        >
+                      </div>
+                    </template>
+                  </a-select>
+                  <a-button
+                    type="primary"
+                    ghost
+                    size="small"
+                    style="float: right"
+                    :loading="loading"
+                    @click="importEntryData"
+                    >导入</a-button
+                  >
+                </a-form-item>
+              </a-form>
+            </div>
+            <div
+              class="dataTypeBox"
+              v-if="dataType === 'dictionary'"
+              ref="dicRef"
+            >
+              <a-form
+                ref="dictSelectRef"
+                name="advanced_search"
+                class="ant-advanced-search-form"
+                :model="dict"
+                style="width: 100%"
+              >
+                <a-row :gutter="24">
+                  <a-col :span="12">
+                    <a-form-item
+                      label="辞典"
+                      name="dictionaryType"
+                      :rules="[{ required: true, message: '请选择辞典!' }]"
+                    >
+                      <a-tree-select
+                        v-model:value="dict.dictionaryType"
+                        v-model:searchValue="searchDicValue"
+                        show-search
+                        tree-checkable
+                        style="width: 100%"
+                        :dropdown-style="{
+                          maxHeight: '400px',
+                          overflow: 'auto',
+                        }"
+                        placeholder="请选择"
+                        allow-clear
+                        multiple
+                        :tree-data="notEffectiveDicts"
+                        :max-tag-count="2"
+                        size="small"
+                        tree-node-filter-prop="label"
+                        @search="onDicSearch"
+                        @change="onDicChange"
+                        @blur="onDicBlur"
+                      >
+                      </a-tree-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      style="float: right"
+                      :loading="loading"
+                      @click="importEntryData"
+                      >导入</a-button
+                    >
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+            <div
+              class="dataTypeBox"
+              v-if="dataType === 'database'"
+              style="padding-top: 0px"
+              ref="dataSourceRef"
+            >
+              <a-tabs
+                v-model:activeKey="dataLibrary.type"
+                size="small"
+                style="width: 100%"
+                @change="changeDataLibraryType"
+              >
+                <a-tab-pane key="field" tab="对象数据"></a-tab-pane>
+                <a-tab-pane key="alias" tab="元数据"></a-tab-pane>
+                <a-tab-pane key="allData" tab="全量"></a-tab-pane>
+              </a-tabs>
+              <a-form
+                ref="fieldFormRef"
+                name="advanced_search"
+                class="ant-advanced-search-form"
+                :model="dataLibrary"
+                style="width: 100%"
+                v-if="dataLibrary.type === 'field'"
+              >
+                <a-row :gutter="24">
+                  <a-col :span="8">
+                    <a-form-item
+                      label="数据库"
+                      name="table"
+                      :rules="[{ required: true, message: '请选择数据库!' }]"
+                    >
+                      <a-tree-select
+                        v-model:value="dataLibrary.table"
+                        v-model:searchValue="searchValue"
+                        allowClear
+                        tree-data-simple-mode
+                        show-search
+                        style="width: 100%"
+                        :dropdown-style="{
+                          maxHeight: '400px',
+                          overflow: 'auto',
+                        }"
+                        :tree-data="treeData"
+                        placeholder="请选择表"
+                        :load-data="onLoadData"
+                        :show-checked-strategy="SHOW_PARENT"
+                        @select="treeSelect"
+                        tree-node-filter-prop="title"
+                        size="small"
+                      >
+                        <template #title="{ title }">
+                          <template
+                            v-for="(fragment, i) in title
+                              .toString()
+                              .split(
+                                new RegExp(
+                                  `(?<=${searchValue})|(?=${searchValue})`,
+                                  'i',
+                                ),
+                              )"
+                          >
+                            <span
+                              v-if="
+                                fragment.toLowerCase() ===
+                                searchValue.toLowerCase()
+                              "
+                              :key="i"
+                              style="color: #08c"
+                            >
+                              {{ fragment }}
+                            </span>
+                            <template v-else>{{ fragment }}</template>
+                          </template>
+                        </template>
+                      </a-tree-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-form-item
+                      label="字段"
+                      name="field"
+                      :rules="[{ required: true, message: '请选择字段!' }]"
+                    >
+                      <a-select
+                        v-model:value="dataLibrary.field"
+                        mode="multiple"
+                        allowClear
+                        placeholder="请选择字段"
+                        :options="fieldOptions"
+                        :max-tag-count="3"
+                        size="small"
+                      >
+                        <template #dropdownRender="{ menuNode: menu }">
+                          <v-nodes :vnodes="menu" />
+                          <a-divider style="margin: 4px 0" />
+                          <div
+                            style="padding: 4px 8px; cursor: pointer"
+                            @mousedown="(e) => e.preventDefault()"
+                          >
+                            <a-button type="link" @click="selectAllField"
+                              >全选</a-button
+                            >
+                            <a-button type="link" @click="clearAllField"
+                              >清空</a-button
+                            >
+                          </div>
+                        </template>
+                      </a-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      style="float: right"
+                      :loading="loading"
+                      @click="importEntryData"
+                      >导入</a-button
+                    >
+                  </a-col>
+                </a-row>
+              </a-form>
+              <a-form
+                ref="aliasFormRef"
+                name="advanced_search"
+                class="ant-advanced-search-form"
+                :model="dataLibrary"
+                style="width: 100%"
+                v-if="dataLibrary.type === 'alias'"
+              >
+                <a-row :gutter="24">
+                  <a-col :span="8">
+                    <a-form-item
+                      label="数据库"
+                      name="table"
+                      :rules="[{ required: true, message: '请选择库!' }]"
+                    >
+                      <a-tree-select
+                        v-model:value="dataLibrary.table"
+                        v-model:searchValue="searchValue"
+                        tree-data-simple-mode
+                        allowClear
+                        show-search
+                        style="width: 100%"
+                        :dropdown-style="{
+                          maxHeight: '400px',
+                          overflow: 'auto',
+                        }"
+                        :tree-data="treeData"
+                        placeholder="请选择库"
+                        :load-data="onLoadData"
+                        @select="treeSelect"
+                        tree-node-filter-prop="title"
+                        size="small"
+                      >
+                        <template #title="{ title }">
+                          <template
+                            v-for="(fragment, i) in title
+                              .toString()
+                              .split(
+                                new RegExp(
+                                  `(?<=${searchValue})|(?=${searchValue})`,
+                                  'i',
+                                ),
+                              )"
+                          >
+                            <span
+                              v-if="
+                                fragment.toLowerCase() ===
+                                searchValue.toLowerCase()
+                              "
+                              :key="i"
+                              style="color: #08c"
+                            >
+                              {{ fragment }}
+                            </span>
+                            <template v-else>{{ fragment }}</template>
+                          </template>
+                        </template>
+                      </a-tree-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-form-item label="翻译最大长度">
+                      <a-input-number
+                        v-model:value="dataLibrary.maxLength"
+                        style="width: 100%"
+                        size="small"
+                        placeholder="请输入翻译最大长度"
+                      />
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="8">
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      style="float: right"
+                      :loading="loading"
+                      @click="importEntryData"
+                      >导入</a-button
+                    >
+                  </a-col>
+                </a-row>
+              </a-form>
+              <a-form
+                ref="allDataFormRef"
+                name="advanced_search"
+                class="ant-advanced-search-form"
+                :model="dataLibrary"
+                style="width: 100%"
+                v-if="dataLibrary.type === 'allData'"
+              >
+                <a-row :gutter="24">
+                  <a-col :span="12">
+                    <a-form-item
+                      label="数据库"
+                      name="tables"
+                      :rules="[{ required: true, message: '请选择!' }]"
+                    >
+                      <a-tree-select
+                        v-model:value="dataLibrary.tables"
+                        v-model:searchValue="searchValue"
+                        show-search
+                        allowClear
+                        tree-data-simple-mode
+                        style="width: 100%"
+                        :dropdown-style="{
+                          maxHeight: '400px',
+                          overflow: 'auto',
+                        }"
+                        :tree-data="treeData"
+                        placeholder="请选择"
+                        :load-data="onLoadData"
+                        :maxTagCount="3"
+                        tree-checkable
+                        :show-checked-strategy="SHOW_PARENT"
+                        @select="treeBatchSelect"
+                        tree-node-filter-prop="title"
+                        size="small"
+                      >
+                        <template #title="{ title }">
+                          <template
+                            v-for="(fragment, i) in title
+                              .toString()
+                              .split(
+                                new RegExp(
+                                  `(?<=${searchValue})|(?=${searchValue})`,
+                                  'i',
+                                ),
+                              )"
+                          >
+                            <span
+                              v-if="
+                                fragment.toLowerCase() ===
+                                searchValue.toLowerCase()
+                              "
+                              :key="i"
+                              style="color: #08c"
+                            >
+                              {{ fragment }}
+                            </span>
+                            <template v-else>{{ fragment }}</template>
+                          </template>
+                        </template>
+                      </a-tree-select>
+                    </a-form-item>
+                  </a-col>
+                  <a-col :span="12">
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      style="float: right"
+                      :loading="loading"
+                      @click="importEntryData"
+                      >导入</a-button
+                    >
+                  </a-col>
+                </a-row>
+              </a-form>
+            </div>
+            <div
+              class="dataTypeBox2"
+              v-if="dataType === 'config'"
+              ref="configRef"
+            >
+              <a-form
+                ref="configFormRef"
+                name="advanced_search"
+                class="ant-advanced-search-form"
+                :model="configFile"
+                style="width: 100%"
+              >
+                <a-form-item
+                  label="配置文件"
+                  name="config"
+                  :rules="[{ required: true, message: '请选择配置文件!' }]"
+                >
+                  <a-select
+                    v-model:value="configFile.config"
+                    v-model:searchValue="searchConfigValue"
+                    mode="multiple"
+                    :max-tag-count="3"
+                    allowClear
+                    placeholder="请选择配置文件"
+                    :options="configFile.configOptions"
+                    style="width: 50%"
+                    size="small"
+                    @search="onConfigSearch"
+                    @change="onConfigChange"
+                    @blur="onConfigBlur"
+                  >
+                    <template #dropdownRender="{ menuNode: menu }">
+                      <v-nodes :vnodes="menu" />
+                      <a-divider style="margin: 4px 0" />
+                      <div
+                        style="padding: 4px 8px; cursor: pointer"
+                        @mousedown="(e) => e.preventDefault()"
+                      >
+                        <a-button type="link" @click="selectAllConfig"
+                          >全选</a-button
+                        >
+                        <a-button type="link" @click="clearAllConfig"
+                          >清空</a-button
+                        >
                       </div>
                     </template>
                   </a-select>
                 </a-form-item>
-              </a-col>
-              <a-col :span="8">
-                <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-              </a-col>
-            </a-row>
-          </a-form>
-          <a-form ref="aliasFormRef" name="advanced_search" class="ant-advanced-search-form" :model="dataLibrary" style="width:100%"
-            v-if="dataLibrary.type === 'alias'">
-            <a-row :gutter="24">
-              <a-col :span="8">
-                <a-form-item label="数据库" name="table" :rules="[{ required: true, message: '请选择库!' }]">
-                  <a-tree-select v-model:value="dataLibrary.table" v-model:searchValue="searchValue" tree-data-simple-mode allowClear show-search
-                    style="width: 100%" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }" :tree-data="treeData" placeholder="请选择库"
-                    :load-data="onLoadData" @select="treeSelect" tree-node-filter-prop="title" size="small">
-                    <template #title="{ title }">
-                      <template v-for="(fragment, i) in title
-                                                            .toString()
-                                                            .split(new RegExp(`(?<=${searchValue})|(?=${searchValue})`, 'i'))">
-                        <span v-if="fragment.toLowerCase() === searchValue.toLowerCase()" :key="i" style="color: #08c">
-                          {{ fragment }}
-                        </span>
-                        <template v-else>{{ fragment }}</template>
-                      </template>
+              </a-form>
+              <a-button
+                type="primary"
+                ghost
+                size="small"
+                style="margin-left: auto"
+                :loading="loading"
+                @click="importEntryData"
+                >导入</a-button
+              >
+            </div>
+            <div class="dataTypeBox2" v-if="dataType === 'enum'" ref="enumRef">
+              <a-form
+                ref="enumFormRef"
+                name="advanced_search"
+                class="ant-advanced-search-form"
+                :model="enumFile"
+                style="width: 100%"
+              >
+                <a-form-item
+                  label="枚举文件"
+                  name="enum"
+                  :rules="[{ required: true, message: '请选择枚举文件!' }]"
+                >
+                  <a-select
+                    v-model:value="enumFile.enum"
+                    v-model:searchValue="searchEnumValue"
+                    mode="multiple"
+                    :max-tag-count="3"
+                    allowClear
+                    placeholder="请选择枚举文件"
+                    :options="enumFile.enumOptions"
+                    style="width: 50%"
+                    size="small"
+                    @search="onEnumSearch"
+                    @change="onEnumChange"
+                    @blur="onEnumBlur"
+                  >
+                    <template #dropdownRender="{ menuNode: menu }">
+                      <v-nodes :vnodes="menu" />
+                      <a-divider style="margin: 4px 0" />
+                      <div
+                        style="padding: 4px 8px; cursor: pointer"
+                        @mousedown="(e) => e.preventDefault()"
+                      >
+                        <a-button type="link" @click="selectAllEnum"
+                          >全选</a-button
+                        >
+                        <a-button type="link" @click="clearAllEnum"
+                          >清空</a-button
+                        >
+                      </div>
                     </template>
-                  </a-tree-select>
+                  </a-select>
                 </a-form-item>
-              </a-col>
-              <a-col :span="8">
-                <a-form-item label="翻译最大长度">
-                  <a-input-number v-model:value="dataLibrary.maxLength" style="width:100%" size="small" placeholder="请输入翻译最大长度" />
-                </a-form-item>
-              </a-col>
-              <a-col :span="8">
-                <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-              </a-col>
-            </a-row>
-          </a-form>
-          <a-form ref="allDataFormRef" name="advanced_search" class="ant-advanced-search-form" :model="dataLibrary" style="width:100%"
-            v-if="dataLibrary.type === 'allData'">
-            <a-row :gutter="24">
-              <a-col :span="12">
-                <a-form-item label="数据库" name="tables" :rules="[{ required: true, message: '请选择!' }]">
-                  <a-tree-select v-model:value="dataLibrary.tables" v-model:searchValue="searchValue" show-search allowClear tree-data-simple-mode
-                    style="width: 100%" :dropdown-style="{ maxHeight: '400px', overflow: 'auto' }" :tree-data="treeData" placeholder="请选择"
-                    :load-data="onLoadData" :maxTagCount="3" tree-checkable :show-checked-strategy="SHOW_PARENT" @select="treeBatchSelect"
-                    tree-node-filter-prop="title" size="small">
-                    <template #title="{ title }">
-                      <template v-for="(fragment, i) in title
-                                                            .toString()
-                                                            .split(new RegExp(`(?<=${searchValue})|(?=${searchValue})`, 'i'))">
-                        <span v-if="fragment.toLowerCase() === searchValue.toLowerCase()" :key="i" style="color: #08c">
-                          {{ fragment }}
-                        </span>
-                        <template v-else>{{ fragment }}</template>
-                      </template>
-                    </template>
-                  </a-tree-select>
-                </a-form-item>
-              </a-col>
-              <a-col :span="12">
-                <a-button type="primary" ghost size="small" style="float:right" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-              </a-col>
-            </a-row>
-          </a-form>
-        </div>
-        <div class="dataTypeBox2" v-if="dataType === 'config'" ref="configRef">
-          <a-form ref="configFormRef" name="advanced_search" class="ant-advanced-search-form" :model="configFile" style="width:100%">
-            <a-form-item label="配置文件" name="config" :rules="[{ required: true, message: '请选择配置文件!' }]">
-              <a-select v-model:value="configFile.config" v-model:searchValue="searchConfigValue" mode="multiple" :max-tag-count="3" allowClear
-                placeholder="请选择配置文件" :options="configFile.configOptions" style="width:50%" size="small" @search="onConfigSearch"
-                @change="onConfigChange" @blur="onConfigBlur">
-                <template #dropdownRender="{ menuNode: menu }">
-                  <v-nodes :vnodes="menu" />
-                  <a-divider style="margin: 4px 0" />
-                  <div style="padding: 4px 8px; cursor: pointer;" @mousedown="e => e.preventDefault()">
-                    <a-button type="link" @click="selectAllConfig">全选</a-button>
-                    <a-button type="link" @click="clearAllConfig">清空</a-button>
-                  </div>
-                </template>
-              </a-select>
+              </a-form>
+              <a-button
+                type="primary"
+                ghost
+                size="small"
+                style="margin-left: auto"
+                :loading="loading"
+                @click="importEntryData"
+                >导入</a-button
+              >
+            </div>
+          </div>
+        </template>
+        <!-- 表格上方：词条/存在状态筛选 + 过滤语种 -->
+        <div
+          style="
+            width: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          "
+        >
+          <a-form
+            layout="inline"
+            autocomplete="off"
+            style="display: flex; gap: 8px"
+          >
+            <a-form-item
+              label="词条"
+              name="entry"
+              style="width: auto; height: auto; margin: 0"
+            >
+              <a-input
+                v-model:value="keyWords"
+                size="small"
+                placeholder="词条"
+                style="width: 100px"
+              />
             </a-form-item>
-          </a-form>
-          <a-button type="primary" ghost size="small" style="margin-left:auto" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-        </div>
-        <div class="dataTypeBox2" v-if="dataType === 'enum'" ref="enumRef">
-          <a-form ref="enumFormRef" name="advanced_search" class="ant-advanced-search-form" :model="enumFile" style="width:100%">
-            <a-form-item label="枚举文件" name="enum" :rules="[{ required: true, message: '请选择枚举文件!' }]">
-              <a-select v-model:value="enumFile.enum" v-model:searchValue="searchEnumValue" mode="multiple" :max-tag-count="3" allowClear
-                placeholder="请选择枚举文件" :options="enumFile.enumOptions" style="width:50%" size="small" @search="onEnumSearch" @change="onEnumChange"
-                @blur="onEnumBlur">
-                <template #dropdownRender="{ menuNode: menu }">
-                  <v-nodes :vnodes="menu" />
-                  <a-divider style="margin: 4px 0" />
-                  <div style="padding: 4px 8px; cursor: pointer;" @mousedown="e => e.preventDefault()">
-                    <a-button type="link" @click="selectAllEnum">全选</a-button>
-                    <a-button type="link" @click="clearAllEnum">清空</a-button>
-                  </div>
-                </template>
-              </a-select>
-            </a-form-item>
-          </a-form>
-          <a-button type="primary" ghost size="small" style="margin-left:auto" :loading="importBtnLoading" @click="importEntryData">导入</a-button>
-        </div>
-      </div>
-
-      <WorkbenchFormBar>
-        <div style="width: auto; display: flex; align-items: center;justify-content: center;">
-          <a-form layout="inline" autocomplete="off" style="display: flex;gap: 8px;">
-            <a-form-item label="词条" name="entry" style="width: auto;height: auto; margin: 0;">
-              <a-input v-model:value="keyWords" size="small" placeholder='词条' style="width: 100px;" />
-            </a-form-item>
-            <a-form-item label="存在状态" name="isExist" style="width: auto;height: auto; margin: 0;">
-              <a-select v-model:value="isExist" style="width: 120px" placeholder="请选择存在状态" :options="isExistOptions" allowClear
-                size="small" />
+            <a-form-item
+              label="存在状态"
+              name="isExist"
+              style="width: auto; height: auto; margin: 0"
+            >
+              <a-select
+                v-model:value="isExist"
+                style="width: 120px"
+                placeholder="请选择存在状态"
+                :options="isExistOptions"
+                allowClear
+                size="small"
+              />
             </a-form-item>
           </a-form>
         </div>
 
         <!-- 词条：
         <a-input v-model:value="keyWords" style="width:30%" size="small" placeholder='请输入词条搜索' /> -->
-        <a-button type="primary" size="small" style="margin-left:8px" :loading="loading" @click="select">
-          <template #icon>
-            <SearchOutlined />
-          </template>查询
+        <a-button
+          type="primary"
+          size="small"
+          style="margin-left: 8px"
+          @click="select"
+        >
+          <template #icon> <SearchOutlined /> </template>查询
         </a-button>
-        <a-button type="primary" danger size="small" style="margin-left:8px" @click="deleteEntry">
-          <template #icon>
-            <DeleteOutlined />
-          </template>删除
+        <a-button
+          type="primary"
+          danger
+          size="small"
+          style="margin-left: 8px"
+          @click="deleteEntry"
+        >
+          <template #icon> <DeleteOutlined /> </template>删除
         </a-button>
-        <WorkbenchLanguageFilter
+        <LanguageFilter
           v-model="filterLanguage"
           @change="filterLanguageChange"
         />
         <template #trailing>
-          <WorkbenchColumnActions
+          <!-- 展示列 + 释义覆盖（工具栏最右侧，非表头放大镜） -->
+          <ColumnActions
             v-model="checkedColumn"
             :columns="columnSettingsList"
             :overlay-style="overlayStyle"
             col-pref-name="colPref-importModal"
             :normal-width="100"
-            :need-filter="false"
             show-cover-button
             :cover-button-props="{
               translate: task.translateType,
@@ -320,171 +807,71 @@
             @change="syncColumnsFromPref"
           />
         </template>
-      </WorkbenchFormBar>
-      <a-table bordered class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
-        :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :customRow="customRow" :expandIconColumnIndex="2" :row-selection="{selectedRowKeys: selectedRowKeys, 
-                onChange: onSelectChange,
-                checkStrictly: false,
-                selections:[
-                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
-                    {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                ]
-            }" ref="workTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
-        <template #headerCell="{ title, column }">
-          <CellOverflowTooltip v-if="column.colValue" :content="title">
-            {{ title }}
-          </CellOverflowTooltip>
-        </template>
-        <template #bodyCell="{ column, text, record }">
-          <template v-if="column.dataIndex === 'entry'">
-            <CellOverflowTooltip :content="formatEntryText(text)">
-              {{ formatEntryText(text) }}
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="editableTextAreaColumns.includes(column.dataIndex)">
-            <template v-if="editableData[record.id]">
-              <TableCellTextArea
-                :value="editableData[record.id][column.dataIndex] ?? ''"
-                @update:value="(val) => onCellInput(val, record, column)"
-                :error-message="cellErrors[record.id]?.[column.dataIndex]"
-              />
-            </template>
-            <template v-else>
-              <CellOverflowTooltip :content="formatCellText(text)" />
-            </template>
-          </template>
-          <template v-else-if="column.dataIndex === 'diFileName'">
-            <template v-if="editableData[record.id]">
-              <InputIME
-                :value="editableData[record.id][column.dataIndex]"
-                @update:value="(val) => onCellInput(val, record, column)"
-              />
-            </template>
-            <template v-else>
-              <CellOverflowTooltip :content="formatCellText(text)" />
-            </template>
-          </template>
-          <template v-else-if="column.dataIndex === 'tag'">
-            <template v-if="editableData[record.id]">
-              <InputIME
-                :value="editableData[record.id][column.dataIndex]"
-                @update:value="(val) => onCellInput(val, record, column)"
-              />
-              <a-tooltip placement="top">
-                <template #title>
-                  <span>多个Tag按分号分割！</span>
-                </template>
-                <InfoCircleOutlined style="margin-left:3px" />
-              </a-tooltip>
-            </template>
-            <template v-else>
-              <CellOverflowTooltip :content="formatTagText(text)">
-                <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
-                    {{tag}}
-                  </a-tag>
-                </span>
-              </CellOverflowTooltip>
-            </template>
-          </template>
-          <template v-else-if="column.dataIndex === 'isExist'">
-            <CellOverflowTooltip :content="isExistLabel(text)">
-              <IsExistBadge :isExist="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="column.dataIndex === 'entryState'">
-            <CellOverflowTooltip :content="entryStateLabel(text)">
-              <EntryStateBadge :entryState="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="translateStateList.includes(column.dataIndex)">
-            <CellOverflowTooltip :content="translateStateLabel(text)">
-              <TransStateBadge :translateState="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="column.dataIndex === 'editOperation'">
-            <div class="editable-row-operations">
-              <span v-if="editableData[record.id]">
-                <a-tooltip placement="top">
-                  <template #title>
-                    <span>保存</span>
-                  </template>
-                  <CheckOutlined style="color:#369FFF;margin-left:8px" @click="editSave(record)" />
-                </a-tooltip>
-                <a-tooltip placement="top">
-                  <template #title>
-                    <span>取消</span>
-                  </template>
-                  <CloseOutlined style="color:red;margin-left:8px" @click="cancel(record)" />
-                </a-tooltip>
-              </span>
-            </div>
-          </template>
-          <template v-else-if="column.dataIndex === 'maxLength'">
-            <template v-if="editableData[record.id]">
-              <a-input-number
-                v-model:value="editableData[record.id].maxLength"
-                :min="0"
-                :precision="0"
-                style="width: 100%"
-                placeholder="0 表示无限制"
-                @change="(val) => onCellInput(val, record, column)"
-              />
-            </template>
-            <template v-else>
-              <CellOverflowTooltip :content="formatMaxLengthText(text)" />
-            </template>
-          </template>
-          <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
-            <CellOverflowTooltip :content="formatCellText(text)" />
-          </template>
-        </template>
-        <template #expandIcon="props">
-          <span v-if="props.record.children != null && props.record.children.length > 0">
-            <div v-if="props.expanded" style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
-              <CaretDownOutlined />
-            </div>
-            <div v-else style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
-              <CaretRightOutlined />
-            </div>
-          </span>
-          <span v-else style="margin-right:23px"></span>
-        </template>
-        <!-- 设置筛选菜单 -->
-        <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-          <div style="padding: 8px">
-            <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-              style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)" />
-            <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-              @click="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)">
-              <template #icon>
-                <SearchOutlined />
-              </template>搜索</a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
-          </div>
-        </template>
-        <!-- 设置筛选图标 -->
-        <template #customFilterIcon="{ filtered }">
-          <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-        </template>
-      </a-table>
+      </PipelinePanel>
     </div>
     <template v-slot:leftBottomBtn>
-      <a-button type="primary" size="small" style="margin-left:8px;float:left" class="resetBtn" @click="aggregation">聚合</a-button>
-      <a-button type="primary" size="small" style="margin-left:8px;float:left" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button>
+      <a-button
+        type="primary"
+        size="small"
+        style="margin-left: 8px; float: left"
+        class="resetBtn"
+        @click="aggregation"
+        >聚合</a-button
+      >
+      <a-button
+        type="primary"
+        size="small"
+        style="margin-left: 8px; float: left"
+        class="yellowBtn"
+        @click="cancelAggregation"
+        >取消聚合</a-button
+      >
     </template>
   </CustomModal>
-  <Dict :visible="createDictVisible" @modalClose="createDictClose" @modalOK="createDictOk" />
-  <CustomModal :visible="templateVisible" modalTitle="模板下载" @handleOK="templateDownload" @handleClose="templateClose" :okLoading="templateLoading">
+  <Dict
+    :visible="createDictVisible"
+    @modalClose="createDictClose"
+    @modalOK="createDictOk"
+  />
+  <CustomModal
+    :visible="templateVisible"
+    modalTitle="模板下载"
+    @handleOK="templateDownload"
+    @handleClose="templateClose"
+    :okLoading="loading"
+  >
     <div class="condent templateForm">
-      <a-form ref="dictRef" name="advanced_search" class="ant-advanced-search-form" :model="templateObj" style="width:100%">
-        <a-form-item label="模板类型" name="type" :rules="[{ required: true, message: '请选择模板类型!' }]">
-          <a-select v-model:value="templateObj.type" placeholder="请选择" :options='departmentList' allowClear>
+      <a-form
+        ref="dictRef"
+        name="advanced_search"
+        class="ant-advanced-search-form"
+        :model="templateObj"
+        style="width: 100%"
+      >
+        <a-form-item
+          label="模板类型"
+          name="type"
+          :rules="[{ required: true, message: '请选择模板类型!' }]"
+        >
+          <a-select
+            v-model:value="templateObj.type"
+            placeholder="请选择"
+            :options="departmentList"
+            allowClear
+          >
           </a-select>
         </a-form-item>
-        <a-form-item label="文件类型" name="exportType" :rules="[{ required: true, message: '请选择文件类型!' }]">
-          <a-select v-model:value="templateObj.exportType" placeholder="请选择文件类型" :options='exportTypes' allowClear>
+        <a-form-item
+          label="文件类型"
+          name="exportType"
+          :rules="[{ required: true, message: '请选择文件类型!' }]"
+        >
+          <a-select
+            v-model:value="templateObj.exportType"
+            placeholder="请选择文件类型"
+            :options="exportTypes"
+            allowClear
+          >
           </a-select>
         </a-form-item>
         <!-- <a-form-item label="导出字段" name="exportFields" :rules="[{ required: true, message: '请选择!' }]">
@@ -517,8 +904,6 @@ import {
   CheckOutlined,
   CloseOutlined,
   ExclamationCircleOutlined,
-  CaretDownOutlined,
-  CaretRightOutlined,
   PlusSquareOutlined,
   SettingOutlined,
   SearchOutlined,
@@ -590,22 +975,32 @@ import {
   showEditOperation as showEditOp,
   hideEditOperation as hideEditOp,
 } from "@/utils/validationUtils";
+import { loading, startLoading, endLoading, resetLoading } from "@/composables/useLoading";
 import { interpretation2value } from "@/utils/translationUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
 import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
-import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
-import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
+import {
+  formatEntryText,
+  formatCellText,
+  formatMaxLengthText,
+} from "@/components/table/cellText";
+import {
+  applyTable,
+  syncColumnsFromPref as applyTableColumnsFromPref,
+} from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
 import {
-  WorkbenchFormBar,
-  WorkbenchTaskInfo,
-  WorkbenchColumnActions,
-  WorkbenchLanguageFilter,
-} from "@/components/Workbench";
+  PipelinePanel,
+  ColumnActions,
+  LanguageFilter,
+} from "@/views/workbench/components";
 import { filterLanguageChange as applyLanguageFilter } from "@/composables/workbench/useLanguageFilter";
-import { defaultPagination, pageChange as wbPageChange } from "@/views/workbench/composables/page";
+import {
+  defaultPagination,
+  pageChange as wbPageChange,
+} from "@/views/workbench/composables/page";
 import {
   handleFilterSearch,
   resetOnClose,
@@ -631,13 +1026,15 @@ const filteredInfo = {};
 const ALL_ISEXIST = "-1";
 
 export default {
+  // 全局单一 loading 状态（hook 导出，响应式）：表格/保存/导入/模板下载按钮统一绑定
+  setup() {
+    return { loading };
+  },
   components: {
     CheckOutlined,
     CloseOutlined,
     CustomModal,
     ExclamationCircleOutlined,
-    CaretDownOutlined,
-    CaretRightOutlined,
     PlusSquareOutlined,
     SettingOutlined,
     SearchOutlined,
@@ -653,10 +1050,9 @@ export default {
     InputIME,
     TableCellTextArea,
     CellOverflowTooltip,
-    WorkbenchFormBar,
-    WorkbenchTaskInfo,
-    WorkbenchColumnActions,
-    WorkbenchLanguageFilter,
+    PipelinePanel,
+    ColumnActions,
+    LanguageFilter,
     FileSelectWithEncoding,
     VNodes: (_, { attrs }) => {
       return attrs.vnodes;
@@ -698,8 +1094,6 @@ export default {
       dataType: "file",
       tableHeight: { x: "max-content", y: "300px" },
       // tableHeight: { x: "100%", y: "300px" },
-      loading: false,
-      templateLoading: false,
       columns: [],
       dataSource: [],
       editableData: {},
@@ -741,7 +1135,6 @@ export default {
       dictionaryOptions: [],
       file: {},
       treeData: [],
-      saveLoading: false,
       rules: {},
       cellErrors: {},
       // classifyLimit:{
@@ -764,7 +1157,6 @@ export default {
         ...commonParam.langTranslateStateList,
         "translateState",
       ],
-      importBtnLoading: false,
       state: {
         searchText: "",
         searchedColumn: "",
@@ -804,11 +1196,31 @@ export default {
   },
   created() {
     // 从全局 store 注入当前用户，避免直接读取 this.$store.state.user 为空时报错
-    this.user = (this.$store && this.$store.state && this.$store.state.user) || {};
+    this.user =
+      (this.$store && this.$store.state && this.$store.state.user) || {};
   },
   computed: {
+    importEditCols() {
+      return [
+        ...this.editableTextAreaColumns,
+        "diFileName",
+        "tag",
+        "maxLength",
+      ];
+    },
     editableTextAreaColumns() {
       return editTextCols(this, { withEditList: true });
+    },
+    importRowSelection() {
+      return {
+        selectedRowKeys: this.selectedRowKeys,
+        onChange: this.onSelectChange,
+        checkStrictly: false,
+        selections: [
+          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
+          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
+        ],
+      };
     },
   },
   watch: {
@@ -831,7 +1243,10 @@ export default {
           this.$nextTick(() => {
             // 1.设置模板类型
             // 获取模板类型（暂时只有装置部使用多个模板）
-            if (this.$currentDepartment && Object.keys(this.$currentDepartment).includes("templateType"))
+            if (
+              this.$currentDepartment &&
+              Object.keys(this.$currentDepartment).includes("templateType")
+            )
               this.templateTypes = this.$currentDepartment.templateType;
             // 设置默认的模板类型为本部门的
             if (this.$currentDepartment) {
@@ -858,7 +1273,7 @@ export default {
               },
               colPrefName: "colPref-importModal",
               normalWidth: 100,
-              needFilter: false,
+              needFilter: true,
               filterCols: filterWbColsForCtx,
               lockCellSize: true,
             });
@@ -885,8 +1300,8 @@ export default {
         message.info("请勾选需要保存的词条！");
         return;
       }
+      // saveEntrys 内部通过 useLoading 管理 loading，勿在此处手动关闭（否则按钮 loading 会被提前覆盖）
       this.saveEntrys();
-      this.saveLoading = false;
     },
     handleClose() {
       this.selectedRows = [];
@@ -932,7 +1347,8 @@ export default {
     handleResizeColumn,
     // 保存词条
     async saveEntrys() {
-      this.saveLoading = true;
+      // 全局单一 loading（引用计数）：表格遮罩/保存按钮统一开启，各结束路径 endLoading()
+      startLoading();
       clearCellErrorsForRecords(this, this.selectedRowKeys);
       const currentLang = this.task.transMap.value;
       let hasNoInter = false;
@@ -948,7 +1364,7 @@ export default {
         this,
         this.selectedRows,
         currentLang,
-        methods
+        methods,
       );
       let arrCount = {
         updateArr: [],
@@ -963,6 +1379,7 @@ export default {
       };
 
       if (this.allData.length === 0) {
+        endLoading();
         return;
       }
 
@@ -990,10 +1407,10 @@ export default {
       const childRowIDs = new Set(
         this.selectedRows
           .filter((item) => item.children && item.children.length > 0)
-          .flatMap((item) => item.children.map((child) => child.id))
+          .flatMap((item) => item.children.map((child) => child.id)),
       );
       const selectFatherRows = this.selectedRows.filter(
-        (item) => !childRowIDs.has(item.id)
+        (item) => !childRowIDs.has(item.id),
       );
       //this.selectedRows是把父子词条都平铺开了，以便显示选中状态
       for (const record of selectFatherRows) {
@@ -1040,24 +1457,24 @@ export default {
             this.insertOrUpdateEntrys(
               arrCount.insertArr,
               arrCount.updateArr,
-              arrCount
+              arrCount,
             );
           },
           onCancel: () => {
-            this.saveLoading = false;
+            endLoading();
           },
         });
       } else {
         this.insertOrUpdateEntrys(
           arrCount.insertArr,
           arrCount.updateArr,
-          arrCount
+          arrCount,
         );
       }
     },
     //
     insertOrUpdateEntrys(insertArr, updateArr, arrCount) {
-      this.loading = true;
+      // 表格遮罩/保存按钮已在 saveEntrys 的 startLoading 中统一开启，这里不再重复开关
       let params = {
         taskID: this.task.id,
       };
@@ -1121,7 +1538,7 @@ export default {
             }
             if (arrCount.updateChildNum > 0) {
               messageTextParts.push(
-                `其中聚合的数据${arrCount.updateChildNum}条`
+                `其中聚合的数据${arrCount.updateChildNum}条`,
               );
             }
             // console.log("arrCount", arrCount);
@@ -1156,22 +1573,23 @@ export default {
           this.selectedRows = [];
           this.selectedRowKeys = [];
           this.selectedRowIndex = null;
-          // 无数据则关闭弹窗；有数据则按展示值复检已加载表
+          // 无数据则关闭弹窗
           if (this.dataSource.length === 0) {
             this.handleClose();
-          } else {
-            try {
-              await revalidateLoaded(this, this.task.transMap.value);
-            } catch (err) {
+          }
+          // 注：有数据时的复检移到 finally（endLoading 之后）执行，
+          // 避免被保存流程的防重入 loading 短路（见 finally）
+        })
+        .finally(() => {
+          endLoading();
+          // 保存完成（loading 已复位）后，再按展示值复检已加载表（独立 loading 周期）
+          if (this.dataSource.length > 0) {
+            revalidateLoaded(this, this.task.transMap.value).catch((err) => {
               // 仅兜底：不阻断保存流程
               // eslint-disable-next-line no-console
               console.warn("[importModal] revalidateLoaded failed", err);
-            }
+            });
           }
-        })
-        .finally(() => {
-          this.saveLoading = false;
-          this.loading = false;
         });
     },
     // 获取该任务有无审核未通过的词条
@@ -1181,7 +1599,7 @@ export default {
         entryState: "2",
         entry: this.keyWords,
       };
-      this.loading = true;
+      startLoading();
       getEntryInfoList(params, [])
         .then((res) => {
           // console.log("数据", this.dataSource, this.selectedRows);
@@ -1189,11 +1607,12 @@ export default {
             this.dataSource = res.data.list;
             this.allData = this.dataSource;
           }
-          this.loading = false;
         })
         .catch((err) => {
-          this.loading = false;
           message.error("3", err.message);
+        })
+        .finally(() => {
+          endLoading();
         });
     },
     beforeUpload(file, fileList) {
@@ -1215,15 +1634,13 @@ export default {
         this.dataSource = this.allData.filter(
           (item) =>
             item.entry.includes(this.keyWords) &&
-            (this.isExist == ALL_ISEXIST ||
-              item.isExist == this.isExist)
+            (this.isExist == ALL_ISEXIST || item.isExist == this.isExist),
         );
       } else {
         this.dataSource = this.filterSource.filter(
           (item) =>
             item.entry.includes(this.keyWords) &&
-            (this.isExist == ALL_ISEXIST ||
-              item.isExist == this.isExist)
+            (this.isExist == ALL_ISEXIST || item.isExist == this.isExist),
         );
       }
     },
@@ -1283,7 +1700,7 @@ export default {
                   text += `(其中聚合的数据${delCount.childNum}条)`;
                 }
                 message.success(text); // 最后一列的词条状态
-              }
+              },
             );
           } else {
             message.success("已删除！"); // 看最后一列的词条状态：未审核
@@ -1591,8 +2008,7 @@ export default {
      * @returns {Promise<void>}
      */
     async importEntryData() {
-      this.loading = true;
-      this.importBtnLoading = true;
+      startLoading();
 
       // 定义公共处理函数
       const handleCommonOperations = (data) => {
@@ -1634,11 +2050,6 @@ export default {
           ...extraParams,
         };
       };
-      const closeLoading = () => {
-        this.loading = false;
-        this.importBtnLoading = false;
-      };
-
       // // 处理异步请求的通用函数
       // const handleAsyncRequest = (
       //   validateRef,
@@ -1662,20 +2073,17 @@ export default {
       //     });
       // };
 
-      let asyncTask = false,
-        otherFn = false;
+      let asyncTask = false;
 
       if (this.dataType === "file") {
         // 文件
         if (Object.keys(this.file).length === 0) {
-          this.loading = false;
-          this.importBtnLoading = false;
+          endLoading();
           message.info("请选择文件！");
           return;
         }
         if (this.templateTypes && !this.templateType) {
-          this.loading = false;
-          this.importBtnLoading = false;
+          endLoading();
           message.info("请选择模板类型！");
           return;
         }
@@ -1686,11 +2094,10 @@ export default {
         ) {
           const encodingCheck = await assertCsvEncodingMatch(
             this.file,
-            this.fileEncoding
+            this.fileEncoding,
           );
           if (!encodingCheck.ok) {
-            this.loading = false;
-            this.importBtnLoading = false;
+            endLoading();
             return;
           }
         }
@@ -1708,7 +2115,8 @@ export default {
           diFileName: this.filediFileName,
           // 兼容 user 还未初始化的情况，避免读取 undefined.department 报错
           departmentType:
-            (this.user && this.user.department) || (this.$store?.state?.user?.department ?? ""),
+            (this.user && this.user.department) ||
+            (this.$store?.state?.user?.department ?? ""),
           templateType: this.templateType,
         };
         asyncTask = readZZExcle(params, formData)
@@ -1721,32 +2129,23 @@ export default {
         // TS
         const params = getCommonParams();
         asyncTask = handleAsyncRequest(
-          closeLoading,
           this.$refs.tsFormRef,
           getTsWords,
           params,
-          this.tsFile.tsFileValue
+          this.tsFile.tsFileValue,
         );
       } else if (this.dataType === "database") {
-        // 实时库
-        otherFn = true;
+        // 实时库：子方法返回 list，由下方统一 handleCommonOperations + revalidate + endLoading
         if (this.dataLibrary.type === "field") {
           // 实时库-对象数据（原 字段）
           asyncTask = this.$refs.fieldFormRef
             .validate()
-            .then(() => {
-              return new Promise((resolve) => {
-                this.getFieldData();
-                resolve([]);
-              });
-            })
+            .then(() => this.getFieldData())
             .catch((err) => {
               // message.error(err.message);// 校验参数未通过，不提示错误信息
-              closeLoading();
               return [];
             });
           // asyncTask = handleAsyncRequest(
-          // closeLoading,
           //   this.$refs.fieldFormRef,
           //   this.getFieldData,
           //   null,
@@ -1757,19 +2156,12 @@ export default {
           // 实时库-元数据
           asyncTask = this.$refs.aliasFormRef
             .validate()
-            .then(() => {
-              return new Promise((resolve) => {
-                this.getAlias();
-                resolve([]);
-              });
-            })
+            .then(() => this.getAlias())
             .catch((err) => {
               // message.error("7", err.message);
-              closeLoading();
               return [];
             });
           // asyncTask = handleAsyncRequest(
-          // closeLoading,
           //   this.$refs.aliasFormRef,
           //   this.getAlias,
           //   null,
@@ -1780,19 +2172,12 @@ export default {
           // 实时库-全量
           asyncTask = this.$refs.allDataFormRef
             .validate()
-            .then(() => {
-              return new Promise((resolve) => {
-                this.batchImportDatabase();
-                resolve([]);
-              });
-            })
+            .then(() => this.batchImportDatabase())
             .catch((err) => {
               // message.error("8", err.message);
-              closeLoading();
               return [];
             });
           // asyncTask = handleAsyncRequest(
-          // closeLoading,
           //   this.$refs.allDataFormRef,
           //   this.batchImportDatabase,
           //   null,
@@ -1806,31 +2191,28 @@ export default {
           transType: this.task.translateType,
         });
         asyncTask = handleAsyncRequest(
-          closeLoading,
           this.$refs.dictSelectRef,
           importDictionaryEntry,
           params,
-          this.dict.dictionaryType
+          this.dict.dictionaryType,
         );
       } else if (this.dataType === "config") {
         // 配置文件
         const params = getCommonParams({ diFileName: "" });
         asyncTask = handleAsyncRequest(
-          closeLoading,
           this.$refs.configFormRef,
           getConfigEntry,
           params,
-          this.configFile.config
+          this.configFile.config,
         );
       } else if (this.dataType === "enum") {
         // 枚举文件
         const params = getCommonParams({ diFileName: "" });
         asyncTask = handleAsyncRequest(
-          closeLoading,
           this.$refs.enumFormRef,
           getEnumEntry,
           params,
-          this.enumFile.enum
+          this.enumFile.enum,
         );
       }
       if (asyncTask) {
@@ -1838,15 +2220,12 @@ export default {
           .then((data) => {
             handleCommonOperations(data);
           })
-          .finally(() => {
-            if (!otherFn) {
-              // 不进去其他函数（即非实时库）
-              closeLoading();
-              revalidateLoaded(this, this.task.transMap.value);
-            }
+          .finally(async () => {
+            await revalidateLoaded(this, this.task.transMap.value);
+            endLoading();
           });
       } else {
-        closeLoading();
+        endLoading();
       }
     },
     sortArray(arr, key) {
@@ -1856,10 +2235,10 @@ export default {
         return x > y ? -1 : x < y ? 1 : 0;
       });
     },
-    // 获取对象数据（原 字段）内容
+    // 获取对象数据（原 字段）内容；返回 list，loading 由 importEntryData 统一管理
     async getFieldData() {
       let table = this.treeData.find(
-        (item) => item.id === this.dataLibrary.table
+        (item) => item.id === this.dataLibrary.table,
       );
       let params = {
         dbName: table.db,
@@ -1884,26 +2263,18 @@ export default {
         };
         data.push(field);
       });
-      await getFieldData(params, data)
-        .then((res) => {
-          this.dataSource = res.data.list;
-          this.sortArray(this.dataSource, "isExist");
-          this.allData = this.dataSource;
-        })
-        .catch((err) => {
-          message.error("数据获取失败！", err.message);
-        })
-        .finally(() => {
-          this.loading = false;
-          this.importBtnLoading = false;
-        });
+      try {
+        const res = await getFieldData(params, data);
+        return res.data?.list ?? [];
+      } catch (err) {
+        message.error("数据获取失败！", err.message);
+        return [];
+      }
     },
-    // 获取别名
+    // 获取别名；返回 list，loading 由 importEntryData 统一管理
     async getAlias() {
-      this.loading = true;
-      this.importBtnLoading = true;
       let table = this.treeData.find(
-        (item) => item.id === this.dataLibrary.table
+        (item) => item.id === this.dataLibrary.table,
       );
       let params = {
         dbName: table.title,
@@ -1917,33 +2288,23 @@ export default {
         maxLength: this.dataLibrary.maxLength,
         i18nUrl: this.ip,
       };
-      await getAlias(params)
-        .then((res) => {
-          this.dataSource = res.data.list;
-          this.sortArray(this.dataSource, "isExist");
-          this.allData = this.dataSource;
-        })
-        .catch((err) => {
-          message.error("数据获取失败！", err.message);
-        })
-        .finally(() => {
-          this.loading = false;
-          this.importBtnLoading = false;
-        });
+      try {
+        const res = await getAlias(params);
+        return res.data?.list ?? [];
+      } catch (err) {
+        message.error("数据获取失败！", err.message);
+        return [];
+      }
     },
-    // 批量导入数据库
+    // 批量导入数据库；返回 list，loading 由 importEntryData 统一管理
     async batchImportDatabase() {
-      this.dataSource = [];
-      this.allData = [];
       let selectNode = [];
       this.dataLibrary.tables.forEach((item) => {
         let node = this.treeData.find((d) => d.value === item);
         selectNode.push(node);
       });
       if (selectNode.length === 0) {
-        this.loading = false;
-        this.importBtnLoading = false;
-        return;
+        return [];
       }
       let nodes = [];
       let apps = [];
@@ -1961,7 +2322,6 @@ export default {
           tables.push(item);
         }
       });
-      this.dataSource = [];
       let params = {
         taskID: this.task.id,
         versionID: this.task.versionId ? this.task.versionId : "",
@@ -1970,6 +2330,7 @@ export default {
         diFileName: "",
         i18nUrl: this.ip,
       };
+      let mergedList = [];
       // if (nodes.length > 0) {
       //   nodes.forEach((item) => {
       //     item.node = item.value;
@@ -1978,8 +2339,8 @@ export default {
       //     this.dataSource = this.dataSource.concat(res.data.list);
       //     this.sortArray(this.dataSource, "isExist");
       //     this.allData = this.dataSource;
-      //     // this.loading = false;
-      //     // this.importBtnLoading = false;
+      //     // endLoading();
+      //     // endLoading();
       //   });
       // }
       // if (apps.length > 0) {
@@ -1991,8 +2352,7 @@ export default {
       //     this.dataSource = this.dataSource.concat(res.data.list);
       //     this.sortArray(this.dataSource, "isExist");
       //     this.allData = this.dataSource;
-      //     // this.loading = false;
-      //     // this.importBtnLoading = false;
+      //     // endLoading();
       //   });
       // }
       // if (dbs.length > 0) {
@@ -2004,8 +2364,7 @@ export default {
       //     this.dataSource = this.dataSource.concat(res.data.list);
       //     this.sortArray(this.dataSource, "isExist");
       //     this.allData = this.dataSource;
-      //     // this.loading = false;
-      //     // this.importBtnLoading = false;
+      //     // endLoading();
       //   });
       // }
       // 定义映射对象
@@ -2041,20 +2400,16 @@ export default {
         const { list, modifyFn, apiFn } = typeMap[key];
         if (list.length > 0) {
           list.forEach(modifyFn);
-          const promise = await apiFn(params, list).then((res) => {
-            this.dataSource = this.dataSource.concat(res.data.list);
-            this.sortArray(this.dataSource, "isExist");
-            this.allData = this.dataSource;
-          });
-          promises.push(promise);
+          promises.push(
+            apiFn(params, list).then((res) => {
+              mergedList = mergedList.concat(res.data?.list ?? []);
+            }),
+          );
         }
       }
 
-      // 等待所有请求完成后更新加载状态
-      Promise.all(promises).finally(() => {
-        this.loading = false;
-        this.importBtnLoading = false;
-      });
+      await Promise.all(promises);
+      return mergedList;
     },
     // 添加表格行点击事件
     customRow(record, index) {
@@ -2134,7 +2489,7 @@ export default {
       this.selectedRows.forEach((item) => {
         if ((item.parentID === "" || item.parentID === null) && item.children) {
           let index = this.dataSource.findIndex(
-            (entry) => entry.id === item.id
+            (entry) => entry.id === item.id,
           );
           for (let i = 0; i < item.children.length; i++) {
             let child = item.children[i];
@@ -2144,13 +2499,13 @@ export default {
           item.children = [];
         } else {
           let parent = this.dataSource.find(
-            (data) => data.id === item.parentID
+            (data) => data.id === item.parentID,
           );
           parent.children = parent.children.filter(
-            (child) => child.id != item.id
+            (child) => child.id != item.id,
           );
           let index = this.dataSource.findIndex(
-            (data) => data.id === item.parentID
+            (data) => data.id === item.parentID,
           );
           item.parentID = "";
           this.dataSource.splice(index + 1, 0, item);
@@ -2161,6 +2516,7 @@ export default {
       this.selectedRows = [];
     },
     afterClose() {
+      resetLoading();
       this.editableData = {};
       this.keyWords = "";
       this.isExist = ALL_ISEXIST;
@@ -2198,13 +2554,7 @@ export default {
     },
     // 列头自定义筛选 + 保存 Ant clearFilters
     handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
-      handleFilterSearch(
-        selectedKeys,
-        confirm,
-        dataIndex,
-        clearFilters,
-        this
-      );
+      handleFilterSearch(selectedKeys, confirm, dataIndex, clearFilters, this);
     },
     // 列筛选重置
     handleReset(clearFilters) {
@@ -2225,16 +2575,17 @@ export default {
     },
     // 模板下载
     templateDownload() {
-      this.templateLoading = true;
-      this.$refs.dictRef.validate().then(() => {
-        let params = {
-          fileType: this.templateObj.type,
-          translateType: this.task.translateType,
-          // exportFields: this.exportFields,
-          exportType: this.templateObj.exportType,
-        };
-        templateFileDownload(params)
-          .then((res) => {
+      startLoading();
+      this.$refs.dictRef
+        .validate()
+        .then(() => {
+          let params = {
+            fileType: this.templateObj.type,
+            translateType: this.task.translateType,
+            // exportFields: this.exportFields,
+            exportType: this.templateObj.exportType,
+          };
+          return templateFileDownload(params).then((res) => {
             let fileName = res.headers["content-disposition"]
               .split(";")[1]
               .split("filename=")[1];
@@ -2245,11 +2596,11 @@ export default {
             a.href = window.URL.createObjectURL(blob);
             a.click();
             a.remove();
-          })
-          .finally(() => {
-            this.templateLoading = false;
           });
-      });
+        })
+        .finally(() => {
+          endLoading();
+        });
     },
     templateClose() {
       this.templateVisible = false;
@@ -2297,7 +2648,10 @@ export default {
     },
     // 获取i18服务器ip
     getIPs() {
-      if (this.$currentDepartment && this.$currentDepartment.ops.has("needIP")) {
+      if (
+        this.$currentDepartment &&
+        this.$currentDepartment.ops.has("needIP")
+      ) {
         this.ips = [];
         getI18nAdress().then((res) => {
           res.data.list.forEach((item) => {

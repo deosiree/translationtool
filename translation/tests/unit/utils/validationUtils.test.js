@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { 
   byteLength, 
   getMaxLength, 
@@ -22,6 +22,7 @@ import {
   cancelEdit,
   showEditOperation,
 } from '@/utils/validationUtils'
+import { isLoading, resetLoading } from '@/composables/useLoading'
 import { cloneDeep } from 'lodash'
 
 // Mock API 调用
@@ -943,6 +944,80 @@ describe('validationUtils - 表单校验工具函数', () => {
       showEditOperation(vm)
       showEditOperation(vm)
       expect(vm.columns.filter((c) => c.dataIndex === 'editOperation')).toHaveLength(1)
+    })
+  })
+
+  describe('useLoading 集成：公共校验函数前后开关表格遮罩', () => {
+    afterEach(() => {
+      resetLoading()
+    })
+
+    it('saveEdit 校验/提交期间 isLoading 为 true，结束后复位', async () => {
+      const record = { id: 'r1', english: 'old' }
+      const vm = {
+        editableData: { r1: { english: 'new' } },
+        rules: { r1: {} },
+        cellErrors: {},
+        columns: [{ dataIndex: 'english' }],
+      }
+      let loadingDuring = null
+      const ok = await saveEdit(vm, record, {
+        transCol: 'english',
+        commit: () => { loadingDuring = isLoading() },
+      })
+      expect(ok).toBe(true)
+      expect(loadingDuring).toBe(true)
+      expect(isLoading()).toBe(false)
+    })
+
+    it('saveEdit 校验失败时同样复位 loading', async () => {
+      const record = { id: 'r1', english: '' }
+      const vm = {
+        editableData: { r1: { english: '' } },
+        rules: { r1: { english: [{ required: true, message: '请输入!' }] } },
+        cellErrors: {},
+        columns: [{ dataIndex: 'english' }],
+      }
+      const ok = await saveEdit(vm, record, { transCol: 'english', commit: () => {} })
+      expect(ok).toBe(false)
+      expect(isLoading()).toBe(false)
+    })
+
+    it('verifyArray_workbench_page 校验期间 isLoading 为 true，结束后复位', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockImplementation(async () => {
+        expect(isLoading()).toBe(true)
+        return { data: [] }
+      })
+      const vm = {
+        dataSource: [{ id: 'r1', entry: 'Press %1', english: 'Press %1' }],
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        rulesOptions: [{ key: 'special', checked: true }],
+      }
+      await verifyArray_workbench_page({ current: 1, pageSize: 10 }, 'english', vm)
+      expect(isLoading()).toBe(false)
+    })
+
+    it('revalidateLoaded 校验期间 isLoading 为 true，结束后复位', async () => {
+      const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+      checkSykEntryBeforeSave.mockImplementation(async () => {
+        expect(isLoading()).toBe(true)
+        return { data: [] }
+      })
+      const record = { id: 'r1', entry: 'Press %1', english: 'Press %1', maxLength: 200 }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        columns: [{ dataIndex: 'english' }],
+        showEditOperation: vi.fn(),
+        rulesOptions: [{ key: 'special', checked: true }],
+      }
+      await revalidateLoaded(vm, 'english')
+      expect(isLoading()).toBe(false)
     })
   })
 })

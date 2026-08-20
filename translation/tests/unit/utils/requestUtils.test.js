@@ -81,21 +81,18 @@ describe('requestUtils - HTTP/请求处理工具函数', () => {
 
   describe('handleAsyncRequest', () => {
     it('应该在表单验证失败时返回空数组', async () => {
-      const closeLoading = vi.fn()
       const validateRef = {
         validate: vi.fn().mockRejectedValue(new Error('验证失败'))
       }
       const getDataFn = vi.fn()
 
-      const result = await handleAsyncRequest(closeLoading, validateRef, getDataFn)
+      const result = await handleAsyncRequest(validateRef, getDataFn)
 
       expect(result).toEqual([])
-      expect(closeLoading).toHaveBeenCalled()
       expect(getDataFn).not.toHaveBeenCalled()
     })
 
     it('应该在表单验证成功时调用 getDataFn', async () => {
-      const closeLoading = vi.fn()
       const validateRef = {
         validate: vi.fn().mockResolvedValue(undefined)
       }
@@ -105,7 +102,7 @@ describe('requestUtils - HTTP/请求处理工具函数', () => {
         }
       })
 
-      const result = await handleAsyncRequest(closeLoading, validateRef, getDataFn)
+      const result = await handleAsyncRequest(validateRef, getDataFn)
 
       expect(result).toEqual([1, 2, 3])
       expect(validateRef.validate).toHaveBeenCalled()
@@ -113,7 +110,6 @@ describe('requestUtils - HTTP/请求处理工具函数', () => {
     })
 
     it('应该使用自定义 returnParams', async () => {
-      const closeLoading = vi.fn()
       const validateRef = {
         validate: vi.fn().mockResolvedValue(undefined)
       }
@@ -123,25 +119,23 @@ describe('requestUtils - HTTP/请求处理工具函数', () => {
         }
       })
 
-      const result = await handleAsyncRequest(closeLoading, validateRef, getDataFn, null, null, 'data.items')
+      const result = await handleAsyncRequest(validateRef, getDataFn, null, null, 'data.items')
 
       expect(result).toEqual(['a', 'b', 'c'])
     })
 
     it('应该在 returnParams 为空时返回空数组', async () => {
-      const closeLoading = vi.fn()
       const validateRef = {
         validate: vi.fn().mockResolvedValue(undefined)
       }
       const getDataFn = vi.fn().mockResolvedValue({ data: { list: [1, 2] } })
 
-      const result = await handleAsyncRequest(closeLoading, validateRef, getDataFn, null, null, '')
+      const result = await handleAsyncRequest(validateRef, getDataFn, null, null, '')
 
       expect(result).toEqual([])
     })
 
     it('应该在 getDataFn 抛出 ValidationError 时返回空数组', async () => {
-      const closeLoading = vi.fn()
       const validateRef = {
         validate: vi.fn().mockResolvedValue(undefined)
       }
@@ -149,21 +143,20 @@ describe('requestUtils - HTTP/请求处理工具函数', () => {
       validationError.name = 'ValidationError'
       const getDataFn = vi.fn().mockRejectedValue(validationError)
 
-      const result = await handleAsyncRequest(closeLoading, validateRef, getDataFn)
+      const result = await handleAsyncRequest(validateRef, getDataFn)
 
       expect(result).toEqual([])
       expect(message.error).not.toHaveBeenCalled()
     })
 
     it('应该在 getDataFn 抛出其他错误时显示错误消息', async () => {
-      const closeLoading = vi.fn()
       const validateRef = {
         validate: vi.fn().mockResolvedValue(undefined)
       }
       const error = new Error('网络错误')
       const getDataFn = vi.fn().mockRejectedValue(error)
 
-      const result = await handleAsyncRequest(closeLoading, validateRef, getDataFn)
+      const result = await handleAsyncRequest(validateRef, getDataFn)
 
       expect(result).toEqual([])
       expect(message.error).toHaveBeenCalledWith('数据获取失败！', '网络错误')

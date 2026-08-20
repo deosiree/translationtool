@@ -1,9 +1,23 @@
 <template>
-  <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" :okLoading="saveLoading" :showCancel="false"
+  <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" :okLoading="loading" :showCancel="false"
     okText="归档并结束任务" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div class="content">
-      <WorkbenchTaskInfo :task="task" />
-      <WorkbenchFormBar>
+      <!-- 工具栏壳：任务信息 + 查询区 + 内联展示列 -->
+      <PipelinePanel
+        :task="task"
+        :table-host="this"
+        :columns="columns"
+        :data-source="dataSource"
+        :loading="loading"
+        :pagination="pagination"
+        :scroll="tableHeight"
+        :row-selection="archiveRowSelection"
+        :column-actions="archiveColumnActions"
+        :custom-row="customRow"
+        @update:model-value="checkedColumn = $event"
+        @columns-change="syncColumnsFromPref"
+        ref="archiveTable"
+      >
         词条：
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">词条状态：</span>
@@ -12,89 +26,7 @@
         <TransStateSelect :translateState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
         <a-button v-if="canShowDelete" type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
-        <WorkbenchActionGroup inline-offset>
-          <WorkbenchColumnActions
-            v-model="checkedColumn"
-            :columns="columnSettingsList"
-            :overlay-style="overlayStyle"
-            col-pref-name="colPref-archiveModal"
-            :normal-width="100"
-            :need-filter="true"
-            @change="syncColumnsFromPref"
-          />
-        </WorkbenchActionGroup>
-      </WorkbenchFormBar>
-      <a-table bordered class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
-        :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :expandIconColumnIndex="2" :customRow="customRow" :row-selection="{ 
-                columnWidth: 48,
-                selectedRowKeys: selectedRowKeys, 
-                selectedRows: selectedRows,
-                onChange: onSelectChange,
-                selections:[
-                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
-                    {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                ]
-            }" ref="archiveTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
-        <template #headerCell="{ title, column }">
-          <CellOverflowTooltip v-if="column.colValue" :content="title">
-            {{ title }}
-          </CellOverflowTooltip>
-        </template>
-        <template #bodyCell="{ column,text }">
-          <template v-if="column.dataIndex === 'entry'">
-            <CellOverflowTooltip :content="formatEntryText(text)">
-              {{ formatEntryText(text) }}
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="column.dataIndex === 'isExist'">
-            <CellOverflowTooltip :content="isExistLabel(text)">
-              <IsExistBadge :isExist="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="column.dataIndex === 'entryState'">
-            <CellOverflowTooltip :content="entryStateLabel(text)">
-              <EntryStateBadge :entryState="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="translateStateList.includes(column.dataIndex)">
-            <CellOverflowTooltip :content="translateStateLabel(text)">
-              <TransStateBadge :translateState="text" />
-            </CellOverflowTooltip>
-          </template>
-          <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
-            <CellOverflowTooltip :content="formatCellText(text)" />
-          </template>
-        </template>
-        <template #expandIcon="props">
-          <span v-if="props.record.children != null && props.record.children.length > 0">
-            <div v-if="props.expanded" style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
-              <CaretDownOutlined />
-            </div>
-            <div v-else style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
-              <CaretRightOutlined />
-            </div>
-          </span>
-          <span v-else style="margin-right:23px"></span>
-        </template>
-        <!-- 设置筛选菜单 -->
-        <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-          <div style="padding: 8px">
-            <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-              style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)" />
-            <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-              @click="handleSearch(selectedKeys, confirm, column.dataIndex, clearFilters)">
-              <template #icon>
-                <SearchOutlined />
-              </template>搜索</a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
-          </div>
-        </template>
-        <!-- 设置筛选图标 -->
-        <template #customFilterIcon="{ filtered }">
-          <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-        </template>
-      </a-table>
+      </PipelinePanel>
     </div>
     <template v-slot:leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
@@ -131,10 +63,7 @@ import {
   CheckOutlined,
   CloseOutlined,
   ExclamationCircleOutlined,
-  CaretDownOutlined,
-  CaretRightOutlined,
   SettingOutlined,
-  SearchOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
@@ -153,11 +82,8 @@ import {
   resetOnClose,
 } from "@/views/workbench/composables/filterClear";
 import {
-  WorkbenchFormBar,
-  WorkbenchActionGroup,
-  WorkbenchTaskInfo,
-  WorkbenchColumnActions,
-} from "@/components/Workbench";
+  PipelinePanel,
+} from "@/views/workbench/components";
 import {
   selectAllEntry as selectAllEntryUtil,
   clearAllEntry as clearAllEntryUtil,
@@ -165,14 +91,15 @@ import {
 } from "@/utils/selectionUtils";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
+import { loading, startLoading, endLoading, resetLoading } from "@/composables/useLoading";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
+  setup() {
+    return { loading };
+  },
   components: {
     CheckOutlined,
     CloseOutlined,
-    CaretDownOutlined,
-    CaretRightOutlined,
-    SearchOutlined,
     ExclamationCircleOutlined,
     CustomModal,
     IsExistBadge,
@@ -181,10 +108,7 @@ export default {
     EntryStateBadge,
     TransStateBadge,
     CellOverflowTooltip,
-    WorkbenchFormBar,
-    WorkbenchActionGroup,
-    WorkbenchTaskInfo,
-    WorkbenchColumnActions,
+    PipelinePanel,
   },
   emits: ["handleClose", "handleOK", "refresh"],
   props: {
@@ -211,7 +135,6 @@ export default {
       keyWords: "",
       // tableHeight: { x: "100%", y: "415px" },
       tableHeight: { x: "max-content", y: "415px" },
-      loading: false,
       columns: [],
       dataSource: [],
       pagination: defaultPagination(this.pageChange),
@@ -233,7 +156,6 @@ export default {
       filters: null,
       // 历史字段 filteredData：曾由 tableUtils.handleTableChange 写入，仓库内无读取方；批量勾选走 this.filters + selectionUtils（AND）。
       antClearFilter: null,
-      saveLoading: false,
       selectedRowKeys: [],
       selectedRows: [],
       ipSelectModal: false,
@@ -285,6 +207,27 @@ export default {
   computed: {
     canShowDelete() {
       return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
+    },
+    archiveColumnActions() {
+      return {
+        modelValue: this.checkedColumn,
+        columns: this.columnSettingsList,
+        overlayStyle: this.overlayStyle,
+        colPrefName: "colPref-archiveModal",
+        normalWidth: 100,
+      };
+    },
+    archiveRowSelection() {
+      return {
+        columnWidth: 48,
+        selectedRowKeys: this.selectedRowKeys,
+        selectedRows: this.selectedRows,
+        onChange: this.onSelectChange,
+        selections: [
+          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
+          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
+        ],
+      };
     },
   },
   methods: {
@@ -373,16 +316,17 @@ export default {
       if (this.translateState) {
         data.push(this.translateState);
       }
-      this.loading = true;
+      startLoading();
 
       getEntryInfoList(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
-          this.loading = false;
         })
         .catch((err) => {
-          this.loading = false;
           message.error(err.message);
+        })
+        .finally(() => {
+          endLoading();
         });
     },
     handleOK() {
@@ -393,13 +337,19 @@ export default {
         entry: "",
       };
       let data = [];
-      this.saveLoading = true;
-      getEntryInfoList(params, data).then((res) => {
-        this.checkedEntry(res.data.list);
-      });
+      startLoading();
+      getEntryInfoList(params, data)
+        .then((res) => {
+          this.checkedEntry(res.data.list);
+        })
+        .catch((err) => {
+          message.error(err.message);
+          endLoading();
+        });
     },
     checkedEntry(data) {
       if (!data) {
+        endLoading();
         return;
       }
       let code = commonParam.languageMap[this.task.translateType].state;
@@ -412,7 +362,7 @@ export default {
       });
 
       if (flag) {
-        this.saveLoading = false;
+        endLoading();
         Modal.error({
           title: "当前任务存在未处理完的词条，不可归档！",
           style: { top: "30%" },
@@ -470,6 +420,7 @@ export default {
       };
     },
     afterClose() {
+      resetLoading();
       this.keyWords = "";
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
@@ -554,6 +505,7 @@ export default {
         })
         .catch((err) => {
           message.error("归档失败！", err.message);
+          this.writeBackLoading = false;
         });
     },
     // 归档按钮点击事件
@@ -586,7 +538,8 @@ export default {
       });
     },
     ipSelectAfterClose() {
-      this.ipModal.ip === null;
+      resetLoading();
+      this.ipModal.ip = null;
     },
     ipSelectOK() {
       this.writeBackLoading = true;
@@ -598,7 +551,7 @@ export default {
             this.writeBackFun();
           } else if (this.optionFlag === 1) {
             // 归档并结束任务+回写
-            this.saveLoading = false;
+            endLoading();
             this.task.state = "6";
             // this.task.endTime = common.getCurrentFormattedTime();
             this.task.endTime = getCurrentFormattedTime();
@@ -632,7 +585,7 @@ export default {
     },
     ipSelectClose() {
       this.ipSelectModal = false;
-      this.saveLoading = false;
+      endLoading();
       this.ipModal.ip = null;
     },
     // 获取i18服务器ip

@@ -1,15 +1,15 @@
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import WorkbenchColumnActions from '@/components/Workbench/WorkbenchColumnActions.vue'
+import ColumnActions from '@/views/workbench/components/ColumnActions.vue'
 
 const columns = [
   { label: '词条', value: 'entry', index: 2, required: true },
   { label: 'tag', value: 'tag', index: 3, visible: true },
 ]
 
-describe('WorkbenchColumnActions', () => {
+describe('ColumnActions', () => {
   it('默认仅渲染 ColumnFilter', () => {
-    const wrapper = mount(WorkbenchColumnActions, {
+    const wrapper = mount(ColumnActions, {
       props: {
         modelValue: ['entry', 'tag'],
         columns,
@@ -31,7 +31,7 @@ describe('WorkbenchColumnActions', () => {
   })
 
   it('showCoverButton 为 true 时应渲染 CoverButton', () => {
-    const wrapper = mount(WorkbenchColumnActions, {
+    const wrapper = mount(ColumnActions, {
       props: {
         modelValue: ['entry'],
         columns,

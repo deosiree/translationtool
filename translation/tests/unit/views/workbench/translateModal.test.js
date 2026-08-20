@@ -4,6 +4,7 @@ import { nextTick } from 'vue'
 import TranslateModal from '@/views/workbench/translateModal.vue'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
 import * as validationUtils from '@/utils/validationUtils'
+import { isLoading, resetLoading, startLoading } from '@/composables/useLoading'
 
 vi.mock('@/utils/domUtils', () => ({
   setModalAriaHidden: vi.fn(),
@@ -90,9 +91,8 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
           'a-input': true,
           'a-row': { template: '<div><slot /></div>' },
           'a-col': { template: '<div><slot /></div>' },
-          WorkbenchFormBar: { template: '<div><slot /></div>' },
-          WorkbenchTaskInfo: { template: '<div><slot name="extra" /></div>' },
-          WorkbenchColumnActions: true,
+          PipelineToolbar: { template: '<div><slot name="taskExtra" /><slot /></div>' },
+          ColumnActions: true,
           RulesDropdown: true,
           TransStateSelect: true,
           TransStateBadge: true,
@@ -107,6 +107,7 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
   }
 
   afterEach(() => {
+    resetLoading()
     if (wrapper) wrapper.unmount()
     vi.clearAllMocks()
   })
@@ -242,5 +243,49 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
     expect(payload[0].english).toBe('hello from edit')
     expect(payload[0].englishState).toBe('1')
     expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
+  })
+
+  it('getTranslateEntry：revalidateLoaded 期间 loading 为 true，结束后复位', async () => {
+    const revalSpy = vi.spyOn(validationUtils, 'revalidateLoaded').mockImplementation(async () => {
+      expect(isLoading()).toBe(true)
+    })
+    const { getEntryInfoList } = await import('@/http/api/workbench')
+    getEntryInfoList.mockResolvedValue({
+      data: {
+        list: [{ id: 'entry-1', entry: '词条', english: 'ok', englishState: '0' }],
+      },
+    })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { id: 'task-1' }
+    wrapper.vm.language = { value: 'english', state: 'englishState' }
+
+    await wrapper.vm.getTranslateEntry()
+    await nextTick()
+
+    expect(revalSpy).toHaveBeenCalled()
+    expect(isLoading()).toBe(false)
+    revalSpy.mockRestore()
+  })
+
+  it('子弹窗 AfterClose 应 resetLoading，避免主弹窗仍开时 loading 残留', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+
+    startLoading()
+    expect(isLoading()).toBe(true)
+    wrapper.vm.preTranslateAfterClose()
+    expect(isLoading()).toBe(false)
+    expect(wrapper.vm.preTran.priority).toBeNull()
+
+    startLoading()
+    wrapper.vm.exportAfterClose()
+    expect(isLoading()).toBe(false)
+    expect(wrapper.vm.exportModal.field).toEqual(['abbr', '词条'])
+
+    startLoading()
+    wrapper.vm.replaceAfterClose()
+    expect(isLoading()).toBe(false)
+    expect(wrapper.vm.replaceModal).toEqual({ sourceStr: null, replaceStr: null })
   })
 })

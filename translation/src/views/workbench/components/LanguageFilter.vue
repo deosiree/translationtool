@@ -1,4 +1,5 @@
 <template>
+  <!-- 审核阶段：表格上方过滤语种（仅 examineModal subToolbar 使用） -->
   <span class="workbench-language-filter">
     <span class="workbench-language-filter__label">过滤语种：</span>
     <a-radio-group
@@ -15,7 +16,7 @@
 
 <script>
 export default {
-  name: "WorkbenchLanguageFilter",
+  name: "LanguageFilter",
   props: {
     modelValue: {
       type: String,

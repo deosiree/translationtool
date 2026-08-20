@@ -68,11 +68,8 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
           'a-form-item': { template: '<div><slot /></div>' },
           'a-button': true,
           'a-input': true,
-          WorkbenchFormBar: { template: '<div><slot /></div>' },
-          WorkbenchActionGroup: { template: '<div><slot /></div>' },
-          WorkbenchTaskInfo: true,
-          WorkbenchColumnActions: true,
-          WorkbenchLanguageFilter: true,
+          PipelineToolbar: { template: '<div><slot name="taskExtra" /><slot /><slot name="columnActions" /><slot name="subToolbar" /></div>' },
+          ColumnActions: true,
           RulesDropdown: true,
           EntryStateSelect: true,
           IsExistBadge: true,
@@ -464,11 +461,12 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
     wrapper.vm.cellErrors = { 'entry-1': { english: '特殊字符不一致' } }
 
     checkSykEntryBeforeSave.mockClear()
-    wrapper.vm.rulesOptions.forEach((o) => { o.checked = false })
+    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((o) => ({ ...o, checked: false }))
     await nextTick()
     await flushPromises()
-
-    expect(wrapper.vm.cellErrors?.['entry-1']).toBeUndefined()
+    await vi.waitFor(() => {
+      expect(wrapper.vm.cellErrors?.['entry-1']).toBeUndefined()
+    })
     expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
     expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
   })

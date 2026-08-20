@@ -8,23 +8,19 @@ import { cancelRequest } from "@/http/request";
 const requestDelId = [];// 存储删除请求的id，用于保留loading状态
 
 /**
- * 处理异步请求的通用函数
+ * 处理异步请求的通用函数（纯数据获取，不管理 loading）
  * @param {Object} validateRef - 表单验证引用对象，用于调用 validate 方法进行表单验证
  * @param {Function} getDataFn - 获取数据的异步函数，接收 params 和 data 作为参数
  * @param {Object} params - 传递给 getDataFn 的参数对象
  * @param {*} [data=null] - 可选参数，传递给 getDataFn 的额外数据
  * @returns {Promise<Array>} - 返回一个 Promise，解析为数据列表数组，如果出错则返回空数组
  */
-export async function handleAsyncRequest(closeLoading, validateRef, getDataFn, params = null, data = null, returnParams = 'data.list') {
+export async function handleAsyncRequest(validateRef, getDataFn, params = null, data = null, returnParams = 'data.list') {
   try {
     // 执行表单验证
     await validateRef.validate();
-    console.log("表单验证结果", validateRef.validate());
   }
   catch (err) {
-    // 数据获取失败，提示错误信息
-    // console.log("表单校验失败！", err.message, closeLoading);
-    closeLoading();
     return [];
   }
   try {

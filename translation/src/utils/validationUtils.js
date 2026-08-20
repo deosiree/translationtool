@@ -10,6 +10,7 @@ import { cloneDeep } from 'lodash';
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
 import { entryAllCols } from "@/constants/commonParam.js";
 import { mapValueToLabel } from "@/utils/dataStructureUtils";
+import { withLoading } from "@/composables/useLoading";
 
 /**
  * 根据列 value 获取用户友好列名（label）
@@ -394,7 +395,8 @@ export async function verifyArray_workbench_page(pagination, language, vm,
     (pagination.current - 1) * pagination.pageSize,
     pagination.current * pagination.pageSize
   );
-  await verifyArray_workbench(vm, data, language, methods);
+  // 翻页/当前页复检：触发全局遮罩（引用计数由 withLoading 保证成对）
+  await withLoading(() => verifyArray_workbench(vm, data, language, methods));
 }
 
 /**
@@ -494,26 +496,29 @@ export async function verifyArray_workbench(vm, array, language, methods) {
 export async function revalidateLoaded(vm, transCol) {
   const rows = flattenLoaded(vm);
   if (!rows.length) return;
-  clearCellErrorsForRecords(vm, rows.map((r) => r.id));
-  const methods = getMethods(vm);
-  const acceptIds = new Set();
-  if (methods.length === 0) {
-    for (const r of rows) acceptIds.add(r.id);
-  } else {
-    const arr = await classifyArr(vm, rows, transCol, methods);
-    await openFailRows(vm, rows, arr, transCol);
-    for (const id of arr.acceptIds) acceptIds.add(id);
-  }
-  const byId = new Map(rows.map((r) => [r.id, r]));
-  for (const id of acceptIds) {
-    const edit = vm.editableData?.[id];
-    if (!edit) continue;
-    const rec = byId.get(id);
-    if (rec) rec[transCol] = edit[transCol];
-    delete vm.editableData[id];
-    clearCellError(vm, id, transCol);
-  }
-  hideEditOperation(vm);
+  // 修改校验规则/导入后/保存后复检：触发全局遮罩（引用计数由 withLoading 保证成对）
+  await withLoading(async () => {
+    clearCellErrorsForRecords(vm, rows.map((r) => r.id));
+    const methods = getMethods(vm);
+    const acceptIds = new Set();
+    if (methods.length === 0) {
+      for (const r of rows) acceptIds.add(r.id);
+    } else {
+      const arr = await classifyArr(vm, rows, transCol, methods);
+      await openFailRows(vm, rows, arr, transCol);
+      for (const id of arr.acceptIds) acceptIds.add(id);
+    }
+    const byId = new Map(rows.map((r) => [r.id, r]));
+    for (const id of acceptIds) {
+      const edit = vm.editableData?.[id];
+      if (!edit) continue;
+      const rec = byId.get(id);
+      if (rec) rec[transCol] = edit[transCol];
+      delete vm.editableData[id];
+      clearCellError(vm, id, transCol);
+    }
+    hideEditOperation(vm);
+  });
 }
 
 /**
@@ -617,20 +622,23 @@ export function cancelEdit(vm, recordId) {
  * commit 由各页传入（写回字段/状态策略不同）；失败则保留编辑态并 setCellError
  */
 export async function saveEdit(vm, record, { transCol, commit }) {
-  try {
-    await validateEditableCell(vm, record.id, transCol);
-  } catch (err) {
-    setCellError(
-      vm,
-      record.id,
-      transCol,
-      err?.errorMessage || err?.message || String(err)
-    );
-    return false;
-  }
-  commit(record, vm.editableData[record.id]);
-  delete vm.editableData[record.id];
-  clearCellError(vm, record.id, transCol);
-  hideEditOperation(vm);
-  return true;
+  // 行内 ✓ 校验/提交期间触发全局遮罩（引用计数由 withLoading 保证成对，防连点由遮罩拦截）
+  return withLoading(async () => {
+    try {
+      await validateEditableCell(vm, record.id, transCol);
+    } catch (err) {
+      setCellError(
+        vm,
+        record.id,
+        transCol,
+        err?.errorMessage || err?.message || String(err)
+      );
+      return false;
+    }
+    commit(record, vm.editableData[record.id]);
+    delete vm.editableData[record.id];
+    clearCellError(vm, record.id, transCol);
+    hideEditOperation(vm);
+    return true;
+  });
 }
