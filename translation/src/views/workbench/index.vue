@@ -586,53 +586,65 @@ export default {
             return { task, success: false, error };
           });
       }); // 单条更新任务，批量循环调用
-      Promise.allSettled(promises)
-        .then((results) => {
-          if (msg.update1.length > 0)
-            msg.updateSuc.push(`成功更改：${msg.update1.join("、")}`);
-          if (msg.update2.length > 0)
-            msg.updateSuc.push(`无需更改：${msg.update2.join("、")}`);
-          if (msg.updateSuc.length > 0) {
-            const msg_str = `成功${
-              msg.update1.length + msg.update2.length
-            }条！${msg.updateSuc.join("；")}`;
-            message.success(msg_str);
-          }
-          if (msg.updateErr.length > 0) {
-            const msg_str = `更新${
-              msg.updateErr.length
-            }条任务失败：${msg.updateErr.join("、")}。`;
-            message.error(msg_str);
-          }
-        })
-        .catch((error) => {
-          // 这里处理Promise.allSettled本身可能出现的错误（通常很少见）
-          console.error("处理所有任务时发生错误", error);
-        })
-        .finally(() => {
-          this.showOperationArea = false;
-          this.init();
-        });
+      let results = [];
+      try {
+        results = await Promise.allSettled(promises);
+      } catch (error) {
+        console.error("处理所有任务时发生错误", error);
+      }
+      if (msg.update1.length > 0)
+        msg.updateSuc.push(`成功更改：${msg.update1.join("、")}`);
+      if (msg.update2.length > 0)
+        msg.updateSuc.push(`无需更改：${msg.update2.join("、")}`);
+      if (msg.updateSuc.length > 0) {
+        const msg_str = `成功${
+          msg.update1.length + msg.update2.length
+        }条！${msg.updateSuc.join("；")}`;
+        message.success(msg_str);
+      }
+      if (msg.updateErr.length > 0) {
+        const msg_str = `更新${
+          msg.updateErr.length
+        }条任务失败：${msg.updateErr.join("、")}。`;
+        message.error(msg_str);
+      }
 
-      // 更新完成后刷新任务列表
-      this.selectedRows = [];
-      this.selectedRowKeys = [];
+      const okTasks = results
+        .filter((r) => r.status === "fulfilled" && r.value && r.value.success)
+        .map((r) => r.value.task);
+      if (okTasks.length > 0) {
+        const { tasks: updatedTasks } = await this.getTaskPending(okTasks);
+        this.mergePendingTasks(updatedTasks);
+      }
 
-      this.translateTypeVisible = false; // 关闭弹窗
-      // this.init();// 刷新任务列表
+      this.showOperationArea = false;
+      this.translateTypeVisible = false;
     },
     // 点击 cancel取消 按钮后会发生下面的操作（弹窗）
     cancelTranslateType() {
       this.translateTypeVisible = false; // 关闭弹窗
     },
-    // 表格复选框选择事件的回调（全选/反选不会回调这个函数）
-    onSelectChange(selectedRowKeys, selectedRows) {
-      // this.selectedRowKeys = selectedRowKeys;
-      // this.selectedRows = selectedRows;
-      // onSelect(单选/取选)、onSelectAll(全选/反选)后，更新selectedRows、selectedRowKeys
+    // 由 selectEntry 投影表格勾选（唯一写 keys/rows 的入口）
+    syncSelection() {
       this.selectedRows = [...this.selectEntry.values()];
-      this.selectedRowKeys = [...this.selectEntry.keys()]; // selectEntryList.map((item) => item.id);
-      // console.log("表格复选框选择事件", this.selectedRows);
+      this.selectedRowKeys = [...this.selectEntry.keys()];
+    },
+    // 行对象被替换后，把已选 Map 换成新引用再投影
+    replaceSelectedRecords(updatedTasks) {
+      if (!updatedTasks || updatedTasks.length === 0) {
+        this.syncSelection();
+        return;
+      }
+      for (const task of updatedTasks) {
+        if (this.selectEntry.has(task.id)) {
+          this.selectEntry.set(task.id, task);
+        }
+      }
+      this.syncSelection();
+    },
+    // 表格复选框选择事件的回调（全选/反选不会回调这个函数）
+    onSelectChange() {
+      this.syncSelection();
     },
     // 表格复选框点击事件
     onSelect(record, selected) {
@@ -653,7 +665,7 @@ export default {
           });
         }
       }
-
+      this.syncSelection();
       // console.log("表格复选框点击事件", record, selected);
     },
     // 表格全选/反选框点击事件（当前页）
@@ -667,6 +679,7 @@ export default {
           this.selectEntry.delete(item.id);
         });
       }
+      this.syncSelection();
       // console.log(
       //   "表格全选/反选框点击事件",
       //   selected,
@@ -677,16 +690,14 @@ export default {
     // 复选框全选事件
     selectAllEntry() {
       this.toDoTasks.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-        this.selectedRows.push(item);
         this.selectEntry.set(item.id, item);
       });
+      this.syncSelection();
     },
     //复选框反选事件
     clearAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
       this.selectEntry.clear();
+      this.syncSelection();
     },
     getRowClassName(record, index) {
       let className = null;
@@ -835,18 +846,54 @@ export default {
           endLoading();
         });
     },
+    // 把 getTaskPending 结果写回当前表格（平铺行 / 层级子任务与分支合计）
+    mergePendingTasks(updatedTasks) {
+      if (!updatedTasks || updatedTasks.length === 0) return;
+      if (this.isTreeOr2D == "tree") {
+        const byId = new Map(updatedTasks.map((t) => [t.id, t]));
+        for (let b = 0; b < this.dataSource.length; b++) {
+          const branch = this.dataSource[b];
+          if (!branch.child || branch.child.length === 0) continue;
+          let touched = false;
+          for (let i = 0; i < branch.child.length; i++) {
+            const updated = byId.get(branch.child[i].id);
+            if (updated) {
+              branch.child[i] = updated;
+              touched = true;
+            }
+          }
+          if (touched) {
+            branch.num__total = branch.child.reduce(
+              (sum, t) => sum + (t.num__total || 0),
+              0
+            );
+          }
+        }
+      } else {
+        for (const updatedTask of updatedTasks) {
+          const taskIndex = this.dataSource.findIndex(
+            (t) => t.id === updatedTask.id
+          );
+          if (taskIndex !== -1) {
+            this.dataSource[taskIndex] = updatedTask;
+          }
+        }
+      }
+      this.replaceSelectedRecords(updatedTasks);
+    },
     // 刷新当前任务的红点标红
     async refreshCurrentTask(task) {
       // console.log("刷新当前任务的红点标红", task);
       startLoading();
 
+      let updatedTask;
       if (this.isTreeOr2D == "tree") {
         // 层级展示
         const oldNum_total = task.num__total;
         const { tasks: updateTasks, totalNum } = await this.getTaskPending([
           task,
         ]);
-        const updatedTask = updateTasks[0];
+        updatedTask = updateTasks[0];
 
         // 使用id来查找任务所在的分支
         let branchIndex = this.dataSource.findIndex((branch) => {
@@ -872,7 +919,7 @@ export default {
         const { tasks: updateTasks, totalNum } = await this.getTaskPending([
           task,
         ]);
-        const updatedTask = updateTasks[0];
+        updatedTask = updateTasks[0];
         // 使用id来查找任务所在的分支
         let taskIndex = this.dataSource.findIndex(
           (t) => t.id === updatedTask.id
@@ -882,6 +929,7 @@ export default {
           this.dataSource[taskIndex] = updatedTask;
         }
       }
+      this.replaceSelectedRecords([updatedTask]);
       endLoading();
     },
     // 构建树结构数据
