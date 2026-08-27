@@ -529,7 +529,8 @@ export const entryParams = {
     // localStorage key 集合，方便后续扩展更多需要缓存的字段
     localStorageKey: {
       i18nUrl: "i18nUrl",
-    }, // 用于缓存选中的 i18nUrl
+      autoWrite: "entryUpdateAutoWrite",
+    }, // i18nUrl：缓存选中的 i18nUrl；autoWrite：缓存「完成后自动写库」开关（按 classifyID 隔离的 JSON map）
     pollingInterval: 5000, // 轮询间隔（毫秒），开发阶段缩短为5秒
     // 任务状态消息映射
     taskStatusMessages: {

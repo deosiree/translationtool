@@ -130,7 +130,7 @@ const jsonResponseInterceptor = (response) => {
   // console.log("返回的数据", response);
   // 这里拦截401错误，并重新跳入登页重新获取token
   if (response.status && response.status === 200) {
-    if (response.data.code === 200) {// 通讯成功
+    if (response.data.code === 200 || response.data.code === 203) {// 通讯成功（200正常成功，203存在部分异常但携带业务数据）
       return response.data
     } else if (response.data.code === 205) {
       // 如果是token过期，跳转至登录

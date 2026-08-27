@@ -130,6 +130,24 @@
                 : "更新"
             }}
           </a-menu-item>
+          <!-- 完成后自动写库：任务执行中时「更新」项被灰禁、弹窗打不开，
+               故该勾选项不跟随执行中状态禁用，保证随时可查看与修改开关 -->
+          <a-menu-item
+            v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
+            @click.stop
+          >
+            <a-checkbox
+              :checked="!!autoWriteMap[treeContextmenu.node.key]"
+              @change="
+                toggleAutoWrite(
+                  treeContextmenu.node.key,
+                  $event.target.checked
+                )
+              "
+            >
+              完成后自动写库
+            </a-checkbox>
+          </a-menu-item>
           <a-menu-item
             v-if="
               treeContextmenu.node.type != 'common' &&
@@ -316,7 +334,7 @@ import { message, notification, Modal as AntModal } from "ant-design-vue";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { randomMsg } from "@/utils/testUtils";
 import commonParam, { entryParams } from "@/constants/commonParam";
-import { getCachedI18nUrl } from "@/utils/dataUtils";
+import { getCachedI18nUrl, getAutoWrite, setAutoWrite } from "@/utils/dataUtils";
 import { handleTaskFailureStatusNotification } from "@/utils/notificationUtils";
 export default {
   components: {
@@ -363,6 +381,7 @@ export default {
       treeBoxOpen: true,
       treeHeight: 0,
       updateTaskStatusMap: {}, // 以classifyID为键存储更新任务状态
+      autoWriteMap: {}, // 以classifyID为键存储「完成后自动写库」开关，真值源为 localStorage
       treeContextmenu: {
         visible: false,
         node: null,
@@ -601,6 +620,20 @@ export default {
       });
       return res.data.state;
     },
+    /**
+     * 切换指定分类的「完成后自动写库」开关
+     *
+     * 同步内存 map 与 localStorage；localStorage 为真值源，弹窗侧读取同一份数据。
+     * @param {string} treeKey - 词条分类 ID（树节点 key）
+     * @param {boolean} checked - 是否勾选
+     */
+    toggleAutoWrite(treeKey, checked) {
+      if (!treeKey) {
+        return;
+      }
+      this.autoWriteMap[treeKey] = checked;
+      setAutoWrite(treeKey, checked);
+    },
     // 处理不同状态的逻辑
     // - 右键查询状态：仅更新按钮显示（silent=true），不打开弹窗
     // - 点击"更新"：才打开弹窗（silent=false）
@@ -808,6 +841,10 @@ export default {
         this.$currentDepartment &&
         this.$currentDepartment.ops.has("needIP")
       ) {
+        // 先载入「完成后自动写库」开关：不受 cachedI18nUrl 门控，
+        // 否则未缓存 IP 时勾选框无法回显真实值
+        this.autoWriteMap[treeKey] = getAutoWrite(treeKey);
+
         const cachedI18nUrl = getCachedI18nUrl();
         if (cachedI18nUrl) {
           try {

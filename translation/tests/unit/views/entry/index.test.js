@@ -9,6 +9,7 @@ import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import EntryIndex from '@/views/entry/index.vue'
 import { createUserStoreMock, createAdminUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
+import { entryParams } from '@/constants/commonParam'
 
 // Mock 依赖
 vi.mock('@/http/api/entryManage', () => ({
@@ -229,6 +230,89 @@ describe('Entry Index - user 属性重构测试', () => {
 
       // 验证 user 为 null 时不会报错
       expect(wrapper.vm.$store.state.user).toBeNull()
+    })
+  })
+
+  describe('toggleAutoWrite - 完成后自动写库开关', () => {
+    const AUTO_WRITE_KEY = entryParams.updateEntry.localStorageKey.autoWrite
+
+    const mountEntry = () => {
+      const storeMock = createAdminUserStoreMock()
+      return mount(EntryIndex, {
+        global: {
+          mocks: {
+            ...storeMock,
+            $router: { push: vi.fn() }
+          },
+          stubs: {
+            'ProductEntry': true,
+            'ProductVersion': true,
+            'CommonEntry': true,
+            'ClassifyModal': true,
+            'ProductAuthorityModal': true,
+            'UpdateModal': true,
+            'RedundantModal': true,
+            'CreateBranchModal': true,
+            'EntrySourceModal': true,
+            'a-layout': true,
+            'a-layout-sider': true,
+            'a-tree': true
+          }
+        }
+      })
+    }
+
+    beforeEach(() => {
+      window.localStorage.clear()
+    })
+
+    it('应在 data 中初始化 autoWriteMap', async () => {
+      wrapper = mountEntry()
+      await nextTick()
+
+      expect(wrapper.vm.autoWriteMap).toEqual({})
+    })
+
+    it('勾选后应同步内存 map 与 localStorage', async () => {
+      wrapper = mountEntry()
+      await nextTick()
+
+      wrapper.vm.toggleAutoWrite('c1', true)
+
+      expect(wrapper.vm.autoWriteMap['c1']).toBe(true)
+      expect(JSON.parse(window.localStorage.getItem(AUTO_WRITE_KEY))).toEqual({ c1: true })
+    })
+
+    it('取消勾选后应同步清除 localStorage 记忆', async () => {
+      wrapper = mountEntry()
+      await nextTick()
+
+      wrapper.vm.toggleAutoWrite('c1', true)
+      wrapper.vm.toggleAutoWrite('c1', false)
+
+      expect(wrapper.vm.autoWriteMap['c1']).toBe(false)
+      expect(window.localStorage.getItem(AUTO_WRITE_KEY)).toBeNull()
+    })
+
+    it('不同 classifyID 应互相隔离', async () => {
+      wrapper = mountEntry()
+      await nextTick()
+
+      wrapper.vm.toggleAutoWrite('c1', true)
+      wrapper.vm.toggleAutoWrite('c2', false)
+
+      expect(wrapper.vm.autoWriteMap['c1']).toBe(true)
+      expect(wrapper.vm.autoWriteMap['c2']).toBe(false)
+      expect(JSON.parse(window.localStorage.getItem(AUTO_WRITE_KEY))).toEqual({ c1: true })
+    })
+
+    it('treeKey 为空时应直接返回，不写入存储', async () => {
+      wrapper = mountEntry()
+      await nextTick()
+
+      wrapper.vm.toggleAutoWrite('', true)
+
+      expect(window.localStorage.getItem(AUTO_WRITE_KEY)).toBeNull()
     })
   })
 })

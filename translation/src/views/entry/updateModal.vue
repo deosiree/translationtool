@@ -21,9 +21,14 @@
     </template>
     <div class="content" v-if="!taskVisible">
       <div class="table">
-        <a-form ref="i18nURL" name="custom-validation">
-          <a-form-item label="IP" name="ip">
-            <a-select placeholder="请选择IP" allowClear v-model:value="i18nURL" :options="ipOptions"></a-select>
+        <a-form ref="i18nURL" name="custom-validation" layout="inline" class="form-container">
+          <a-form-item label="IP" name="ip" class="ip-form-item">
+            <a-select placeholder="请选择IP" allowClear v-model:value="i18nURL" :options="ipOptions" class="ip-select"></a-select>
+          </a-form-item>
+          <a-form-item class="autowrite-form-item">
+            <a-checkbox :checked="autoWrite" @change="onAutoWriteChange">
+              完成后自动写库
+            </a-checkbox>
           </a-form-item>
         </a-form>
         <a-table ref="updateTable" bordered class="ant-table-striped" v-if="currentTaskStatus === '2'"
@@ -60,8 +65,11 @@ import { MultiRequestPolling } from "@/utils/pollingUtils";
 import commonParam, { entryParams } from "@/constants/commonParam";
 import { v4 as uuidv4 } from "uuid";
 import { setModalAriaHidden } from "@/utils/domUtils";
-import { getCachedI18nUrl, setCachedI18nUrl } from "@/utils/dataUtils";
-import { handleTaskFailureStatusNotification } from "@/utils/notificationUtils";
+import { getCachedI18nUrl, setCachedI18nUrl, getAutoWrite, setAutoWrite } from "@/utils/dataUtils";
+import {
+  handleTaskFailureStatusNotification,
+  handleErrorNotification,
+} from "@/utils/notificationUtils";
 export default {
   components: {
     Modal,
@@ -136,6 +144,8 @@ export default {
       currentTaskStatus: null, // 当前任务状态（0/1/2/3/4/5/6）
       pollingController: null, // 多请求轮询管理器
       pollingRequestIds: new Map(), // 存储每个任务的请求ID，key为 classifyID+i18nUrl
+      /** 是否勾选“完成后自动写库”（默认 false，弹窗关闭时由 init 重置） */
+      autoWrite: false,
     };
   },
   mounted() {
@@ -166,12 +176,16 @@ export default {
       this.taskVisible = false;
       this.currentTaskStatus = null;
       this.loading = false; // 重置loading状态
+      this.autoWrite = false; // 重置自动写库勾选
       // 不清理轮询请求，让任务在后台继续运行，直到状态变为1
     },
     async onModalOpen() {
       // 弹窗打开时，根据当前任务状态重置loading
       // 避免多任务更新时，第一个任务的loading状态影响其他任务
       this.currentTaskStatus = this.taskStatus;
+
+      // 从 localStorage 回显「完成后自动写库」开关（真值源与右键菜单共用）
+      this.autoWrite = getAutoWrite(this.updateClassfyID);
       
       // 根据当前任务状态设置loading
       // 只有状态为"1"（执行中）时才显示loading，其他状态都重置为false
@@ -260,6 +274,18 @@ export default {
       }
     },
     // ==================== UI交互控制 ====================
+    /**
+     * 勾选/取消「完成后自动写库」
+     *
+     * 同步写入 localStorage，使右键菜单与弹窗共用同一真值源；
+     * 弹窗关闭后 init 会清掉内存值，但 localStorage 记忆保留。
+     * @param {Event} e - a-checkbox change 事件
+     */
+    onAutoWriteChange(e) {
+      const checked = e.target.checked;
+      this.autoWrite = checked;
+      setAutoWrite(this.updateClassfyID, checked);
+    },
     handleClose() {
       // 不停止轮询控制器，让任务在后台继续运行
       // 轮询请求会在状态变为1时自动清理
@@ -307,6 +333,10 @@ export default {
       }
     },
     async handleWriteUpdate() {
+      // 正在写库或执行其他异步任务时，直接拦截，防止重复触发
+      if (this.loading) {
+        return;
+      }
       // 必须先完成“查询更新”，再允许写库
       if (!this.i18nURL) {
         message.warning("请选择IP地址");
@@ -391,29 +421,77 @@ export default {
       // 加载任务结果并显示
       await this.loadTaskResultAndDisplay(this.updateClassfyID, this.i18nURL);
     },
-    // 根据更新结果进行数据库数据更新（写库操作，更新v1是同步操作，直接执行）
-    handleWriteDB() {
-      if (!Array.isArray(this.updateEntries) || this.updateEntries.length === 0) {
-        message.warning("暂无可更新的数据，请先获取更新结果");
-        return;
+    /**
+     * 拉取任务结果并归一为 entries 数组
+     *
+     * 只做取数与告警，不触碰任何组件展示状态，便于「弹窗已关」的后台路径复用。
+     * @param {string} classifyID - 词条分类 ID
+     * @param {string} i18nUrl - i18n 服务器地址
+     * @returns {Promise<Array>} entries 数组；无数据时为空数组
+     */
+    async fetchEntries(classifyID, i18nUrl) {
+      const result = await getEntrysourceListByClassfyResult({
+        classifyID: classifyID,
+        i18nUrl: i18nUrl,
+      });
+
+      // code=203：存在部分异常，响应体仍带有效数据，message 里是异常说明，弹告警但不中断
+      if (result && result.code === 203 && result.message) {
+        notification.warning({
+          message: "部分异常提示",
+          description: result.message,
+          duration: 0,
+        });
       }
-      // 点击确认就发送http请求，更新词条
+
+      const resultData = result && result.data;
+      if (resultData && resultData.list) {
+        return Object.values(resultData.list);
+      }
+      return [];
+    },
+    /**
+     * 按选中的来源文件拼装写库入参
+     *
+     * 纯函数，手动写库与后台自动写库共用，避免逻辑复制。
+     * @param {Array} entries - 任务结果 entries
+     * @param {Array<string>} sourceFiles - 需要写入的 sourceFile 列表
+     * @returns {Array} updateEntryByClassfy 的入参
+     */
+    buildWriteData(entries, sourceFiles) {
       const data = [];
-      this.updateEntries.forEach((item) => {
+      if (!Array.isArray(entries)) {
+        return data;
+      }
+      entries.forEach((item) => {
         const res = {
-          type: "",
+          type: item.type,
           sourceFileAndEntryVO: [],
         };
         let resFlag = false; // 标记是否已经添加过
-        res.type = item.type;
         Object.values(item.sourceFileAndEntryVO).forEach((file) => {
-          if (this.selectedRowKeys.includes(file.sourceFile)) {
+          if (sourceFiles.includes(file.sourceFile)) {
             res.sourceFileAndEntryVO.push(file);
             resFlag = true;
           }
         });
         if (resFlag) data.push(res);
       });
+      return data;
+    },
+    // 根据更新结果进行数据库数据更新（写库操作，更新v1是同步操作，直接执行）
+    handleWriteDB() {
+      if (this.loading) {
+        return;
+      }
+      if (!Array.isArray(this.updateEntries) || this.updateEntries.length === 0) {
+        message.warning("暂无可更新的数据，请先获取更新结果");
+        return;
+      }
+      this.loading = true;
+      // 点击确认就发送http请求，更新词条
+      const classifyID = this.updateClassfyID;
+      const data = this.buildWriteData(this.updateEntries, this.selectedRowKeys);
 
       updateEntryByClassfy(data)
         .then((res) => {
@@ -421,6 +499,9 @@ export default {
             message: "更新成功！",
             duration: 0,
           });
+          // 写库成功即清除该分类的自动写库记忆，避免下次任务被意外自动写入
+          setAutoWrite(classifyID, false);
+          this.autoWrite = false;
           this.dataSource = [];
           this.taskSource = Object.values(res.data.list).map((item, index) => ({
             index: index + 1,
@@ -436,7 +517,77 @@ export default {
             duration: 0,
           });
           console.log(`请求失败: ${error}`);
+        })
+        .finally(() => {
+          this.loading = false;
         });
+    },
+    /**
+     * 后台自动写库（弹窗已关或已切到其他分类时走此路径）
+     *
+     * 全程使用局部变量，绝不写入 updateEntries / selectedRowKeys / taskVisible 等展示状态，
+     * 否则会污染当前打开的其他分类弹窗。默认写入全部来源文件。
+     * @param {string} classifyID - 词条分类 ID
+     * @param {string} i18nUrl - i18n 服务器地址
+     */
+    async autoWriteInBackground(classifyID, i18nUrl) {
+      try {
+        const entries = await this.fetchEntries(classifyID, i18nUrl);
+        if (entries.length === 0) {
+          notification.warning({
+            message: "自动写库已跳过",
+            description: "任务已完成，但未获取到可更新的词条来源。",
+            duration: 0,
+          });
+          return;
+        }
+        // 后台路径无人工勾选，默认写入全部来源文件
+        const sourceFiles = [];
+        entries.forEach((item) => {
+          Object.values(item.sourceFileAndEntryVO).forEach((file) => {
+            sourceFiles.push(file.sourceFile);
+          });
+        });
+
+        const data = this.buildWriteData(entries, sourceFiles);
+        await updateEntryByClassfy(data);
+        // 写库成功即清除记忆
+        setAutoWrite(classifyID, false);
+        notification.success({
+          message: "自动写库成功！",
+          description: `分类 ${classifyID} 的更新已写入数据库。`,
+          duration: 0,
+        });
+      } catch (error) {
+        handleErrorNotification(error, "自动写库失败");
+        console.error("自动写库失败:", error);
+      }
+    },
+    /**
+     * 轮询探测到任务完成后的收口
+     *
+     * 未勾选自动写库时仅刷新展示；勾选后不再依赖弹窗是否打开，
+     * 但后台路径与可见路径严格分流，避免跨分类污染展示状态。
+     * @param {string} classifyID - 词条分类 ID
+     * @param {string} i18nUrl - i18n 服务器地址
+     */
+    async onTaskDone(classifyID, i18nUrl) {
+      const auto = getAutoWrite(classifyID);
+      // 弹窗正开着且展示的就是本分类：走可见路径，尊重用户手动取消勾选的行
+      const isCurrent = this.visible && this.updateClassfyID === classifyID;
+
+      if (isCurrent) {
+        await this.loadTaskResultAndDisplay(classifyID, i18nUrl);
+        if (auto) {
+          this.handleWriteDB();
+        }
+        return;
+      }
+
+      // 弹窗已关或已切到其他分类：仅在勾选时后台静默写库
+      if (auto) {
+        await this.autoWriteInBackground(classifyID, i18nUrl);
+      }
     },
     // ==================== 轮询相关 ====================
     // 启动定时器轮询
@@ -497,10 +648,8 @@ export default {
               status: status,
             });
 
-            // 若弹窗当前仍打开，则自动加载结果
-            if (this.visible) {
-              this.loadTaskResultAndDisplay(classifyID, i18nUrl);
-            }
+            // 收口：刷新展示 / 后台自动写库，分流见 onTaskDone
+            this.onTaskDone(classifyID, i18nUrl);
 
             message.success("任务执行完成，请打开更新弹窗查看结果并写库");
           } else if (status === "1") {
@@ -540,17 +689,9 @@ export default {
 
       this.loading = true;
       try {
-        // 获取任务结果
-        const result = await getEntrysourceListByClassfyResult({
-          classifyID: classifyID,
-          i18nUrl: i18nUrl,
-        });
-
-        // 将结果转换为显示格式
-        const resultData = result.data;
-        if (resultData && resultData.list) {
-          const entries = Object.values(resultData.list);
-          // 复用 handleUpdate() 的数据转换逻辑
+        // 取数与 203 告警统一收在 fetchEntries
+        const entries = await this.fetchEntries(classifyID, i18nUrl);
+        if (entries.length > 0) {
           this.transformEntriesToDataSource(entries);
         }
       } catch (error) {
@@ -593,5 +734,25 @@ export default {
   height: 100%;
   padding: 10px;
   background-color: #f3f3f3;
+}
+
+.form-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.ip-form-item {
+  margin-bottom: 0;
+  margin-right: 16px;
+}
+
+.ip-select {
+  width: 220px;
+}
+
+.autowrite-form-item {
+  margin-bottom: 0;
 }
 </style>
