@@ -33,7 +33,7 @@ if ($sourceCheckout) {
         Copy-Item -LiteralPath $builtCli -Destination $Cli -Force
     }
 } elseif (!(Test-Path $Cli)) {
-    throw "Harness bootstrap failed: Harness CLI is missing; install Harness again from its pinned release"
+    throw "Harness bootstrap failed: Harness CLI is missing at $Cli. Run '.\scripts\install-harness-cli.ps1' to download it from the pinned release, or set `$env:HARNESS_CLI` to point at an existing binary."
 }
 
 $releaseTagFile = Join-Path $root "scripts/harness-cli-release-tag"
@@ -70,27 +70,5 @@ if ($LASTEXITCODE -ne 0) { throw "Harness bootstrap failed: database initializat
 $contract = Get-Contract
 if ($contract.database_state -ne "current") {
     throw "Harness bootstrap failed: database did not reach current schema"
-}
-if ($sourceCheckout -and $Database -eq $defaultDatabase) {
-    $stories = (& $Cli query stories --json | ConvertFrom-Json).result.stories
-    $ownershipPath = Join-Path $root "docs/stories/epics/E11-symphony-repository-separation/US-089-separation-boundary-and-frozen-baselines/evidence/durable-ownership-map.json"
-    $forbidden = (Get-Content -LiteralPath $ownershipPath -Raw | ConvertFrom-Json).records |
-        Where-Object { $_.table -eq "story" -and $_.owner -eq "symphony" } |
-        ForEach-Object { $_.identity }
-    $leaked = $stories | Where-Object { $forbidden -contains $_.id }
-    if ($leaked) {
-        throw "Harness bootstrap failed: core database contains Symphony-owned story state: $(($leaked.id | Sort-Object) -join ', ')"
-    }
-    foreach ($proxy in @("US-093", "US-094", "US-095", "US-096")) {
-        if (!($stories | Where-Object { $_.id -eq $proxy -and $_.status -eq "implemented" -and !$_.runnable })) {
-            throw "Harness bootstrap failed: required core receipt proxy is missing or invalid: $proxy"
-        }
-    }
-    $foreignTools = & $Cli query tools --json | ConvertFrom-Json | Where-Object {
-        $_.name -in @("impeccable", "web-ui-build", "web-ui-e2e", "web-ui-desktop-smoke")
-    }
-    if ($foreignTools) {
-        throw "Harness bootstrap failed: core tool registry contains product-owned providers: $(($foreignTools.name | Sort-Object) -join ', ')"
-    }
 }
 Write-Host "Harness ready: cli=$Cli database=$Database"

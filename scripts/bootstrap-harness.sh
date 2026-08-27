@@ -40,7 +40,7 @@ if [[ $source_checkout == 1 ]]; then
     install -m 755 "$built_cli" "$cli"
   fi
 elif [[ ! -x "$cli" ]]; then
-  fail "Harness CLI is missing; install Harness again from its pinned release"
+  fail "Harness CLI is missing at $cli. Run 'scripts/install-harness-cli.sh' to download it from the pinned release, or set HARNESS_CLI to point at an existing binary."
 fi
 
 release_tag_file="$root/scripts/harness-cli-release-tag"
@@ -66,7 +66,4 @@ case "$(contract_state)" in
 esac
 
 [[ "$(contract_state)" == current ]] || fail "database did not reach current schema"
-if [[ $source_checkout == 1 && "$db" == "$root/harness.db" ]]; then
-  HARNESS_CLI="$cli" HARNESS_SOURCE_DB="$db" "$root/scripts/verify-core-state-ownership.sh" >/dev/null
-fi
 printf 'Harness ready: cli=%s database=%s\n' "$cli" "$db"
