@@ -31,6 +31,7 @@
             </a-col>
         </a-row>
         <FloatingToolBox v-if="$currentDepartment && $currentDepartment.ops?.has('toolBox')" />
+    <BatchProgressOverlay />
     </div>
 </template>
 <script>
@@ -47,12 +48,14 @@ import {
     RightOutlined
 } from '@ant-design/icons-vue';
 import FloatingToolBox from '@/components/FloatingToolBox/index.vue';
+import BatchProgressOverlay from '@/views/workbench/components/BatchProgressOverlay.vue';
 export default {
     name: 'layout',
     components: {
         LeftOutlined,
         RightOutlined,
-        FloatingToolBox
+        FloatingToolBox,
+        BatchProgressOverlay
     },
     data() {
         return {

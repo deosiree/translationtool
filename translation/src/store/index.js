@@ -3,6 +3,7 @@ import createPersistedState from 'vuex-persistedstate'
 import commonParam from '@/constants/commonParam'
 import { notification } from 'ant-design-vue'
 import { setCurrentDepartment } from '@/services/currentDepartmentService'
+import batchProgress from './modules/batchProgress'
 
 export default createStore({
   state: {
@@ -72,6 +73,7 @@ export default createStore({
     }
   },
   modules: {
+    batchProgress,
   },
   plugins: [createPersistedState({
     storage: window.sessionStorage

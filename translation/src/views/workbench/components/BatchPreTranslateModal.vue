@@ -4,7 +4,6 @@
     modalTitle="批量预翻译"
     :modalWidth="900"
     :fullFlag="false"
-    :okLoading="executing"
     @handleClose="handleClose"
     @handleOK="handleExecute"
     @afterClose="afterClose"
@@ -83,53 +82,22 @@
         </div>
       </div>
 
-      <!-- 执行进度 -->
-      <div class="section progress-section" v-if="executionPhase !== 'idle'">
-        <div class="section-title">执行进度</div>
-        <div class="progress-table-wrap">
-          <table class="progress-table">
-            <thead>
-              <tr>
-                <th style="width: 200px;">任务名称</th>
-                <th style="width: 120px;">词条审核</th>
-                <th style="width: 120px;">翻译(预翻译)</th>
-                <th style="width: 120px;">翻译审核</th>
-                <th>状态 / 错误</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="p in progresses" :key="p.taskId" :class="{ 'current-task': p.currentStage }">
-                <td>{{ p.taskName }}</td>
-                <td><StageIcon :status="p.stages.entryExamine" :retry="p.retryCount" /></td>
-                <td><StageIcon :status="p.stages.preTranslate" :retry="p.retryCount" /></td>
-                <td><StageIcon :status="p.stages.translateExamine" :retry="p.retryCount" /></td>
-                <td>
-                  <span v-if="p.error" class="error-text">{{ p.error }}</span>
-                  <span v-else-if="p.currentStage" class="running-text">执行中: {{ stageLabelMap[p.currentStage] }}</span>
-                  <span v-else-if="isTaskComplete(p)" class="success-text">全部完成</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+      <div class="section hint-section">
+        <a-alert
+          type="info"
+          :message="`点击「开始执行」后将关闭此窗口，在工作台页面显示全屏进度遮罩。执行期间不可关闭遮罩，完成后需手动点击「关闭」。`"
+          show-icon
+          style="margin: 0;"
+        />
       </div>
     </div>
 
     <template #footer>
       <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; width: 100%;">
-        <!-- 空闲态 -->
-        <template v-if="executionPhase === 'idle'">
-          <a-button @click="handleClose">取消</a-button>
-          <a-button type="primary" @click="handleExecute" :disabled="!canExecute">开始执行</a-button>
-        </template>
-        <!-- 执行态：footer 为空，仅显示进度 -->
-        <template v-else-if="executionPhase === 'running'">
-          <span class="running-hint">执行中，请稍候...</span>
-        </template>
-        <!-- 完成态 -->
-        <template v-else-if="executionPhase === 'completed'">
-          <a-button type="primary" @click="handleClose">关闭</a-button>
-        </template>
+        <a-button @click="handleClose">取消</a-button>
+        <a-button type="primary" @click="handleExecute" :disabled="!canExecute" :loading="submitting">
+          开始执行
+        </a-button>
       </div>
     </template>
   </Modal>
@@ -140,33 +108,11 @@ import Modal from '@/components/modal/index.vue'
 import RulesDropdown from '@/components/Dropdown/rulesDropdown.vue'
 import { message } from 'ant-design-vue'
 import commonParam from '@/constants/commonParam.js'
-import { useBatchPreTranslate } from '@/composables/workbench/useBatchPreTranslate'
 import { setModalAriaHidden } from '@/utils/domUtils'
 
-const StageIcon = {
-  props: ['status', 'retry'],
-  render(h) {
-    const icons = {
-      pending: { icon: '⏳', class: 'pending', title: '待执行' },
-      running: { icon: '⟳', class: 'running', title: '执行中' },
-      success: { icon: '✓', class: 'success', title: '成功' },
-      failed: { icon: '✗', class: 'failed', title: '失败' },
-      skipped: { icon: '⊘', class: 'skipped', title: '已跳过' }
-    }
-    const s = icons[this.status] || icons.pending
-    return h('span', {
-      class: ['stage-icon', s.class],
-      attrs: { title: s.title }
-    }, [
-      s.icon,
-      this.status === 'failed' && this.retry > 0 && h('span', { class: 'retry-badge' }, '×' + this.retry)
-    ])
-  }
-}
-
 export default {
-  components: { Modal, RulesDropdown, StageIcon },
-  emits: ['update:visible', 'close', 'complete'],
+  components: { Modal, RulesDropdown },
+  emits: ['update:visible', 'close', 'update:tasks'],
   props: {
     visible: { type: Boolean, default: false },
     tasks: { type: Array, default: () => [] }
@@ -198,19 +144,12 @@ export default {
         { key: 'preTranslate', label: '翻译(预翻译)' },
         { key: 'translateExamine', label: '翻译审核' }
       ],
-      stageLabelMap: {
-        entryExamine: '词条审核',
-        preTranslate: '翻译(预翻译)',
-        translateExamine: '翻译审核'
-      },
-      executionPhase: 'idle', // idle | running | completed
-      executing: false,
-      progresses: []
+      submitting: false
     }
   },
   computed: {
     filteredTasks() {
-      return (this.tasks || []).filter(t => t && t.id)
+      return (this.tasks || []).filter(t => t && t.id && !t.isBranch)
     },
     canExecute() {
       return this.filteredTasks.length > 0 && this.isContinuous(this.model.stages)
@@ -241,7 +180,6 @@ export default {
       const firstIdx = keys.indexOf(selected[0])
       const lastIdx = keys.indexOf(selected[selected.length - 1])
       const toggleable = [keys[firstIdx], keys[lastIdx]]
-      // 允许向外扩展：左侧相邻、右侧相邻
       if (firstIdx > 0) toggleable.push(keys[firstIdx - 1])
       if (lastIdx < keys.length - 1) toggleable.push(keys[lastIdx + 1])
       return [...new Set(toggleable)]
@@ -279,31 +217,10 @@ export default {
       this.$emit('update:tasks', this.tasks.filter(t => t.id !== task.id))
     },
 
-    initProgresses() {
-      const enabledStages = this.stageConfigs
-        .filter(s => this.model.stages[s.key])
-        .map(s => s.key)
-      
-      this.progresses = this.filteredTasks.map(t => ({
-        taskId: t.id,
-        taskName: t.name,
-        stages: {
-          entryExamine: this.model.stages.entryExamine ? 'pending' : 'skipped',
-          preTranslate: this.model.stages.preTranslate ? 'pending' : 'skipped',
-          translateExamine: this.model.stages.translateExamine ? 'pending' : 'skipped'
-        },
-        currentStage: null,
-        error: null,
-        retryCount: 0
-      }))
-    },
-
     async handleExecute() {
       if (!this.canExecute) return
 
-      this.executionPhase = 'running'
-      this.executing = true
-      this.initProgresses()
+      this.submitting = true
 
       const config = {
         tasks: this.filteredTasks,
@@ -315,22 +232,30 @@ export default {
       }
 
       try {
-        const { execute } = useBatchPreTranslate()
-        this.progresses = await execute(config, (prog) => {
-          this.progresses = [...prog]
-        })
+        // 启动全局进度遮罩
+        this.$store.dispatch('batchProgress/start', { config, tasks: this.filteredTasks })
+
+        // 关闭配置模态框
+        this.$emit('update:visible', false)
+        this.$emit('close')
+
+        // 后台执行
+        const { execute } = await import('@/composables/workbench/useBatchPreTranslate')
+        await execute.execute(config, this.$store)
+
         message.success('批量预翻译执行完成')
-        this.$emit('complete', this.progresses)
+        this.$emit('complete')
       } catch (err) {
         message.error('执行失败: ' + err.message)
+        // 执行失败也要关闭遮罩
+        this.$store.dispatch('batchProgress/complete')
       } finally {
-        this.executionPhase = 'completed'
-        this.executing = false
+        this.submitting = false
       }
     },
 
     handleClose() {
-      if (this.executionPhase === 'running') return
+      if (this.$store.getters['batchProgress/isRunning']) return
       this.$emit('update:visible', false)
       this.$emit('close')
     },
@@ -340,9 +265,7 @@ export default {
     },
 
     resetState() {
-      this.executionPhase = 'idle'
-      this.executing = false
-      this.progresses = []
+      this.submitting = false
       this.model.stages = {
         entryExamine: true,
         preTranslate: true,
@@ -351,11 +274,6 @@ export default {
       this.model.translatePriority = 'shuyuku'
       this.model.concurrency = 1
       this.model.maxRetries = 3
-    },
-
-    isTaskComplete(p) {
-      const enabled = Object.keys(p.stages).filter(k => p.stages[k] !== 'pending' && p.stages[k] !== 'skipped')
-      return enabled.length > 0 && enabled.every(k => p.stages[k] === 'success' || p.stages[k] === 'skipped')
     }
   }
 }
@@ -463,84 +381,12 @@ export default {
     }
   }
 
-  /* 进度表格 */
-  .progress-section {
-    .progress-table-wrap {
-      max-height: 300px;
-      overflow-y: auto;
-      border: 1px solid #e8e8e8;
-      border-radius: 4px;
-    }
-    .progress-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-
-      th {
-        background: #fafafa;
-        padding: 10px 8px;
-        text-align: left;
-        font-weight: 600;
-        color: #333;
-        border-bottom: 1px solid #e8e8e8;
-        position: sticky;
-        top: 0;
-        z-index: 1;
-      }
-
-      td {
-        padding: 10px 8px;
-        border-bottom: 1px solid #f0f0f0;
-        vertical-align: middle;
-      }
-
-      tr.current-task {
-        background: #fffbe6;
-      }
-
-      tr:last-child td {
-        border-bottom: none;
-      }
-    }
+  .hint-section {
+    margin-top: 8px;
   }
 
-  .stage-icon {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 14px;
-    padding: 2px 6px;
-    border-radius: 3px;
-
-    &.pending { color: #999; }
-    &.running { color: #1890ff; animation: spin 1s linear infinite; }
-    &.success { color: #52c41a; }
-    &.failed { color: #ff4d4f; }
-    &.skipped { color: #d9d9d9; }
-
-    .retry-badge {
-      font-size: 10px;
-      background: #fff1f0;
-      color: #ff4d4f;
-      padding: 0 3px;
-      border-radius: 2px;
-      margin-left: 4px;
-    }
-  }
-
-  @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  .error-text { color: #ff4d4f; font-size: 12px; }
-  .running-text { color: #1890ff; font-size: 12px; }
-  .success-text { color: #52c41a; font-size: 12px; }
-
-  .running-hint {
-    color: #999;
-    font-size: 13px;
-    align-self: center;
+  .modal-footer {
+    margin-top: 16px;
   }
 }
 </style>

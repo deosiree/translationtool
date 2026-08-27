@@ -7,26 +7,6 @@ import { message } from 'ant-design-vue'
 const STAGES = ['entryExamine', 'preTranslate', 'translateExamine']
 
 export function useBatchPreTranslate() {
-  const executing = ref(false)
-  const aborted = ref(false)
-  const progresses = ref([])
-  const currentTaskIndex = ref(0)
-
-  function createInitialProgress(tasks) {
-    return tasks.map(t => ({
-      taskId: t.id,
-      taskName: t.name,
-      stages: {
-        entryExamine: 'pending',
-        preTranslate: 'pending',
-        translateExamine: 'pending'
-      },
-      currentStage: null,
-      error: null,
-      retryCount: 0
-    }))
-  }
-
   function isStageEnabled(stages, key) {
     return stages[key] === true
   }
@@ -66,9 +46,8 @@ export function useBatchPreTranslate() {
     }
   }
 
-  async function executeEntryExamine(task, rules, progress, maxRetries) {
-    progress.stages.entryExamine = 'running'
-    progress.currentStage = 'entryExamine'
+  async function executeEntryExamine(task, config, progress, maxRetries, store) {
+    store.dispatch('batchProgress/updateProgress', progress)
 
     await runWithRetry(async () => {
       const params = { taskID: task.id, entryState: '1', entry: '' }
@@ -78,10 +57,10 @@ export function useBatchPreTranslate() {
       if (entries.length === 0) return
 
       const transCol = task.translateType
-      const methods = getMethods({ rulesOptions: rules })
+      const methods = getMethods({ rulesOptions: config.rules })
 
       clearCellErrorsForRecords({ cellErrors: {} }, entries.map(e => e.id))
-      const verifyResult = await classifyArr({ rulesOptions: rules }, entries, transCol, methods)
+      const verifyResult = await classifyArr({ rulesOptions: config.rules }, entries, transCol, methods)
 
       if (verifyResult.errorIds.size > 0) {
         throw new Error(`校验不通过 ${verifyResult.errorIds.size} 条`)
@@ -91,15 +70,16 @@ export function useBatchPreTranslate() {
       await updateEntryList({ taskID: task.id }, updateArr)
     }, maxRetries, (attempt, err) => {
       progress.retryCount = attempt
+      store.dispatch('batchProgress/updateProgress', progress)
       console.log(`[${task.name}] 词条审核重试 ${attempt}/${maxRetries}:`, err.message)
     })
 
     progress.stages.entryExamine = 'success'
+    store.dispatch('batchProgress/updateProgress', progress)
   }
 
-  async function executePreTranslate(task, priority, rules, progress, maxRetries) {
-    progress.stages.preTranslate = 'running'
-    progress.currentStage = 'preTranslate'
+  async function executePreTranslate(task, config, progress, maxRetries, store) {
+    store.dispatch('batchProgress/updateProgress', progress)
 
     await runWithRetry(async () => {
       const params = { taskID: task.id, entryState: '3', entry: '' }
@@ -108,14 +88,14 @@ export function useBatchPreTranslate() {
 
       if (entries.length === 0) return
 
-      const preParams = { taskID: task.id, priority }
+      const preParams = { taskID: task.id, priority: config.translatePriority }
       await preTranslate(preParams, entries)
 
       const transCol = task.translateType
-      const methods = getMethods({ rulesOptions: rules })
+      const methods = getMethods({ rulesOptions: config.rules })
 
       clearCellErrorsForRecords({ cellErrors: {} }, entries.map(e => e.id))
-      const verifyResult = await verifyArray_workbench({ rulesOptions: rules }, entries, transCol, methods)
+      const verifyResult = await verifyArray_workbench({ rulesOptions: config.rules }, entries, transCol, methods)
 
       if (verifyResult.errorIds.size > 0) {
         throw new Error(`预翻译校验不通过 ${verifyResult.errorIds.size} 条`)
@@ -125,15 +105,16 @@ export function useBatchPreTranslate() {
       await updateEntryList({ taskID: task.id }, updateArr)
     }, maxRetries, (attempt, err) => {
       progress.retryCount = attempt
+      store.dispatch('batchProgress/updateProgress', progress)
       console.log(`[${task.name}] 预翻译重试 ${attempt}/${maxRetries}:`, err.message)
     })
 
     progress.stages.preTranslate = 'success'
+    store.dispatch('batchProgress/updateProgress', progress)
   }
 
-  async function executeTranslateExamine(task, rules, progress, maxRetries) {
-    progress.stages.translateExamine = 'running'
-    progress.currentStage = 'translateExamine'
+  async function executeTranslateExamine(task, config, progress, maxRetries, store) {
+    store.dispatch('batchProgress/updateProgress', progress)
 
     await runWithRetry(async () => {
       const params = { taskID: task.id, entryState: '3', entry: '' }
@@ -143,10 +124,10 @@ export function useBatchPreTranslate() {
       if (entries.length === 0) return
 
       const transCol = task.translateType
-      const methods = getMethods({ rulesOptions: rules })
+      const methods = getMethods({ rulesOptions: config.rules })
 
       clearCellErrorsForRecords({ cellErrors: {} }, entries.map(e => e.id))
-      const verifyResult = await classifyArr({ rulesOptions: rules }, entries, transCol, methods)
+      const verifyResult = await classifyArr({ rulesOptions: config.rules }, entries, transCol, methods)
 
       if (verifyResult.errorIds.size > 0) {
         throw new Error(`翻译审核校验不通过 ${verifyResult.errorIds.size} 条`)
@@ -156,10 +137,12 @@ export function useBatchPreTranslate() {
       await updateEntryList({ taskID: task.id }, updateArr)
     }, maxRetries, (attempt, err) => {
       progress.retryCount = attempt
+      store.dispatch('batchProgress/updateProgress', progress)
       console.log(`[${task.name}] 翻译审核重试 ${attempt}/${maxRetries}:`, err.message)
     })
 
     progress.stages.translateExamine = 'success'
+    store.dispatch('batchProgress/updateProgress', progress)
   }
 
   const stageExecutors = {
@@ -168,79 +151,48 @@ export function useBatchPreTranslate() {
     translateExamine: executeTranslateExamine
   }
 
-  async function execute(config, onProgress) {
-    if (executing.value) return
+  async function execute(config, store) {
     if (!isContinuous(config.stages)) {
       throw new Error('阶段选择必须连续，不能有空洞')
     }
-
-    executing.value = true
-    aborted.value = false
-    progresses.value = createInitialProgress(config.tasks)
-    currentTaskIndex.value = 0
-    onProgress?.(progresses.value)
 
     const enabledStages = getEnabledStages(config.stages)
     const maxRetries = config.maxRetries ?? 3
 
     try {
       for (let i = 0; i < config.tasks.length; i++) {
-        if (aborted.value) break
-
         const task = config.tasks[i]
-        currentTaskIndex.value = i
-        const progress = progresses.value[i]
+        const progress = store.state.batchProgress.progresses[i]
 
         for (const stageKey of enabledStages) {
-          if (aborted.value) break
-
           progress.currentStage = stageKey
-          onProgress?.(progresses.value)
+          store.dispatch('batchProgress/updateProgress', progress)
 
           try {
-            await stageExecutors[stageKey](task, config, progress, maxRetries)
+            await stageExecutors[stageKey](task, config, progress, maxRetries, store)
             progress.stages[stageKey] = 'success'
+            store.dispatch('batchProgress/updateProgress', progress)
           } catch (err) {
             progress.stages[stageKey] = 'failed'
             progress.error = err.message
+            store.dispatch('batchProgress/updateProgress', progress)
 
             const stageIdx = enabledStages.indexOf(stageKey)
             for (let j = stageIdx + 1; j < enabledStages.length; j++) {
               progress.stages[enabledStages[j]] = 'skipped'
             }
+            store.dispatch('batchProgress/updateProgress', progress)
             break
           }
-
-          onProgress?.(progresses.value)
         }
       }
     } finally {
-      executing.value = false
-      onProgress?.(progresses.value)
+      store.dispatch('batchProgress/complete')
     }
-
-    return progresses.value
-  }
-
-  function abort() {
-    aborted.value = true
-  }
-
-  function reset() {
-    executing.value = false
-    aborted.value = false
-    progresses.value = []
-    currentTaskIndex.value = 0
   }
 
   return {
-    executing,
-    aborted,
-    progresses,
-    currentTaskIndex,
     execute,
-    abort,
-    reset,
     isContinuous,
     getToggleableStages,
     STAGES
