@@ -69,6 +69,7 @@
                   @click="isTreeOr2D=='tree'?isTreeOr2D='2D':isTreeOr2D='tree'">
                   {{isTreeOr2D=='tree'?'平铺':'层级'}}展示</a-button>
                 <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
+                <a-button type="primary" size="middle" @click="openBatchPreTranslate" :disabled="selectedRows.length === 0">批量预翻译</a-button>
                 <a-modal style="width: 320px;" class="choiceLang" centered title="选择语种" :visible="translateTypeVisible" @ok="confirmTranslateType"
                   @cancel="cancelTranslateType">
                   <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
@@ -153,6 +154,13 @@
   <ExamineTranslateModal ref="examineTranslate" :visible="examineTranslateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
     @handleClose="examineTranslateClose" @afterSave="refreshCurrentTask" />
   <ArchiveModal ref="archiveModalRef" :visible="archiveVisible" :currentTask="currentTask" @handleClose="archiveClose" @refresh="refreshTask" />
+  <BatchPreTranslateModal
+    :visible="batchPreTranslateVisible"
+    :tasks="selectedRows"
+    @update:visible="batchPreTranslateVisible = $event"
+    @close="batchPreTranslateVisible = false"
+    @complete="onBatchPreTranslateComplete"
+  />
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -169,6 +177,7 @@ import TranslateModal from "@/views/workbench/translateModal.vue";
 import ExamineTranslateModal from "@/views/workbench/examineTranslateModal.vue";
 import ArchiveModal from "@/views/workbench/archiveModal.vue";
 import BatchSelectButton from "@/components/Button/batchArchive/button.vue";
+import BatchPreTranslateModal from "@/views/workbench/components/BatchPreTranslateModal.vue";
 import {
   SendOutlined,
   CaretDownOutlined,
@@ -207,6 +216,7 @@ export default {
     ExamineTranslateModal,
     ArchiveModal,
     BatchSelectButton,
+    BatchPreTranslateModal,
     SendOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
@@ -349,6 +359,7 @@ export default {
       expandSource: [], // 记录展开了的分支信息
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       batchSelectVisible: false,
+      batchPreTranslateVisible: false, // 批量预翻译弹窗
     };
   },
   mounted() {
@@ -1064,6 +1075,20 @@ export default {
       this.archiveVisible = false;
       this.showOperationArea = false;
       this.setTableHeight();
+      this.getTaskTotal();
+    },
+    // 批量预翻译
+    openBatchPreTranslate() {
+      if (this.selectedRows.length === 0) {
+        message.warning('请先选择任务');
+        return;
+      }
+      this.batchPreTranslateVisible = true;
+      setModalAriaHidden(this, document);
+    },
+    onBatchPreTranslateComplete(progresses) {
+      this.batchPreTranslateVisible = false;
+      this.getTask();
       this.getTaskTotal();
     },
     // 重置
