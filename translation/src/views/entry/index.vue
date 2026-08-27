@@ -264,8 +264,6 @@
       <span />
     </a-dropdown>
   </div>
-  <!-- <RedundantModal ref="redundantModal" :visible="redundantVisible" :modalTitle="classifyModalTitle" :redundantClassfyID="redundantClassfyID"
-    @redundantClose="redundantClose" style="width:700px;" /> -->
   <UpdateModal
     ref="updateModal"
     style="width: 700px"
@@ -319,21 +317,18 @@ import CommonEntry from "@/views/entry/commonEntry.vue";
 import ClassifyModal from "@/views/entry/classifyModal.vue";
 import ProductAuthorityModal from "@/views/entry/productAuthorityModal.vue";
 import UpdateModal from "@/views/entry/updateModal.vue";
-import RedundantModal from "@/views/entry/redundantModal.vue";
 import CreateBranchModal from "@/views/entry/createBranchModal.vue";
 import EntrySourceModal from "@/components/Button/codeBranch/getEntrySrcModal.vue";
-import { cloneDeep, iteratee } from "lodash-es";
+import { cloneDeep } from "lodash-es";
 import { getClassTree, deleteEntryClassfy } from "@/http/api/entryManage";
-import { deleteProduct, getUserProduct } from "@/http/api/product";
+import { getUserProduct } from "@/http/api/product";
 import {
   getLangDirImportTaskState,
   getEntrysourceListByClassfyTaskState,
 } from "@/http/api/backendInfo";
-import { getI18nAdress } from "@/http/api/workbench";
-import { message, notification, Modal as AntModal } from "ant-design-vue";
+import { message, Modal as AntModal } from "ant-design-vue";
 import { setModalAriaHidden } from "@/utils/domUtils";
-import { randomMsg } from "@/utils/testUtils";
-import commonParam, { entryParams } from "@/constants/commonParam";
+import commonParam from "@/constants/commonParam";
 import { getCachedI18nUrl, getAutoWrite, setAutoWrite } from "@/utils/dataUtils";
 import { handleTaskFailureStatusNotification } from "@/utils/notificationUtils";
 export default {
@@ -347,7 +342,6 @@ export default {
     ClassifyModal,
     ProductAuthorityModal,
     UpdateModal,
-    RedundantModal,
     CreateBranchModal,
     EntrySourceModal,
   },

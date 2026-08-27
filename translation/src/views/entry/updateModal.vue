@@ -62,8 +62,7 @@ import {
   getEntrysourceListByClassfyResult,
 } from "@/http/api/backendInfo";
 import { MultiRequestPolling } from "@/utils/pollingUtils";
-import commonParam, { entryParams } from "@/constants/commonParam";
-import { v4 as uuidv4 } from "uuid";
+import { entryParams } from "@/constants/commonParam";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { getCachedI18nUrl, setCachedI18nUrl, getAutoWrite, setAutoWrite } from "@/utils/dataUtils";
 import {
@@ -411,16 +410,6 @@ export default {
         this.loading = false;
       }
     },
-    // 处理状态1：只加载结果并显示，不写库（在打开弹窗时调用）
-    async handleStatus1() {
-      if (!this.i18nURL) {
-        message.warning("请选择IP地址");
-        return;
-      }
-
-      // 加载任务结果并显示
-      await this.loadTaskResultAndDisplay(this.updateClassfyID, this.i18nURL);
-    },
     /**
      * 拉取任务结果并归一为 entries 数组
      *
@@ -672,14 +661,6 @@ export default {
       this.pollingRequestIds.set(requestKey, requestId);
     },
     // ==================== 辅助功能 ====================
-    // 获取任务结果
-    async getTaskResult() {
-      const res = await getEntrysourceListByClassfyResult({
-        classifyID: this.updateClassfyID,
-        i18nUrl: this.i18nURL,
-      });
-      return res.data;
-    },
     // 加载任务结果并显示
     async loadTaskResultAndDisplay(classifyID, i18nUrl) {
       // console.log("加载任务结果并显示", classifyID, i18nUrl);
