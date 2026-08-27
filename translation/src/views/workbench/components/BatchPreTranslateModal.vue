@@ -144,7 +144,7 @@ import { setModalAriaHidden } from '@/utils/domUtils'
 
 const StageIcon = {
   props: ['status', 'retry'],
-  setup(props) {
+  render(h) {
     const icons = {
       pending: { icon: '⏳', class: 'pending', title: '待执行' },
       running: { icon: '⟳', class: 'running', title: '执行中' },
@@ -152,15 +152,14 @@ const StageIcon = {
       failed: { icon: '✗', class: 'failed', title: '失败' },
       skipped: { icon: '⊘', class: 'skipped', title: '已跳过' }
     }
-    return () => {
-      const s = icons[props.status] || icons.pending
-      return (
-        <span class={`stage-icon ${s.class}`} title={s.title}>
-          {s.icon}
-          {props.status === 'failed' && props.retry > 0 && <span class="retry-badge">×{props.retry}</span>}
-        </span>
-      )
-    }
+    const s = icons[this.status] || icons.pending
+    return h('span', {
+      class: ['stage-icon', s.class],
+      attrs: { title: s.title }
+    }, [
+      s.icon,
+      this.status === 'failed' && this.retry > 0 && h('span', { class: 'retry-badge' }, '×' + this.retry)
+    ])
   }
 }
 
@@ -520,6 +519,4 @@ export default {
   .running-text { color: #1890ff; font-size: 12px; }
   .success-text { color: #52c41a; font-size: 12px; }
 }
-</style>
-</script>
 </style>
