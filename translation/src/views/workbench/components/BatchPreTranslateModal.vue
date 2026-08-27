@@ -12,10 +12,10 @@
     <div class="batch-pre-translate-modal">
       <!-- 任务列表预览 -->
       <div class="section task-list-section">
-        <div class="section-title">已选任务 ({{ tasks.length }})</div>
-        <div class="task-chips" v-if="tasks.length > 0">
+        <div class="section-title">已选任务 ({{ filteredTasks.length }})</div>
+        <div class="task-chips" v-if="filteredTasks.length > 0">
           <a-tag
-            v-for="task in tasks"
+            v-for="task in filteredTasks"
             :key="task.id"
             :color="task.color || 'blue'"
             closable
@@ -35,18 +35,15 @@
             v-for="stage in stageConfigs"
             :key="stage.key"
             class="stage-label"
-            :class="{
-              disabled: !isToggleable(stage.key),
-              'blocked-by-dep': stage.key === 'translateExamine' && !model.stages.preTranslate
-            }"
+            :class="{ disabled: !isToggleable(stage.key) }"
           >
             <input
               type="checkbox"
               v-model="model.stages[stage.key]"
-              :disabled="!isToggleable(stage.key) || (stage.key === 'translateExamine' && !model.stages.preTranslate)"
+              :disabled="!isToggleable(stage.key)"
               @change="onStageChange(stage.key)"
             >
-            <span :class="{ 'stage-required': stage.required }">{{ stage.label }}</span>
+            <span>{{ stage.label }}</span>
           </label>
         </div>
         <div v-if="!isContinuous(model.stages)" class="stage-error">
@@ -87,13 +84,8 @@
       </div>
 
       <!-- 执行进度 -->
-      <div class="section progress-section" v-if="executing || progresses.length > 0">
-        <div class="section-title">
-          执行进度
-          <a-button v-if="executing" type="primary" size="small" @click="abortExecution" style="margin-left: 12px;">
-            停止执行
-          </a-button>
-        </div>
+      <div class="section progress-section" v-if="executionPhase !== 'idle'">
+        <div class="section-title">执行进度</div>
         <div class="progress-table-wrap">
           <table class="progress-table">
             <thead>
@@ -124,11 +116,20 @@
     </div>
 
     <template #footer>
-      <div style="display: flex; justify-content: flex-end; gap: 8px; width: 100%;">
-        <a-button @click="handleClose" :disabled="executing" v-if="!executing">取消</a-button>
-        <a-button type="primary" @click="handleExecute" :loading="executing" :disabled="!canExecute || executing">
-          {{ executing ? '执行中...' : '开始执行' }}
-        </a-button>
+      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; width: 100%;">
+        <!-- 空闲态 -->
+        <template v-if="executionPhase === 'idle'">
+          <a-button @click="handleClose">取消</a-button>
+          <a-button type="primary" @click="handleExecute" :disabled="!canExecute">开始执行</a-button>
+        </template>
+        <!-- 执行态：footer 为空，仅显示进度 -->
+        <template v-else-if="executionPhase === 'running'">
+          <span class="running-hint">执行中，请稍候...</span>
+        </template>
+        <!-- 完成态 -->
+        <template v-else-if="executionPhase === 'completed'">
+          <a-button type="primary" @click="handleClose">关闭</a-button>
+        </template>
       </div>
     </template>
   </Modal>
@@ -193,22 +194,26 @@ export default {
         { label: '综合优先级', value: 'synthesis' }
       ],
       stageConfigs: [
-        { key: 'entryExamine', label: '词条审核', required: false },
-        { key: 'preTranslate', label: '翻译(预翻译)', required: true },
-        { key: 'translateExamine', label: '翻译审核', required: false }
+        { key: 'entryExamine', label: '词条审核' },
+        { key: 'preTranslate', label: '翻译(预翻译)' },
+        { key: 'translateExamine', label: '翻译审核' }
       ],
       stageLabelMap: {
         entryExamine: '词条审核',
         preTranslate: '翻译(预翻译)',
         translateExamine: '翻译审核'
       },
+      executionPhase: 'idle', // idle | running | completed
       executing: false,
       progresses: []
     }
   },
   computed: {
+    filteredTasks() {
+      return (this.tasks || []).filter(t => t && t.id)
+    },
     canExecute() {
-      return this.tasks.length > 0 && this.isContinuous(this.model.stages)
+      return this.filteredTasks.length > 0 && this.isContinuous(this.model.stages)
     }
   },
   watch: {
@@ -230,9 +235,16 @@ export default {
     },
 
     getToggleableStages(stages) {
-      const selected = this.stageConfigs.filter(s => stages[s.key]).map(s => s.key)
-      if (selected.length === 0) return this.stageConfigs.map(s => s.key)
-      return [selected[0], selected[selected.length - 1]]
+      const keys = this.stageConfigs.map(s => s.key)
+      const selected = keys.filter(k => stages[k])
+      if (selected.length === 0) return keys
+      const firstIdx = keys.indexOf(selected[0])
+      const lastIdx = keys.indexOf(selected[selected.length - 1])
+      const toggleable = [keys[firstIdx], keys[lastIdx]]
+      // 允许向外扩展：左侧相邻、右侧相邻
+      if (firstIdx > 0) toggleable.push(keys[firstIdx - 1])
+      if (lastIdx < keys.length - 1) toggleable.push(keys[lastIdx + 1])
+      return [...new Set(toggleable)]
     },
 
     isToggleable(key) {
@@ -267,13 +279,34 @@ export default {
       this.$emit('update:tasks', this.tasks.filter(t => t.id !== task.id))
     },
 
+    initProgresses() {
+      const enabledStages = this.stageConfigs
+        .filter(s => this.model.stages[s.key])
+        .map(s => s.key)
+      
+      this.progresses = this.filteredTasks.map(t => ({
+        taskId: t.id,
+        taskName: t.name,
+        stages: {
+          entryExamine: this.model.stages.entryExamine ? 'pending' : 'skipped',
+          preTranslate: this.model.stages.preTranslate ? 'pending' : 'skipped',
+          translateExamine: this.model.stages.translateExamine ? 'pending' : 'skipped'
+        },
+        currentStage: null,
+        error: null,
+        retryCount: 0
+      }))
+    },
+
     async handleExecute() {
       if (!this.canExecute) return
 
+      this.executionPhase = 'running'
       this.executing = true
+      this.initProgresses()
 
       const config = {
-        tasks: this.tasks,
+        tasks: this.filteredTasks,
         stages: { ...this.model.stages },
         translatePriority: this.model.translatePriority,
         concurrency: this.model.concurrency,
@@ -291,19 +324,13 @@ export default {
       } catch (err) {
         message.error('执行失败: ' + err.message)
       } finally {
+        this.executionPhase = 'completed'
         this.executing = false
       }
     },
 
-    abortExecution() {
-      const { abort } = useBatchPreTranslate()
-      abort()
-      this.executing = false
-      message.warning('已停止执行')
-    },
-
     handleClose() {
-      if (this.executing) return
+      if (this.executionPhase === 'running') return
       this.$emit('update:visible', false)
       this.$emit('close')
     },
@@ -313,6 +340,7 @@ export default {
     },
 
     resetState() {
+      this.executionPhase = 'idle'
       this.executing = false
       this.progresses = []
       this.model.stages = {
@@ -401,11 +429,6 @@ export default {
         cursor: not-allowed;
       }
 
-      &.blocked-by-dep {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
       &:hover:not(.disabled) {
         background: #f0f5ff;
       }
@@ -413,11 +436,6 @@ export default {
       input {
         width: 16px;
         height: 16px;
-      }
-
-      .stage-required {
-        color: #1890ff;
-        font-weight: 500;
       }
     }
     .stage-error {
@@ -518,5 +536,11 @@ export default {
   .error-text { color: #ff4d4f; font-size: 12px; }
   .running-text { color: #1890ff; font-size: 12px; }
   .success-text { color: #52c41a; font-size: 12px; }
+
+  .running-hint {
+    color: #999;
+    font-size: 13px;
+    align-self: center;
+  }
 }
 </style>

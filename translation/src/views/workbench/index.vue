@@ -68,7 +68,7 @@
                 <a-button v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" type="primary" size="middle"
                   @click="isTreeOr2D=='tree'?isTreeOr2D='2D':isTreeOr2D='tree'">
                   {{isTreeOr2D=='tree'?'平铺':'层级'}}展示</a-button>
-                <a-button type="primary" size="middle" @click="SelectTranslateType">更改翻译语种</a-button>
+                <a-button type="primary" size="middle" @click="SelectTranslateType" :disabled="selectedRows.length === 0">更改翻译语种</a-button>
                 <a-button type="primary" size="middle" @click="openBatchPreTranslate" :disabled="selectedRows.length === 0">批量预翻译</a-button>
                 <a-modal style="width: 320px;" class="choiceLang" centered title="选择语种" :visible="translateTypeVisible" @ok="confirmTranslateType"
                   @cancel="cancelTranslateType">
@@ -157,7 +157,7 @@
   <BatchPreTranslateModal
     :visible="batchPreTranslateVisible"
     :tasks="selectedRows"
-    @update:visible="batchPreTranslateVisible = $event"
+    @handleClose="batchPreTranslateVisible = false"
     @close="batchPreTranslateVisible = false"
     @complete="onBatchPreTranslateComplete"
   />
