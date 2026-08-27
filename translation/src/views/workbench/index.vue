@@ -157,6 +157,7 @@
   <BatchPreTranslateModal
     :visible="batchPreTranslateVisible"
     :tasks="selectedRows"
+    @update:tasks="syncBatchTasks"
     @handleClose="batchPreTranslateVisible = false"
     @close="batchPreTranslateVisible = false"
     @complete="onBatchPreTranslateComplete"
@@ -1090,6 +1091,14 @@ export default {
       this.batchPreTranslateVisible = false;
       this.getTask();
       this.getTaskTotal();
+    },
+    // 同步批量预翻译任务列表（用于模态框删除任务后同步父组件）
+    syncBatchTasks(newTasks) {
+      this.selectedRows = newTasks
+      this.selectedRowKeys = newTasks.map(t => t.id)
+      this.selectEntry.clear()
+      newTasks.forEach(t => this.selectEntry.set(t.id, t))
+      this.syncSelection()
     },
     // 重置
     reset() {

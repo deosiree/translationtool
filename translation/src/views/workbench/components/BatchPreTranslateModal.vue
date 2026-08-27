@@ -81,15 +81,6 @@
           <RulesDropdown :options="rulesOptions" @update:options="rulesOptions = $event" />
         </div>
       </div>
-
-      <div class="section hint-section">
-        <a-alert
-          type="info"
-          :message="`点击「开始执行」后将关闭此窗口，在工作台页面显示全屏进度遮罩。执行期间不可关闭遮罩，完成后需手动点击「关闭」。`"
-          show-icon
-          style="margin: 0;"
-        />
-      </div>
     </div>
 
     <template #footer>
@@ -379,10 +370,6 @@ export default {
         margin-top: 8px;
       }
     }
-  }
-
-  .hint-section {
-    margin-top: 8px;
   }
 
   .modal-footer {
