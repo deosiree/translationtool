@@ -1,40 +1,33 @@
 <template>
   <div v-if="visible" class="batch-progress-overlay">
-    <div class="overlay-panel">
-      <div class="overlay-header">
+    <div class="overlay-backdrop" />
+    <div class="progress-panel">
+      <div class="panel-header">
         <h3>批量预翻译执行进度</h3>
         <a-badge :status="phase === 'running' ? 'processing' : 'success'" />
       </div>
 
-      <div class="progress-table-wrap">
-        <table class="progress-table">
-          <thead>
-            <tr>
-              <th style="width: 200px;">任务名称</th>
-              <th style="width: 120px;">词条审核</th>
-              <th style="width: 120px;">翻译(预翻译)</th>
-              <th style="width: 120px;">翻译审核</th>
-              <th>状态 / 错误</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="p in progresses" :key="p.taskId" :class="{ current: p.currentStage }">
-              <td>{{ p.taskName }}</td>
-              <td><StageIcon :status="p.stages.entryExamine" :retry="p.retryCount" /></td>
-              <td><StageIcon :status="p.stages.preTranslate" :retry="p.retryCount" /></td>
-              <td><StageIcon :status="p.stages.translateExamine" :retry="p.retryCount" /></td>
-              <td>
-                <span v-if="p.error" class="error">{{ p.error }}</span>
-                <span v-else-if="p.currentStage" class="running">执行中: {{ stageLabelMap[p.currentStage] }}</span>
-                <span v-else-if="isTaskDone(p)" class="success">全部完成</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div v-if="phase === 'completed'" class="overlay-footer">
-        <a-button type="primary" @click="close">关闭</a-button>
+      <div class="progress-list">
+        <div
+          v-for="p in progresses"
+          :key="p.taskId"
+          class="progress-item"
+          :class="{ current: p.currentStage }"
+        >
+          <div class="task-info">
+            <span class="task-name">{{ p.taskName }}</span>
+            <span v-if="p.currentStage" class="running-badge">执行中: {{ stageLabelMap[p.currentStage] }}</span>
+          </div>
+          <div class="stages">
+            <StageIcon :status="p.stages.entryExamine" :retry="p.retryCount" />
+            <StageIcon :status="p.stages.preTranslate" :retry="p.retryCount" />
+            <StageIcon :status="p.stages.translateExamine" :retry="p.retryCount" />
+          </div>
+          <div class="status">
+            <span v-if="p.error" class="error">{{ p.error }}</span>
+            <span v-else-if="isTaskDone(p)" class="success">全部完成</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -43,6 +36,7 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import StageIcon from './StageIcon.vue'
+import { notification } from 'ant-design-vue'
 
 export default {
   name: 'BatchProgressOverlay',
@@ -58,13 +52,40 @@ export default {
       }
     }
   },
+  watch: {
+    phase(newVal) {
+      if (newVal === 'completed') {
+        this.handleCompleted()
+      }
+    }
+  },
   methods: {
     isTaskDone(p) {
       const enabled = Object.keys(p.stages).filter(k => p.stages[k] !== 'pending' && p.stages[k] !== 'skipped')
       return enabled.length > 0 && enabled.every(k => p.stages[k] === 'success' || p.stages[k] === 'skipped')
     },
-    close() {
+    handleCompleted() {
+      const progresses = this.$store.state.batchProgress.progresses
+      const success = progresses.filter(p =>
+        Object.values(p.stages).every(s => s === 'success' || s === 'skipped')
+      ).length
+      const failed = progresses.filter(p =>
+        Object.values(p.stages).includes('failed')
+      )
+      const failedNames = failed.map(p => p.taskName).join('、')
+
+      let msg = `批量预翻译执行完成：成功(${success})`
+      if (failed.length > 0) {
+        msg += `；失败(${failed.length}): ${failedNames}`
+      }
+
+      // 先重置状态关闭遮罩，再发送通知
       this.$store.dispatch('batchProgress/reset')
+      notification.success({
+        message: '批量预翻译执行完成',
+        description: msg,
+        duration: 5
+      })
     }
   }
 }
@@ -78,85 +99,104 @@ export default {
   right: 0;
   bottom: 0;
   z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
+  background: rgba(255, 255, 255, 0.8);
   display: flex;
-  justify-content: center;
+  justify-content: flex-end;
   padding: 20px;
+  pointer-events: none;
   box-sizing: border-box;
-  overflow: auto;
 
-  .overlay-panel {
+  .overlay-backdrop {
+    position: absolute;
+    inset: 0;
+  }
+
+  .progress-panel {
+    pointer-events: auto;
     width: 100%;
-    max-width: 1000px;
+    max-width: 520px;
     background: white;
     border-radius: 8px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e8e8e8;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    min-height: 300px;
-  }
+    margin-top: 60px;
 
-  .overlay-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid #f0f0f0;
-    background: #fafafa;
-    border-radius: 8px 8px 0 0;
-
-    h3 {
-      margin: 0;
-      font-size: 16px;
-      font-weight: 600;
-      color: #333;
-    }
-  }
-
-  .progress-table-wrap {
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 0 20px;
-  }
-
-  .progress-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-
-    th {
-      background: #fafafa;
-      padding: 10px 8px;
-      text-align: left;
-      font-weight: 600;
-      color: #333;
-      border-bottom: 1px solid #e8e8e8;
-      position: sticky;
-      top: 0;
-      z-index: 1;
-    }
-
-    td {
-      padding: 10px 8px;
+    .panel-header {
+      padding: 12px 16px;
       border-bottom: 1px solid #f0f0f0;
-      vertical-align: middle;
+      background: #fafafa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-radius: 8px 8px 0 0;
+
+      h3 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+      }
     }
 
-    tr.current {
-      background: #fffbe6;
-    }
+    .progress-list {
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 8px 12px;
 
-    tr:last-child td {
-      border-bottom: none;
-    }
-  }
+      .progress-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 8px 4px;
+        border-bottom: 1px solid #f5f5f5;
 
-  .overlay-footer {
-    padding: 16px 20px;
-    border-top: 1px solid #f0f0f0;
-    background: #fafafa;
-    display: flex;
-    justify-content: flex-end;
-    border-radius: 0 0 8px 8px;
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &.current {
+          background: #fffbe6;
+        }
+
+        .task-info {
+          flex: 1;
+          min-width: 0;
+
+          .task-name {
+            display: block;
+            font-size: 13px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .running-badge {
+            font-size: 11px;
+            color: #1890ff;
+            margin-top: 2px;
+            display: block;
+          }
+        }
+
+        .stages {
+          display: flex;
+          gap: 8px;
+          flex-shrink: 0;
+        }
+
+        .status {
+          flex-shrink: 0;
+          width: 80px;
+          text-align: right;
+          font-size: 12px;
+
+          &.error { color: #ff4d4f; }
+          &.success { color: #52c41a; }
+        }
+      }
+    }
   }
 }
 

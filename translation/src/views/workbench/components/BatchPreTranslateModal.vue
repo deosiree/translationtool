@@ -2,7 +2,7 @@
   <Modal
     :visible="visible"
     modalTitle="批量预翻译"
-    :modalWidth="900"
+    :modalWidth="'900px'"
     :fullFlag="false"
     @handleClose="handleClose"
     @handleOK="handleExecute"
