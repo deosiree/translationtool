@@ -1,5 +1,5 @@
 <template>
-  <div v-if="visible" class="batch-progress-overlay">
+  <div v-if="visible" ref="overlay" class="batch-progress-overlay">
     <div class="overlay-backdrop" @click="preventClick" />
     <div class="progress-panel">
       <div class="panel-header">
@@ -85,8 +85,10 @@ export default {
     },
     adjustPanelHeight() {
       this.$nextTick(() => {
-        const panel = this.$el.querySelector('.progress-panel')
-        const list = this.$el.querySelector('.progress-list')
+        const root = this.$refs.overlay
+        if (!root) return
+        const panel = root.querySelector('.progress-panel')
+        const list = root.querySelector('.progress-list')
         if (!panel || !list) return
 
         const headerHeight = 56 // panel-header 高度
