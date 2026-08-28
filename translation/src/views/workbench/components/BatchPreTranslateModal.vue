@@ -100,7 +100,7 @@ import RulesDropdown from '@/components/Dropdown/rulesDropdown.vue'
 import { message } from 'ant-design-vue'
 import commonParam from '@/constants/commonParam.js'
 import { setModalAriaHidden } from '@/utils/domUtils'
-import { execute } from '@/composables/workbench/useBatchPreTranslate'
+import { useBatchPreTranslate } from '@/composables/workbench/useBatchPreTranslate'
 
 export default {
   components: { Modal, RulesDropdown },
@@ -232,6 +232,7 @@ export default {
         this.$emit('close')
 
         // 后台执行
+        const { execute } = useBatchPreTranslate()
         await execute(config, this.$store)
 
         message.success('批量预翻译执行完成')
