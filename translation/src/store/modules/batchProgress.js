@@ -29,8 +29,11 @@ export default {
         retryCount: 0
       }))
     },
-    UPDATE_PROGRESS(state, progresses) {
-      state.progresses = progresses
+    UPDATE_PROGRESS(state, progress) {
+      const index = state.progresses.findIndex(p => p.taskId === progress.taskId)
+      if (index !== -1) {
+        state.progresses.splice(index, 1, { ...progress })
+      }
     },
     COMPLETE(state) {
       state.phase = 'completed'
