@@ -2,7 +2,7 @@
   <Modal
     :visible="visible"
     modalTitle="批量预翻译"
-    :modalWidth="'900px'"
+    modalWidth="80%"
     :fullFlag="false"
     @handleClose="handleClose"
     @handleOK="handleExecute"
@@ -64,7 +64,9 @@
           <a-col :span="8">
             <div class="config-item">
               <label>并发数</label>
-              <a-input-number v-model:value="model.concurrency" :min="1" :max="5" :style="{ width: '100%' }" />
+              <a-tooltip title="同时执行的任务数（1~100）；每个任务内的阶段仍按顺序串行执行">
+                <a-input-number v-model:value="model.concurrency" :min="1" :max="100" :style="{ width: '100%' }" />
+              </a-tooltip>
             </div>
           </a-col>
           <a-col :span="8">
@@ -133,7 +135,7 @@ export default {
       ],
       stageConfigs: [
         { key: 'entryExamine', label: '词条审核' },
-        { key: 'preTranslate', label: '翻译(预翻译)' },
+        { key: 'preTranslate', label: '翻译' },
         { key: 'translateExamine', label: '翻译审核' }
       ],
       submitting: false
@@ -235,7 +237,7 @@ export default {
         const { execute } = useBatchPreTranslate()
         await execute(config, this.$store)
 
-        message.success('批量预翻译执行完成')
+        // 完成汇总与「关闭」按钮展示在进度面板中，由用户手动关闭
         this.$emit('complete')
       } catch (err) {
         message.error('执行失败: ' + err.message)

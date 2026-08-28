@@ -61,6 +61,7 @@ import { defineComponent, ref, createVNode } from "vue";
 import { ExclamationCircleOutlined } from "@ant-design/icons-vue";
 import { updateTaskInfo } from "@/http/api/task";
 import { getEntryTempByTaskID, getEntryInfoList } from "@/http/api/workbench";
+import { STAGE_QUERY_PARAMS } from "@/constants/batchPreTranslateSteps";
 import { setInfoByTask, setInfo } from "@/http/api/i18Server";
 // import commen from '../../views/entry/common.js'
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
@@ -318,14 +319,14 @@ export default {
           message.error(err.message);
         });
     },
-    // 获取待审核的词条
+    // 获取待审核的词条（口径同 STAGE_QUERY_PARAMS.entryExamine，与批量预翻译共用）
     getEntryCheck() {
       let params = {
         taskID: this.task.id,
-        entryState: "1",
+        entryState: STAGE_QUERY_PARAMS.entryExamine.entryState,
         entry: "",
       };
-      getEntryInfoList(params, [])
+      getEntryInfoList(params, STAGE_QUERY_PARAMS.entryExamine.transStates)
         .then((res) => {
           this.entryCheckCount = res.data.list.length;
         })
@@ -334,15 +335,14 @@ export default {
           message.error(err.message);
         });
     },
-    // 获取待翻译的词条
+    // 获取待翻译的词条（口径同 STAGE_QUERY_PARAMS.preTranslate，与批量预翻译共用）
     getTranslate() {
       let params = {
         taskID: this.task.id,
-        entryState: "3",
+        entryState: STAGE_QUERY_PARAMS.preTranslate.entryState,
         entry: "",
       };
-      let data = ["0", "2"];
-      getEntryInfoList(params, data)
+      getEntryInfoList(params, STAGE_QUERY_PARAMS.preTranslate.transStates)
         .then((res) => {
           this.transalteCount = res.data.list.length;
         })
@@ -351,15 +351,14 @@ export default {
           message.error(err.message);
         });
     },
-    // 获取翻译审核的词条
+    // 获取翻译审核的词条（口径同 STAGE_QUERY_PARAMS.translateExamine，与批量预翻译共用）
     getTranslateCheck() {
       let params = {
         taskID: this.task.id,
-        entryState: "3",
+        entryState: STAGE_QUERY_PARAMS.translateExamine.entryState,
         entry: "",
       };
-      let data = ["1"];
-      getEntryInfoList(params, data)
+      getEntryInfoList(params, STAGE_QUERY_PARAMS.translateExamine.transStates)
         .then((res) => {
           this.translateCheckCount = res.data.list.length;
         })

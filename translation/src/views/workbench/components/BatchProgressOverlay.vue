@@ -12,24 +12,24 @@
           v-for="p in progresses"
           :key="p.taskId"
           class="progress-item"
-          :class="{ current: p.currentStage }"
+          :class="{ current: p.currentStep }"
         >
           <div class="task-info">
             <span class="task-name">{{ p.taskName }}</span>
-            <span v-if="p.currentStage" class="running-badge">执行中: {{ stageLabelMap[p.currentStage] }}</span>
+            <span v-if="p.currentStep" class="running-badge">执行中: {{ currentStepLabel(p) }}</span>
           </div>
           <div class="stages">
-            <div class="stage-item">
-              <span class="stage-label">词条审核</span>
-              <StageIcon :status="p.stages.entryExamine" :retry="p.retryCount" />
-            </div>
-            <div class="stage-item">
-              <span class="stage-label">翻译(预翻译)</span>
-              <StageIcon :status="p.stages.preTranslate" :retry="p.retryCount" />
-            </div>
-            <div class="stage-item">
-              <span class="stage-label">翻译审核</span>
-              <StageIcon :status="p.stages.translateExamine" :retry="p.retryCount" />
+            <div v-for="stage in stageOrder" :key="stage" class="stage-block">
+              <div class="stage-header">
+                <span class="stage-name">{{ stageNameMap[stage] }}</span>
+                <StageIcon :status="p.stages[stage]" :retry="p.retryCount" />
+              </div>
+              <div class="steps">
+                <div v-for="step in stageStepsMap[stage]" :key="step.key" class="step-item">
+                  <span class="step-label">{{ step.label }}{{ formatStepCount(p, stage, step.key) }}</span>
+                  <StageIcon :status="p.steps?.[stage]?.[step.key]" :retry="p.retryCount" />
+                </div>
+              </div>
             </div>
           </div>
           <div class="status">
@@ -38,6 +38,16 @@
           </div>
         </div>
       </div>
+
+      <div v-if="phase === 'completed'" class="panel-footer">
+        <span class="summary">
+          执行完成：成功({{ completionSummary.success }})
+          <template v-if="completionSummary.failedCount > 0">
+            ；失败({{ completionSummary.failedCount }})：{{ completionSummary.failedNames.join('、') }}
+          </template>
+        </span>
+        <a-button type="primary" size="small" @click="handleClose">关闭</a-button>
+      </div>
     </div>
   </div>
 </template>
@@ -45,7 +55,13 @@
 <script>
 import { mapState, mapGetters } from 'vuex'
 import StageIcon from './StageIcon.vue'
-import { notification } from 'ant-design-vue'
+import {
+  STAGE_ORDER,
+  STAGE_NAME_MAP,
+  STAGE_STEPS,
+  getStageLabel,
+  getStepLabel
+} from '@/constants/batchPreTranslateSteps'
 
 export default {
   name: 'BatchProgressOverlay',
@@ -53,18 +69,26 @@ export default {
   computed: {
     ...mapState('batchProgress', ['phase', 'progresses']),
     ...mapGetters('batchProgress', ['visible']),
-    stageLabelMap() {
+    stageOrder() {
+      return STAGE_ORDER
+    },
+    stageNameMap() {
+      return STAGE_NAME_MAP
+    },
+    stageStepsMap() {
+      return STAGE_STEPS
+    },
+    completionSummary() {
+      const success = this.progresses.filter(p =>
+        Object.values(p.stages).every(s => s === 'success' || s === 'skipped')
+      ).length
+      const failed = this.progresses.filter(p =>
+        Object.values(p.stages).includes('failed')
+      )
       return {
-        entryExamine: '词条审核',
-        preTranslate: '翻译(预翻译)',
-        translateExamine: '翻译审核'
-      }
-    }
-  },
-  watch: {
-    phase(newVal) {
-      if (newVal === 'completed') {
-        this.handleCompleted()
+        success,
+        failedCount: failed.length,
+        failedNames: failed.map(p => p.taskName)
       }
     }
   },
@@ -76,6 +100,32 @@ export default {
     window.removeEventListener('resize', this.adjustPanelHeight)
   },
   methods: {
+    /**
+     * 计算某子步骤的词条计数展示文案（如「 (3条)」）。
+     * 仅在该子步骤已开始（running）或已成功（success）且有计数时展示。
+     * @param {Object} p 任务进度对象
+     * @param {string} stageKey 阶段 key
+     * @param {string} stepKey 子步骤 key
+     * @returns {string}
+     */
+    formatStepCount(p, stageKey, stepKey) {
+      const status = p.steps?.[stageKey]?.[stepKey]
+      if (status !== 'running' && status !== 'success') return ''
+      const count = p.stepCounts?.[stageKey]?.[stepKey]
+      if (count === undefined || count === null) return ''
+      return ` (${count}条)`
+    },
+    /**
+     * 构造蓝色「执行中」文字：阶段名 · 子步骤名，避免跨阶段同名子步骤歧义。
+     * @param {Object} p 任务进度对象
+     * @returns {string}
+     */
+    currentStepLabel(p) {
+      if (!p.currentStep) return ''
+      const stageName = getStageLabel(p.currentStep.stage)
+      const stepLabel = getStepLabel(p.currentStep.stage, p.currentStep.step)
+      return `${stageName} · ${stepLabel}`
+    },
     isTaskDone(p) {
       const enabled = Object.keys(p.stages).filter(k => p.stages[k] !== 'pending' && p.stages[k] !== 'skipped')
       return enabled.length > 0 && enabled.every(k => p.stages[k] === 'success' || p.stages[k] === 'skipped')
@@ -93,38 +143,20 @@ export default {
 
         const headerHeight = 56 // panel-header 高度
         const padding = 32 // padding-top + padding-bottom
+        const footerHeight = this.phase === 'completed' ? 50 : 0 // 完成时底部汇总/按钮区域
         const maxHeight = window.innerHeight * 0.8
-        const availableHeight = maxHeight - 56 - 32 // 减去 header 和 padding
+        const availableHeight = maxHeight - headerHeight - padding - footerHeight
 
         // 面板最大高度限制为 80vh
         panel.style.maxHeight = `${maxHeight}px`
 
-        // 列表区域最大高度 = 80vh - header - padding
+        // 列表区域最大高度 = 80vh - header - padding - footer
         list.style.maxHeight = `${availableHeight}px`
       })
     },
-    handleCompleted() {
-      const progresses = this.$store.state.batchProgress.progresses
-      const success = progresses.filter(p =>
-        Object.values(p.stages).every(s => s === 'success' || s === 'skipped')
-      ).length
-      const failed = progresses.filter(p =>
-        Object.values(p.stages).includes('failed')
-      )
-      const failedNames = failed.map(p => p.taskName).join('、')
-
-      let msg = `批量预翻译执行完成：成功(${success})`
-      if (failed.length > 0) {
-        msg += `；失败(${failed.length}): ${failedNames}`
-      }
-
-      // 先重置状态关闭遮罩，再发送通知
+    // 仅当用户点击「关闭」时才重置进度状态并关闭面板
+    handleClose() {
       this.$store.dispatch('batchProgress/reset')
-      notification.success({
-        message: '批量预翻译执行完成',
-        description: msg,
-        duration: 5
-      })
     }
   }
 }
@@ -153,8 +185,8 @@ export default {
 
   .progress-panel {
     pointer-events: auto;
-    width: 100%;
-    max-width: 520px;
+    width: 60%;
+    min-width: 800px;
     background: white;
     border-radius: 8px;
     border: 1px solid #e8e8e8;
@@ -191,7 +223,7 @@ export default {
 
       .progress-item {
         display: flex;
-        align-items: center;
+        align-items: flex-start;
         gap: 12px;
         padding: 8px 4px;
         border-bottom: 1px solid #f5f5f5;
@@ -207,6 +239,7 @@ export default {
         .task-info {
           flex: 1;
           min-width: 0;
+          padding-top: 2px;
 
           .task-name {
             display: block;
@@ -227,21 +260,47 @@ export default {
 
         .stages {
           display: flex;
-          gap: 16px;
+          gap: 20px;
           flex-shrink: 0;
 
-          .stage-item {
+          .stage-block {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            color: #666;
-            white-space: nowrap;
+            flex-direction: column;
+            gap: 4px;
 
-            .stage-label {
+            .stage-header {
+              display: flex;
+              align-items: center;
+              gap: 6px;
               font-size: 12px;
-              color: #666;
-              flex-shrink: 0;
+              color: #333;
+              font-weight: 600;
+              white-space: nowrap;
+
+              .stage-name {
+                flex-shrink: 0;
+              }
+            }
+
+            .steps {
+              display: flex;
+              flex-direction: column;
+              gap: 2px;
+              padding-left: 4px;
+
+              .step-item {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                font-size: 12px;
+                color: #666;
+                white-space: nowrap;
+
+                .step-label {
+                  flex-shrink: 0;
+                  min-width: 0;
+                }
+              }
             }
           }
         }
@@ -251,10 +310,25 @@ export default {
           width: 80px;
           text-align: right;
           font-size: 12px;
-
-          &.error { color: #ff4d4f; }
-          &.success { color: #52c41a; }
+          padding-top: 2px;
         }
+      }
+    }
+
+    .panel-footer {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 16px;
+      border-top: 1px solid #f0f0f0;
+      background: #fafafa;
+
+      .summary {
+        font-size: 13px;
+        color: #333;
+        line-height: 1.5;
       }
     }
   }

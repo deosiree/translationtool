@@ -1,6 +1,11 @@
 <template>
   <span :class="['stage-icon', statusClass]" :title="title">
-    {{ icon }}
+    <template v-if="status === 'running'">
+      <span class="spin-circle" />
+    </template>
+    <template v-else>
+      {{ icon }}
+    </template>
     <span v-if="status === 'failed' && retry > 0" class="retry-badge">×{{ retry }}</span>
   </span>
 </template>
@@ -16,7 +21,7 @@ export default {
     statusConfig() {
       const configs = {
         pending: { icon: '⏳', class: 'pending', title: '待执行' },
-        running: { icon: '⟳', class: 'running', title: '执行中' },
+        running: { icon: '', class: 'running', title: '执行中' },
         success: { icon: '✓', class: 'success', title: '成功' },
         failed: { icon: '✗', class: 'failed', title: '失败' },
         skipped: { icon: '⊘', class: 'skipped', title: '已跳过' }
@@ -40,10 +45,20 @@ export default {
   border-radius: 3px;
 
   &.pending { color: #999; }
-  &.running { color: #1890ff; animation: spin 1s linear infinite; }
+  &.running { color: #1890ff; }
   &.success { color: #52c41a; }
   &.failed { color: #ff4d4f; }
   &.skipped { color: #d9d9d9; }
+
+  .spin-circle {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid #91d5ff;
+    border-top-color: #1890ff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
 
   .retry-badge {
     font-size: 10px;

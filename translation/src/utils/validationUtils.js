@@ -57,16 +57,16 @@ export function byteLength(str) {
  */
 export function getMaxLength(record_, vm, colName = "foreignMaxByte") {
   let record = record_;
-  if (vm.editableData[record.id]) {// 若处于编辑态，则使用编辑态数据
+  if (vm?.editableData?.[record.id]) {// 若处于编辑态，则使用编辑态数据
     record = vm.editableData[record.id];
   }
   let raw;
   if (!record.classfy1) {
     raw = record.maxLength;
   } else if (colName == "foreignMaxByte") {
-    raw = vm.classifyLimit?.[record.classfy1]?.foreignMaxByte;
+    raw = vm?.classifyLimit?.[record.classfy1]?.foreignMaxByte;
   } else if (colName == "maxByte") {
-    raw = vm.classifyLimit?.[record.classfy1]?.maxByte;
+    raw = vm?.classifyLimit?.[record.classfy1]?.maxByte;
   }
   if (raw == null || raw === "") return null;
   const n = Number(raw);
