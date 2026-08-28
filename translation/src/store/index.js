@@ -76,6 +76,10 @@ export default createStore({
     batchProgress,
   },
   plugins: [createPersistedState({
-    storage: window.sessionStorage
+    storage: window.sessionStorage,
+    reducer(state) {
+      const { batchProgress, ...rest } = state
+      return rest
+    }
   })]
 })

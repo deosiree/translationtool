@@ -162,6 +162,7 @@
     @close="batchPreTranslateVisible = false"
     @complete="onBatchPreTranslateComplete"
   />
+  <BatchProgressOverlay />
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -179,6 +180,7 @@ import ExamineTranslateModal from "@/views/workbench/examineTranslateModal.vue";
 import ArchiveModal from "@/views/workbench/archiveModal.vue";
 import BatchSelectButton from "@/components/Button/batchArchive/button.vue";
 import BatchPreTranslateModal from "@/views/workbench/components/BatchPreTranslateModal.vue";
+import BatchProgressOverlay from "@/views/workbench/components/BatchProgressOverlay.vue";
 import {
   SendOutlined,
   CaretDownOutlined,
@@ -218,6 +220,7 @@ export default {
     ArchiveModal,
     BatchSelectButton,
     BatchPreTranslateModal,
+    BatchProgressOverlay,
     SendOutlined,
     CaretDownOutlined,
     CaretRightOutlined,

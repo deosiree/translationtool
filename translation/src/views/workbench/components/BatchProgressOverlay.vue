@@ -1,13 +1,13 @@
 <template>
   <div v-if="visible" class="batch-progress-overlay">
-    <div class="overlay-backdrop" />
+    <div class="overlay-backdrop" @click="preventClick" />
     <div class="progress-panel">
       <div class="panel-header">
         <h3>批量预翻译执行进度</h3>
         <a-badge :status="phase === 'running' ? 'processing' : 'success'" />
       </div>
 
-      <div class="progress-list">
+      <div class="progress-list" ref="progressList">
         <div
           v-for="p in progresses"
           :key="p.taskId"
@@ -19,9 +19,18 @@
             <span v-if="p.currentStage" class="running-badge">执行中: {{ stageLabelMap[p.currentStage] }}</span>
           </div>
           <div class="stages">
-            <StageIcon :status="p.stages.entryExamine" :retry="p.retryCount" />
-            <StageIcon :status="p.stages.preTranslate" :retry="p.retryCount" />
-            <StageIcon :status="p.stages.translateExamine" :retry="p.retryCount" />
+            <div class="stage-item">
+              <span class="stage-label">词条审核</span>
+              <StageIcon :status="p.stages.entryExamine" :retry="p.retryCount" />
+            </div>
+            <div class="stage-item">
+              <span class="stage-label">翻译(预翻译)</span>
+              <StageIcon :status="p.stages.preTranslate" :retry="p.retryCount" />
+            </div>
+            <div class="stage-item">
+              <span class="stage-label">翻译审核</span>
+              <StageIcon :status="p.stages.translateExamine" :retry="p.retryCount" />
+            </div>
           </div>
           <div class="status">
             <span v-if="p.error" class="error">{{ p.error }}</span>
@@ -59,10 +68,38 @@ export default {
       }
     }
   },
+  mounted() {
+    this.adjustPanelHeight()
+    window.addEventListener('resize', this.adjustPanelHeight)
+  },
+  beforeUnmount() {
+    window.removeEventListener('resize', this.adjustPanelHeight)
+  },
   methods: {
     isTaskDone(p) {
       const enabled = Object.keys(p.stages).filter(k => p.stages[k] !== 'pending' && p.stages[k] !== 'skipped')
       return enabled.length > 0 && enabled.every(k => p.stages[k] === 'success' || p.stages[k] === 'skipped')
+    },
+    preventClick(e) {
+      e.stopPropagation()
+    },
+    adjustPanelHeight() {
+      this.$nextTick(() => {
+        const panel = this.$el.querySelector('.progress-panel')
+        const list = this.$el.querySelector('.progress-list')
+        if (!panel || !list) return
+
+        const headerHeight = 56 // panel-header 高度
+        const padding = 32 // padding-top + padding-bottom
+        const maxHeight = window.innerHeight * 0.8
+        const availableHeight = maxHeight - 56 - 32 // 减去 header 和 padding
+
+        // 面板最大高度限制为 80vh
+        panel.style.maxHeight = `${maxHeight}px`
+
+        // 列表区域最大高度 = 80vh - header - padding
+        list.style.maxHeight = `${availableHeight}px`
+      })
     },
     handleCompleted() {
       const progresses = this.$store.state.batchProgress.progresses
@@ -103,12 +140,13 @@ export default {
   display: flex;
   justify-content: flex-end;
   padding: 20px;
-  pointer-events: none;
   box-sizing: border-box;
+  pointer-events: none; // 遮罩层不阻塞，但 overlay-backdrop 会阻塞
 
   .overlay-backdrop {
     position: absolute;
     inset: 0;
+    // 遮罩层阻塞点击，防止穿透到底层
   }
 
   .progress-panel {
@@ -121,6 +159,9 @@ export default {
     box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
     overflow: hidden;
     margin-top: 60px;
+    max-height: 80vh; // 面板最大高度 80vh
+    display: flex;
+    flex-direction: column;
 
     .panel-header {
       padding: 12px 16px;
@@ -130,6 +171,7 @@ export default {
       justify-content: space-between;
       align-items: center;
       border-radius: 8px 8px 0 0;
+      flex-shrink: 0;
 
       h3 {
         margin: 0;
@@ -140,9 +182,10 @@ export default {
     }
 
     .progress-list {
-      max-height: 400px;
+      flex: 1;
       overflow-y: auto;
       padding: 8px 12px;
+      // 高度由父级 flex 布局自动计算，内容少时自适应，超出滚动
 
       .progress-item {
         display: flex;
@@ -182,8 +225,23 @@ export default {
 
         .stages {
           display: flex;
-          gap: 8px;
+          gap: 16px;
           flex-shrink: 0;
+
+          .stage-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #666;
+            white-space: nowrap;
+
+            .stage-label {
+              font-size: 12px;
+              color: #666;
+              flex-shrink: 0;
+            }
+          }
         }
 
         .status {
