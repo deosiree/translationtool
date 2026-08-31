@@ -101,6 +101,7 @@ import Modal from '@/components/modal/index.vue'
 import RulesDropdown from '@/components/Dropdown/rulesDropdown.vue'
 import { message } from 'ant-design-vue'
 import commonParam from '@/constants/commonParam.js'
+import { TRANSLATE_PRIORITY_OPTIONS } from '@/constants/translatePriority'
 import { setModalAriaHidden } from '@/utils/domUtils'
 import { useBatchPreTranslate } from '@/composables/workbench/useBatchPreTranslate'
 
@@ -124,15 +125,7 @@ export default {
         maxRetries: 3
       },
       rulesOptions: commonParam.rulesOptions,
-      priorityOptions: [
-        { label: '术语库', value: 'shuyuku' },
-        { label: 'DeepL翻译', value: 'deepl' },
-        { label: '有道翻译', value: 'youdao' },
-        { label: '百度翻译', value: 'baidu' },
-        { label: 'Google翻译', value: 'google' },
-        { label: '本地模型', value: 'module' },
-        { label: '综合优先级', value: 'synthesis' }
-      ],
+      priorityOptions: TRANSLATE_PRIORITY_OPTIONS,
       stageConfigs: [
         { key: 'entryExamine', label: '词条审核' },
         { key: 'preTranslate', label: '翻译' },

@@ -7,7 +7,7 @@ import { STAGE_ORDER, getStageSteps } from '@/constants/batchPreTranslateSteps'
  * @property {number} current 当前已处理数量
  * @property {number} total   总数量
  *
- * @typedef {'pending'|'running'|'success'|'failed'|'skipped'} Status
+ * @typedef {'pending'|'running'|'success'|'warning'|'failed'|'skipped'} Status
  *
  * @typedef {Object} CurrentStep
  * @property {string} stage 当前执行中的阶段 key
@@ -23,6 +23,8 @@ import { STAGE_ORDER, getStageSteps } from '@/constants/batchPreTranslateSteps'
  * @property {string|null} currentStage 当前阶段 key（保留兼容）
  * @property {CurrentStep|null} currentStep 当前子步骤（驱动蓝色「执行中」文字与高亮）
  * @property {string|null} error 失败时的中文错误信息
+ * @property {string|null} warning 阶段告警时的中文提示
+ * @property {Object<string, string>} stageMessages 阶段级告警文案
  * @property {number} retryCount 已重试次数
  */
 
@@ -68,7 +70,7 @@ function buildInitialStepCounts() {
  * 对 progress 中的子步骤状态做深拷贝，避免跨任务共享引用破坏 Vue 响应式。
  *
  * @param {Progress} progress 源进度对象
- * @returns {{steps: Object, stepCounts: Object, currentStep: CurrentStep|null}} 深拷贝后的新字段
+ * @returns {{steps: Object, stepCounts: Object, currentStep: CurrentStep|null, stageMessages: Object<string, string>}} 深拷贝后的新字段
  */
 function cloneStepState(progress) {
   const steps = {}
@@ -78,7 +80,8 @@ function cloneStepState(progress) {
     stepCounts[stageKey] = { ...(progress.stepCounts?.[stageKey] || {}) }
   }
   const currentStep = progress.currentStep ? { ...progress.currentStep } : null
-  return { steps, stepCounts, currentStep }
+  const stageMessages = { ...(progress.stageMessages || {}) }
+  return { steps, stepCounts, currentStep, stageMessages }
 }
 
 export default {
@@ -92,7 +95,7 @@ export default {
     visible: state => state.phase !== 'idle',
     isRunning: state => state.phase === 'running',
     allCompleted: state => state.progresses.every(p =>
-      Object.values(p.stages).every(s => s === 'success' || s === 'skipped')
+      Object.values(p.stages).every(s => s === 'success' || s === 'warning' || s === 'skipped')
     )
   },
   mutations: {
@@ -122,6 +125,8 @@ export default {
         currentStage: null,
         currentStep: null,
         error: null,
+        warning: null,
+        stageMessages: {},
         retryCount: 0
       }))
     },
@@ -144,7 +149,8 @@ export default {
           },
           steps: stepState.steps,
           stepCounts: stepState.stepCounts,
-          currentStep: stepState.currentStep
+          currentStep: stepState.currentStep,
+          stageMessages: stepState.stageMessages
         })
       }
     },

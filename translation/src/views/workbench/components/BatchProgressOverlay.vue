@@ -24,6 +24,7 @@
                 <span class="stage-name">{{ stageNameMap[stage] }}</span>
                 <StageIcon :status="p.stages[stage]" :retry="p.retryCount" />
               </div>
+              <div v-if="p.stageMessages?.[stage]" class="stage-message">{{ p.stageMessages[stage] }}</div>
               <div class="steps">
                 <div v-for="step in stageStepsMap[stage]" :key="step.key" class="step-item">
                   <span class="step-label">{{ step.label }}{{ formatStepCount(p, stage, step.key) }}</span>
@@ -34,6 +35,7 @@
           </div>
           <div class="status">
             <span v-if="p.error" class="error">{{ p.error }}</span>
+            <span v-else-if="isTaskDone(p) && hasWarning(p)" class="warning">部分完成</span>
             <span v-else-if="isTaskDone(p)" class="success">全部完成</span>
           </div>
         </div>
@@ -42,6 +44,9 @@
       <div v-if="phase === 'completed'" class="panel-footer">
         <span class="summary">
           执行完成：成功({{ completionSummary.success }})
+          <template v-if="completionSummary.warningCount > 0">
+            ；部分完成/存在告警({{ completionSummary.warningCount }})：{{ completionSummary.warningNames.join('、') }}
+          </template>
           <template v-if="completionSummary.failedCount > 0">
             ；失败({{ completionSummary.failedCount }})：{{ completionSummary.failedNames.join('、') }}
           </template>
@@ -78,15 +83,24 @@ export default {
     stageStepsMap() {
       return STAGE_STEPS
     },
+    /**
+     * 汇总成功、告警与失败任务数量。
+     * @returns {{success: number, warningCount: number, warningNames: string[], failedCount: number, failedNames: string[]}}
+     */
     completionSummary() {
       const success = this.progresses.filter(p =>
         Object.values(p.stages).every(s => s === 'success' || s === 'skipped')
       ).length
+      const warning = this.progresses.filter(p =>
+        !Object.values(p.stages).includes('failed') && Object.values(p.stages).includes('warning')
+      )
       const failed = this.progresses.filter(p =>
         Object.values(p.stages).includes('failed')
       )
       return {
         success,
+        warningCount: warning.length,
+        warningNames: warning.map(p => p.taskName),
         failedCount: failed.length,
         failedNames: failed.map(p => p.taskName)
       }
@@ -126,9 +140,22 @@ export default {
       const stepLabel = getStepLabel(p.currentStep.stage, p.currentStep.step)
       return `${stageName} · ${stepLabel}`
     },
+    /**
+     * 判断任务是否已结束，warning 视为已结束但不等同于全量成功。
+     * @param {Object} p 任务进度对象
+     * @returns {boolean}
+     */
     isTaskDone(p) {
       const enabled = Object.keys(p.stages).filter(k => p.stages[k] !== 'pending' && p.stages[k] !== 'skipped')
-      return enabled.length > 0 && enabled.every(k => p.stages[k] === 'success' || p.stages[k] === 'skipped')
+      return enabled.length > 0 && enabled.every(k => p.stages[k] === 'success' || p.stages[k] === 'warning' || p.stages[k] === 'skipped')
+    },
+    /**
+     * 判断任务是否包含阶段级告警。
+     * @param {Object} p 任务进度对象
+     * @returns {boolean}
+     */
+    hasWarning(p) {
+      return Object.values(p.stages).includes('warning')
     },
     preventClick(e) {
       e.stopPropagation()
@@ -268,6 +295,14 @@ export default {
             flex-direction: column;
             gap: 4px;
 
+            .stage-message {
+              max-width: 220px;
+              color: #d48806;
+              font-size: 11px;
+              line-height: 1.4;
+              white-space: normal;
+            }
+
             .stage-header {
               display: flex;
               align-items: center;
@@ -365,5 +400,6 @@ export default {
 
 .error { color: #ff4d4f; font-size: 12px; }
 .running { color: #1890ff; font-size: 12px; }
+.warning { color: #d48806; font-size: 12px; }
 .success { color: #52c41a; font-size: 12px; }
 </style>

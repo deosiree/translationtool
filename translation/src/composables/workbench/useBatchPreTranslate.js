@@ -1,6 +1,7 @@
 import { getEntryInfoList, updateEntryList, preTranslate } from '@/http/api/workbench'
 import { classifyArr, getMethods, clearCellErrorsForRecords } from '@/utils/validationUtils'
 import commonParam from '@/constants/commonParam'
+import { getTranslatePriorityLabel } from '@/constants/translatePriority'
 import {
   STAGE_ORDER,
   STAGE_NAME_MAP,
@@ -199,18 +200,31 @@ export function useBatchPreTranslate() {
   }
 
   /**
+   * 将指定子步骤之后的步骤标记为已跳过。
+   * @param {Object} progress 任务进度对象
+   * @param {string} stageKey 阶段 key
+   * @param {string} stepKey 当前子步骤 key
+   * @param {Object} store Vuex store
+   * @returns {void}
+   */
+  function skipStepsAfter(progress, stageKey, stepKey, store) {
+    const steps = getStageSteps(stageKey)
+    const stepIdx = steps.findIndex(step => step.key === stepKey)
+    for (let i = stepIdx + 1; i < steps.length; i++) {
+      progress.steps[stageKey][steps[i].key] = 'skipped'
+    }
+    store.dispatch('batchProgress/updateProgress', progress)
+  }
+
+  /**
    * 将某阶段 query 之后的其余子步骤标记为 skipped（用于 0 条场景）。
    * @param {Object} progress 任务进度对象
    * @param {string} stageKey 阶段 key
    * @param {Object} store Vuex store
+   * @returns {void}
    */
   function skipRemainingSteps(progress, stageKey, store) {
-    const steps = getStageSteps(stageKey)
-    const queryIdx = steps.findIndex(s => s.key === 'query')
-    for (let i = queryIdx + 1; i < steps.length; i++) {
-      progress.steps[stageKey][steps[i].key] = 'skipped'
-    }
-    store.dispatch('batchProgress/updateProgress', progress)
+    skipStepsAfter(progress, stageKey, 'query', store)
   }
 
   /**
@@ -295,16 +309,17 @@ export function useBatchPreTranslate() {
    * @param {number} maxRetries 最大重试次数
    * @param {Object} store Vuex store
    * @param {number} delayMs 子步骤延时
-   * @returns {Promise<void>}
+   * @returns {Promise<{status: string, message?: string}>}
    */
   async function executePreTranslate(task, config, progress, maxRetries, store, delayMs) {
     store.dispatch('batchProgress/updateProgress', progress)
 
-    await runWithRetry(async () => {
+    const result = await runWithRetry(async () => {
       let entries = []
       let updateArr = []
+      const warningReasons = []
 
-      // 1) 查询词条（后端 getEntryInfoList，入参取 STAGE_QUERY_PARAMS 统一口径）
+      // 1) 查询翻译阶段自己的待处理词条，不使用上一阶段的返回数组或数量
       await advanceStep(progress, 'preTranslate', 'query', store, delayMs, async () => {
         const { entryState, transStates } = STAGE_QUERY_PARAMS.preTranslate
         const params = { taskID: task.id, entryState, entry: '' }
@@ -319,7 +334,7 @@ export function useBatchPreTranslate() {
       if (entries.length === 0) {
         progress.stageCounts.preTranslate = { current: 0, total: 0 }
         skipRemainingSteps(progress, 'preTranslate', store)
-        return
+        return { status: 'success' }
       }
 
       progress.stageCounts.preTranslate = { current: 0, total: entries.length }
@@ -328,65 +343,102 @@ export function useBatchPreTranslate() {
       // 2) 词条全选（前端）
       await advanceStep(progress, 'preTranslate', 'selectAll', store, delayMs, async () => entries.length)
 
-      // 3) 预翻译（后端 preTranslate）→ 完整性/非空校验 → 构造保存数据
+      // 3) 预翻译：HTTP 200 的业务结果异常转为 warning，不进入重试
       await advanceStep(progress, 'preTranslate', 'preTranslate', store, delayMs, async () => {
         const transMap = resolveTransMap(task)
         const transCol = transMap.value
+        const priorityName = getTranslatePriorityLabel(config.translatePriority)
 
         const preParams = { taskID: task.id, priority: config.translatePriority }
         const preRes = await preTranslate(preParams, entries)
-        if (!preRes || preRes.code !== 200 || !Array.isArray(preRes?.data?.list)) {
+        if (!preRes || ![200, 203].includes(preRes.code)) {
           throw new Error('预翻译接口返回异常')
         }
-        const translatedEntries = preRes.data.list
-
-        // 校验返回完整性：父级词条必须都在返回列表中
-        const returnedMap = new Map(translatedEntries.map(e => [e.id, e]))
-        const missingParentIds = entries
-          .filter(e => !e.parentID)
-          .filter(e => !returnedMap.has(e.id))
-        if (missingParentIds.length > 0) {
-          throw new Error(`预翻译返回缺少 ${missingParentIds.length} 条父级词条`)
+        const hasList = Array.isArray(preRes?.data?.list)
+        const translatedEntries = hasList ? preRes.data.list : []
+        if (!hasList) {
+          warningReasons.push('翻译接口返回数据格式异常')
         }
-        // 校验译文非空：父级词条译文为空视为预翻译失败
-        const blankIds = translatedEntries
-          .filter(e => !e.parentID)
-          .filter(e => !e[transCol] || !String(e[transCol]).trim())
-          .map(e => e.id)
-        if (blankIds.length > 0) {
-          throw new Error(`预翻译返回 ${blankIds.length} 条词条译文为空`)
+        if (preRes.code === 203) {
+          warningReasons.push('翻译接口返回部分结果')
         }
 
-        await validateEntries(config, task, translatedEntries, '预翻译校验不通过')
+        if (translatedEntries.length === 0) {
+          warningReasons.push('翻译接口返回空数组')
+          skipStepsAfter(progress, 'preTranslate', 'preTranslate', store)
+          return 0
+        }
 
-        updateArr = translatedEntries.map(e => ({ ...e, [transCol]: e[transCol] || '', [transMap.state]: '1' }))
+        if (translatedEntries.length !== entries.length) {
+          warningReasons.push('翻译接口返回数量不一致，请检查 API（返回 ' + translatedEntries.length + ' 条，查询到 ' + entries.length + ' 条）')
+        }
+
+        const entryMap = new Map(entries.map(entry => [entry.id, entry]))
+        const returnedEntries = translatedEntries
+          .filter(entry => entryMap.has(entry.id))
+          .map(entry => ({ ...entryMap.get(entry.id), ...entry }))
+        const blankEntries = returnedEntries.filter(entry => !entry[transCol] || !String(entry[transCol]).trim())
+        if (blankEntries.length > 0) {
+          warningReasons.push('翻译方法「' + priorityName + '」返回 ' + blankEntries.length + ' 条词条无译文')
+        }
+
+        const candidates = returnedEntries.filter(entry => entry[transCol] && String(entry[transCol]).trim())
+        if (candidates.length === 0) {
+          if (warningReasons.length === 0) warningReasons.push('翻译方法「' + priorityName + '」未返回可保存译文')
+          skipStepsAfter(progress, 'preTranslate', 'preTranslate', store)
+          return 0
+        }
+
+        const validationVm = createValidationVm(config)
+        const verifyResult = await classifyArr(validationVm, candidates, transCol, getMethods(validationVm))
+        if (verifyResult.errorIds.size > 0) {
+          warningReasons.push('翻译结果校验不通过 ' + verifyResult.errorIds.size + ' 条')
+        }
+
+        const validIds = verifyResult.acceptIds
+        updateArr = candidates
+          .filter(entry => validIds.has(entry.id))
+          .map(entry => ({ ...entry, [transMap.state]: '1' }))
+        if (updateArr.length === 0) {
+          skipStepsAfter(progress, 'preTranslate', 'preTranslate', store)
+        }
         return updateArr.length
       })
 
-      // 4) 保存（后端 updateEntryList）
-      await advanceStep(progress, 'preTranslate', 'save', store, delayMs, async () => {
-        if (updateArr.length > 0) {
+      // 4) 保存有效子集；没有有效结果时不调用保存接口
+      if (updateArr.length > 0) {
+        await advanceStep(progress, 'preTranslate', 'save', store, delayMs, async () => {
           const updRes = await updateEntryList({ taskID: task.id }, updateArr)
           if (!updRes || updRes.code !== 200) {
             throw new Error('预翻译保存失败')
           }
-        }
-        return updateArr.length
-      })
+          return updateArr.length
+        })
+      }
 
       progress.stageCounts.preTranslate = { current: updateArr.length, total: entries.length }
+      if (warningReasons.length > 0) {
+        const message = '翻译阶段告警：' + [...new Set(warningReasons)].join('；')
+        progress.warning = message
+        progress.stageMessages = progress.stageMessages || {}
+        progress.stageMessages.preTranslate = message
+        store.dispatch('batchProgress/updateProgress', progress)
+        return { status: 'warning', message }
+      }
       store.dispatch('batchProgress/updateProgress', progress)
+      return { status: 'success' }
     }, maxRetries, (attempt, err) => {
       progress.retryCount = attempt
       resetStageSteps(progress, 'preTranslate', store)
       console.log(`[${task.name}] 预翻译重试 ${attempt}/${maxRetries}:`, err.message)
     })
+
+    return result
   }
 
   /**
-   * 执行「翻译审核」阶段：查询词条 → 词条全选 → 批量通过 → 保存。
-   *
-   * 接口映射：query→getEntryInfoList(后端)、selectAll/batchApprove(前端)、save→updateEntryList(后端)。
+   * 执行「翻译审核」阶段：独立查询待审核词条 → 词条全选 → 批量通过 → 保存。
+   * 不读取翻译阶段的返回数组或数量。
    *
    * @param {Object} task 任务
    * @param {Object} config 执行配置
@@ -480,8 +532,8 @@ export function useBatchPreTranslate() {
       store.dispatch('batchProgress/updateProgress', progress)
 
       try {
-        await stageExecutors[stageKey](task, config, progress, maxRetries, store, delayMs)
-        progress.stages[stageKey] = 'success'
+        const result = await stageExecutors[stageKey](task, config, progress, maxRetries, store, delayMs)
+        progress.stages[stageKey] = result?.status === 'warning' ? 'warning' : 'success'
         store.dispatch('batchProgress/updateProgress', progress)
       } catch (err) {
         progress.stages[stageKey] = 'failed'
@@ -491,6 +543,11 @@ export function useBatchPreTranslate() {
         progress.currentStep = null
         store.dispatch('batchProgress/updateProgress', progress)
 
+        // 翻译阶段失败也不能阻塞翻译审核；翻译审核会重新查询自己的待处理词条。
+        if (stageKey === 'preTranslate' && enabledStages.includes('translateExamine')) {
+          continue
+        }
+
         const stageIdx = enabledStages.indexOf(stageKey)
         for (let j = stageIdx + 1; j < enabledStages.length; j++) {
           progress.stages[enabledStages[j]] = 'skipped'
@@ -499,9 +556,9 @@ export function useBatchPreTranslate() {
           }
         }
         store.dispatch('batchProgress/updateProgress', progress)
-        break
       }
     }
+
     progress.currentStage = null
     progress.currentStep = null
     store.dispatch('batchProgress/updateProgress', progress)
