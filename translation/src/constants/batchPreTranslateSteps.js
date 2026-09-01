@@ -32,6 +32,30 @@ export const STAGE_NAME_MAP = {
 }
 
 /**
+ * 阶段 key → 任务对象上的指派人员字段名。
+ * 与手工流水线 timeLine/index.vue 读取 currentTask 的字段同源：
+ *   - entryExamine     → task.entryAuditor（词条审核员）
+ *   - preTranslate     → task.translator（翻译员）
+ *   - translateExamine → task.translationAuditor（翻译审核员）
+ * @type {Object<string, string>}
+ */
+export const STAGE_ASSIGNEE_FIELD = {
+  entryExamine: 'entryAuditor',
+  preTranslate: 'translator',
+  translateExamine: 'translationAuditor'
+}
+
+/**
+ * 阶段 key → 指派角色的中文文案（用于生成跳过原因）。
+ * @type {Object<string, string>}
+ */
+export const STAGE_ASSIGNEE_LABEL = {
+  entryExamine: '词条审核员',
+  preTranslate: '翻译员',
+  translateExamine: '翻译审核员'
+}
+
+/**
  * 子步骤的「前后端归属」枚举，用于接口映射的审查标注。
  * @type {Object<string, string>}
  */

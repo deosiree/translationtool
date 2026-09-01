@@ -9,6 +9,9 @@ vi.mock('@/http/api/workbench', () => ({
   preTranslate: vi.fn()
 }))
 
+/** 测试用当前用户 userName，任务指派人员默认与其一致（表示有权限）。 */
+const CURRENT_USER = 'currentUser'
+
 /**
  * 构造与 store START 一致的空初始子步骤状态（steps / stepCounts）。
  * @returns {{steps: Object, stepCounts: Object}}
@@ -51,6 +54,23 @@ function buildMockProgress() {
   }
 }
 
+/**
+ * 构造测试任务，默认三阶段指派人员均为当前用户（有权限）。
+ * @param {Object} overrides 需要覆盖的任务字段
+ * @returns {Object}
+ */
+function buildTask(overrides = {}) {
+  return {
+    id: 'task-1',
+    name: 'Task 1',
+    translateType: '英文',
+    entryAuditor: CURRENT_USER,
+    translator: CURRENT_USER,
+    translationAuditor: CURRENT_USER,
+    ...overrides
+  }
+}
+
 describe('useBatchPreTranslate', () => {
   let mockStore
 
@@ -58,6 +78,7 @@ describe('useBatchPreTranslate', () => {
     vi.clearAllMocks()
     mockStore = {
       state: {
+        user: { userName: CURRENT_USER, roleName: '翻译员' },
         batchProgress: {
           progresses: [buildMockProgress()]
         }
@@ -78,7 +99,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: [] } })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { entryExamine: true, preTranslate: true, translateExamine: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -120,7 +141,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { preTranslate: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -154,7 +175,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.getEntryInfoList.mockRejectedValue(new Error('Network error'))
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { preTranslate: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -184,7 +205,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { preTranslate: true, translateExamine: true },
       translatePriority: 'shuyuku',
       maxRetries: 3,
@@ -212,7 +233,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.preTranslate.mockResolvedValue({ code: 200, data: { list: [{ id: 'e1', entry: '测试', english: '' }] } })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { preTranslate: true },
       translatePriority: 'deepl',
       maxRetries: 1,
@@ -235,7 +256,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.preTranslate.mockResolvedValue({ code: 200, data: {} })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { preTranslate: true },
       translatePriority: 'shuyuku',
       maxRetries: 3,
@@ -269,7 +290,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { preTranslate: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -299,7 +320,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.preTranslate.mockResolvedValue({ code: 200, data: { list: translatedEntries } })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { preTranslate: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -329,7 +350,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { preTranslate: true, translateExamine: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -353,7 +374,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { entryExamine: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -381,7 +402,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { entryExamine: true, preTranslate: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -417,7 +438,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { entryExamine: true, preTranslate: true, translateExamine: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -446,7 +467,7 @@ describe('useBatchPreTranslate', () => {
     workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: null } })
 
     const config = {
-      tasks: [{ id: 'task-1', name: 'Task 1', translateType: '英文' }],
+      tasks: [buildTask()],
       stages: { entryExamine: true },
       translatePriority: 'shuyuku',
       maxRetries: 1,
@@ -486,8 +507,8 @@ describe('useBatchPreTranslate', () => {
 
     const config = {
       tasks: [
-        { id: 'task-1', name: 'Task 1', translateType: '英文' },
-        { id: 'task-2', name: 'Task 2', translateType: '英文' }
+        buildTask(),
+        buildTask({ id: 'task-2', name: 'Task 2' })
       ],
       stages: { entryExamine: true },
       concurrency: 2,
@@ -532,8 +553,8 @@ describe('useBatchPreTranslate', () => {
 
     const config = {
       tasks: [
-        { id: 'task-1', name: 'Task 1', translateType: '英文' },
-        { id: 'task-2', name: 'Task 2', translateType: '英文' }
+        buildTask(),
+        buildTask({ id: 'task-2', name: 'Task 2' })
       ],
       stages: { entryExamine: true },
       concurrency: 2,
@@ -554,5 +575,114 @@ describe('useBatchPreTranslate', () => {
     expect(p2.error).toBeNull()
     // 失败任务也保存了进度状态（phase complete 在 finally 中触发）
     expect(mockStore.dispatch).toHaveBeenCalledWith('batchProgress/complete')
+  })
+
+  it('中段无权限（翻译员非本人）：词条审核与翻译审核独立执行，翻译阶段跳过', async () => {
+    const { execute } = useBatchPreTranslate()
+    workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: [] } })
+
+    const config = {
+      tasks: [buildTask({ translator: 'otherUser' })],
+      stages: { entryExamine: true, preTranslate: true, translateExamine: true },
+      translatePriority: 'shuyuku',
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }
+
+    await execute(config, mockStore)
+
+    const progress = mockStore.state.batchProgress.progresses[0]
+    // 词条审核、翻译审核正常执行（0 条 → success）
+    expect(progress.stages.entryExamine).toBe('success')
+    expect(progress.stages.translateExamine).toBe('success')
+    // 翻译阶段因无权限跳过
+    expect(progress.stages.preTranslate).toBe('skipped')
+    for (const step of STAGE_STEPS.preTranslate) {
+      expect(progress.steps.preTranslate[step.key]).toBe('skipped')
+    }
+    expect(progress.stageCounts.preTranslate).toEqual({ current: 0, total: 0 })
+    expect(progress.stageMessages.preTranslate).toContain('翻译员')
+    expect(progress.stageMessages.preTranslate).toContain('otherUser')
+    expect(progress.error).toBeNull()
+
+    // 跳过阶段不触发后端：仅词条审核 + 翻译审核各查询一次
+    expect(workbenchApi.getEntryInfoList).toHaveBeenCalledTimes(2)
+    expect(workbenchApi.preTranslate).not.toHaveBeenCalled()
+    expect(workbenchApi.updateEntryList).not.toHaveBeenCalled()
+  })
+
+  it('首阶段无权限、后续有权限：首阶段跳过，后续阶段独立执行', async () => {
+    const { execute } = useBatchPreTranslate()
+    workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: [] } })
+
+    const config = {
+      tasks: [buildTask({ entryAuditor: 'otherUser' })],
+      stages: { entryExamine: true, preTranslate: true, translateExamine: true },
+      translatePriority: 'shuyuku',
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }
+
+    await execute(config, mockStore)
+
+    const progress = mockStore.state.batchProgress.progresses[0]
+    expect(progress.stages.entryExamine).toBe('skipped')
+    expect(progress.stages.preTranslate).toBe('success')
+    expect(progress.stages.translateExamine).toBe('success')
+    expect(progress.stageMessages.entryExamine).toContain('词条审核员')
+    expect(progress.error).toBeNull()
+    // 词条审核跳过未查询，翻译与翻译审核各查询一次
+    expect(workbenchApi.getEntryInfoList).toHaveBeenCalledTimes(2)
+  })
+
+  it('指派字段为空：该阶段跳过', async () => {
+    const { execute } = useBatchPreTranslate()
+    workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: [] } })
+
+    const config = {
+      tasks: [buildTask({ translator: '' })],
+      stages: { preTranslate: true },
+      translatePriority: 'shuyuku',
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }
+
+    await execute(config, mockStore)
+
+    const progress = mockStore.state.batchProgress.progresses[0]
+    expect(progress.stages.preTranslate).toBe('skipped')
+    expect(progress.stageMessages.preTranslate).toContain('未指定')
+    expect(progress.stageMessages.preTranslate).toContain('翻译员')
+    expect(progress.error).toBeNull()
+    expect(workbenchApi.getEntryInfoList).not.toHaveBeenCalled()
+  })
+
+  it('user 为空：全部启用阶段跳过，无任何后端调用', async () => {
+    const { execute } = useBatchPreTranslate()
+    mockStore.state.user = null
+    workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: [] } })
+
+    const config = {
+      tasks: [buildTask()],
+      stages: { entryExamine: true, preTranslate: true, translateExamine: true },
+      translatePriority: 'shuyuku',
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }
+
+    await execute(config, mockStore)
+
+    const progress = mockStore.state.batchProgress.progresses[0]
+    expect(progress.stages.entryExamine).toBe('skipped')
+    expect(progress.stages.preTranslate).toBe('skipped')
+    expect(progress.stages.translateExamine).toBe('skipped')
+    expect(progress.error).toBeNull()
+    expect(workbenchApi.getEntryInfoList).not.toHaveBeenCalled()
+    expect(workbenchApi.preTranslate).not.toHaveBeenCalled()
+    expect(workbenchApi.updateEntryList).not.toHaveBeenCalled()
   })
 })

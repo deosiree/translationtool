@@ -8,6 +8,7 @@ import {
   STAGE_QUERY_PARAMS,
   getStageSteps
 } from '@/constants/batchPreTranslateSteps'
+import { canRunStage, getSkipReason } from '@/utils/batchStagePermission'
 
 /**
  * 批量预翻译执行编排器。
@@ -225,6 +226,28 @@ export function useBatchPreTranslate() {
    */
   function skipRemainingSteps(progress, stageKey, store) {
     skipStepsAfter(progress, stageKey, 'query', store)
+  }
+
+  /**
+   * 因权限不足跳过整个阶段：阶段与全部子步骤置 skipped，计数清 0，写入中文跳过原因。
+   * 不置 error、不失败任务、不触发后端调用，调用方随后 continue 到下一阶段。
+   * @param {Object} progress 任务进度对象
+   * @param {string} stageKey 阶段 key
+   * @param {string} reason 中文跳过原因
+   * @param {Object} store Vuex store
+   * @returns {void}
+   */
+  function skipStageForPermission(progress, stageKey, reason, store) {
+    progress.stages[stageKey] = 'skipped'
+    progress.stageCounts[stageKey] = { current: 0, total: 0 }
+    for (const step of getStageSteps(stageKey)) {
+      progress.steps[stageKey][step.key] = 'skipped'
+    }
+    progress.stageMessages = progress.stageMessages || {}
+    progress.stageMessages[stageKey] = reason
+    progress.currentStage = null
+    progress.currentStep = null
+    store.dispatch('batchProgress/updateProgress', progress)
   }
 
   /**
@@ -526,6 +549,12 @@ export function useBatchPreTranslate() {
    */
   async function runTask(task, progress, enabledStages, config, maxRetries, store, delayMs) {
     for (const stageKey of enabledStages) {
+      // 权限判定：当前用户非该阶段指派人员时跳过，直接进入下一阶段独立判定与执行。
+      if (!canRunStage(store.state.user, task, stageKey)) {
+        skipStageForPermission(progress, stageKey, getSkipReason(store.state.user, task, stageKey), store)
+        continue
+      }
+
       progress.currentStage = stageKey
       progress.currentStep = null
       progress.stages[stageKey] = 'running'
