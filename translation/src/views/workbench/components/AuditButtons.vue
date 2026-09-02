@@ -4,7 +4,6 @@
     <a-button
       type="primary"
       size="small"
-      style="margin-left: 8px"
       class="resetBtn"
       @click="$emit('pass')"
     >
@@ -13,7 +12,6 @@
     <a-button
       type="primary"
       size="small"
-      style="margin-left: 8px"
       class="rejectBtn"
       @click="$emit('reject')"
     >
@@ -30,6 +28,15 @@ export default {
 </script>
 
 <style scoped lang="less">
+/* 原子按钮组：任何容器宽度下"通过/驳回"都保持水平并排，整组参与工具栏换行 */
+.audit-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: 8px;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
 .rejectBtn {
   background: #fbb31f;
   border-color: #fbb31f;

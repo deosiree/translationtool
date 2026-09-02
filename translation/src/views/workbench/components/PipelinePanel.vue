@@ -528,6 +528,8 @@ export default {
 .workbench-form-bar__main {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  row-gap: 8px;
   flex: 1;
   min-width: 0;
 }
