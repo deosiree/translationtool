@@ -270,17 +270,23 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     @Override
-    public List<EntryInfoEntity> preTranslate(HttpServletRequest request,List<EntryInfoEntity> entryInfoList, String taskID, String priority) {
+    public List<EntryInfoEntity> preTranslateForTask(HttpServletRequest request,List<EntryInfoEntity> entryInfoList, String taskID, String priority) {
+        String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
+        return preTranslateByType(request, entryInfoList, translateType, priority);
+    }
+
+    @Override
+    public List<EntryInfoEntity> preTranslateByType(HttpServletRequest request,List<EntryInfoEntity> entryInfoList, String translateType, String priority) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-            for (EntryInfoEntity entryInfoEntity : entryInfoList) {
+        for (EntryInfoEntity entryInfoEntity : entryInfoList) {
             //子不翻译
             if (StringUtils.isNotBlank(entryInfoEntity.getParentID())) {
                 continue;
             }
-            String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
+
             String translate = "";
 
             switch (translateType) {

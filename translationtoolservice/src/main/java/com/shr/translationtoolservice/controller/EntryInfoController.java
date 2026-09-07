@@ -66,7 +66,8 @@ public class EntryInfoController extends BaseController {
     private EntryClassifyService entryClassifyService;
     @Autowired
     private EntryInfoService entryInfoService;
-
+    @Autowired
+    private EntryTempService entryTempService;
     @Autowired
     private TranslateService translateService;
 
@@ -1386,6 +1387,19 @@ public class EntryInfoController extends BaseController {
                 }
             }
         }
+    }
+
+    @PostMapping("/preTranslate")
+    @ApiOperation("预翻译")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> preTranslate( HttpServletRequest request,@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String translateType, @RequestParam String priority) {
+        ResponseListModel responseListModel = new ResponseListModel();
+
+        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslateByType(request,entryInfoEntities, translateType, priority);
+        responseListModel.setList(entryInfoEntities1);
+        responseListModel.setTotalNum(entryInfoEntities1.size());
+        return checkResult(responseListModel);
     }
 
 
