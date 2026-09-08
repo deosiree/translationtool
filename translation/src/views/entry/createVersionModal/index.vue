@@ -83,7 +83,7 @@
       <ExportButton :dataSource="dataSource" :fieldOptions_="fieldOptions" size="middle" buttonTitle="导出" />
       <a-button type="primary" @click="examine"
         v-if="$currentDepartment && $currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
-      <a-button type="primary" @click="preTranslateVisible = true">预翻译</a-button>
+      <a-button type="primary" @click="preTranslateFormVisible = true">预翻译</a-button>
     </template>
   </CustomModal>
   <!-- 二级操作弹窗（已按职责拆分） -->

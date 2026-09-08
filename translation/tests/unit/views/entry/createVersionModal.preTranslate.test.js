@@ -90,6 +90,9 @@ function mountShell(dataSource) {
       mocks: createUserStoreMock(),
       stubs: {
         'CustomModal': ModalStub,
+        'a-button': {
+          template: '<button @click="$emit(\'click\')"><slot /></button>'
+        },
         'a-form': true,
         'a-form-item': true,
         'a-select': true,
@@ -122,17 +125,18 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     if (wrapper) wrapper.unmount()
   })
 
-  it('预翻译配置弹窗由壳挂载且 visible 受控', async () => {
+  it('点击预翻译按钮应打开配置弹窗', async () => {
     wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
     expect(wrapper.vm.preTranslateFormVisible).toBe(false)
 
-    // 壳模板挂载了 PreTranslateForm，visible 受壳控制
+    const preTranslateButton = wrapper.findAll('button').find((button) => button.text() === '预翻译')
+    expect(preTranslateButton).toBeDefined()
+    await preTranslateButton.trigger('click')
+
+    // 配置弹窗由真实按钮入口打开，并保持 visible 受壳控制
     const form = wrapper.findComponent(PreTranslateForm)
     expect(form.exists()).toBe(true)
-    expect(form.props('visible')).toBe(false)
-
-    wrapper.vm.preTranslateFormVisible = true
-    await nextTick()
+    expect(wrapper.vm.preTranslateFormVisible).toBe(true)
     expect(form.props('visible')).toBe(true)
   })
 
