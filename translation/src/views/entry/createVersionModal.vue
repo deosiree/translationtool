@@ -69,6 +69,7 @@
         v-if="$currentDepartment && $currentDepartment.ops.has('needForbidden') && $store.state.admin">禁用</a-button>
       <ExportButton :dataSource="dataSource" :fieldOptions_="fieldOptions" size="middle" buttonTitle="导出" />
       <a-button type="primary" @click="examine" v-if="$currentDepartment && $currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
+      <a-button type="primary" @click="preTranslateFun">预翻译</a-button>
     </template>
   </CustomModal>
   <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose"
@@ -89,6 +90,20 @@
           ref="taskTable" bordered>
         </a-table>
       </div>
+      <a-spin :spinning="preTranslateLoading">
+        <a-form v-if="title === '预翻译'" :model="preTran" autocomplete="off" ref="preTranslateForm"
+          :label-col="{ span: 6 }">
+          <a-form-item label="翻译语种" name="language" :rules="[{ required: true, message: '请选择翻译语种!' }]">
+            <a-select mode="multiple" v-model:value="preTran.language" :options="langOptions" placeholder="请选择"
+              allowClear>
+            </a-select>
+          </a-form-item>
+          <a-form-item label="翻译优先级" name="priority">
+            <a-select v-model:value="preTran.priority" :options="translatePriorityOptions" placeholder="请选择">
+            </a-select>
+          </a-form-item>
+        </a-form>
+      </a-spin>
       <a-spin :spinning="writeBackLoading">
         <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
           <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
@@ -157,13 +172,14 @@ import {
 import { message, Modal, notification } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { deleteEntryInfoByID, getI18nAdress } from "@/http/api/workbench.js";
-import { forbiddenEntryInfo } from "@/http/api/entryManage.js";
+import { forbiddenEntryInfo, preTranslateEntry } from "@/http/api/entryManage.js";
 import {
   createVersionByEntry,
   addProductRelation,
   updateEntryInfo,
   writeBack,
 } from "@/http/api/entryManage";
+import { TRANSLATE_PRIORITY_OPTIONS } from "@/constants/translatePriority.js";
 import { entryExportByCondition } from "@/http/api/download";
 import { searchTaskInfo } from "@/http/api/task";
 import {
@@ -234,6 +250,8 @@ export default {
   data() {
     // 从本地缓存读取用户偏好
     const cachedLanguages = localStorage.getItem("writeBackLanguages");
+    // 预翻译语种偏好（与回写语种偏好独立缓存）
+    const cachedPreTranslateLanguages = localStorage.getItem("preTranslateLanguages");
     return {
       locale: zh_CN,
       modalWidth: "60%",
@@ -364,6 +382,14 @@ export default {
       writeBackLoading: false,
       ipOptions: [],
       langTranslateStateList: commonParam.langTranslateStateList,
+      translatePriorityOptions: TRANSLATE_PRIORITY_OPTIONS,
+      preTran: {
+        language: cachedPreTranslateLanguages
+          ? JSON.parse(cachedPreTranslateLanguages)
+          : commonParam.langNameList, // 默认全选或从缓存读取
+        priority: "shuyuku",
+      },
+      preTranslateLoading: false,
     };
   },
 
@@ -546,6 +572,13 @@ export default {
       this.title = "回写";
       this.getIPs();
     },
+    // 预翻译
+    preTranslateFun() {
+      this.operateVisible = true;
+      setModalAriaHidden(this, document);
+      this.operateWidth = "500px";
+      this.title = "预翻译";
+    },
     // 获取该产品下的任务
     getTaskList(productID) {
       let params = {
@@ -642,6 +675,54 @@ export default {
             message.error(failedmsg);
           }
           this.writeBackLoading = false;
+        } else if (this.title === "预翻译") {
+          if (this.dataSource.length === 0) {
+            message.warn("没有已选词条，无法预翻译！");
+            return;
+          }
+          // 验证表单（翻译语种必选）；校验失败保持弹窗打开，不走共享 finally 的关闭逻辑
+          await this.$refs.preTranslateForm.validate();
+
+          this.preTranslateLoading = true;
+          let successLanguages = [];
+          let failedLanguages = [];
+          const promises = [];
+
+          // 遍历选中的语种列表，依次触发预翻译（并行）
+          for (const language of this.preTran.language) {
+            let params = {
+              translateType: language,
+              priority: this.preTran.priority,
+            };
+            promises.push(preTranslateEntry(params, this.dataSource));
+          }
+
+          await Promise.allSettled(promises).then((rls) => {
+            rls.forEach((item, index) => {
+              if (item.status === "fulfilled") {
+                successLanguages.push(this.preTran.language[index]);
+              } else {
+                failedLanguages.push(this.preTran.language[index]);
+              }
+            });
+          });
+
+          if (successLanguages.length > 0) {
+            notification.success({
+              message: `以下语种预翻译成功：${successLanguages.join(", ")}。`,
+              duration: 0,
+            });
+          }
+          if (failedLanguages.length > 0) {
+            message.error(`以下语种预翻译失败：${failedLanguages.join(", ")}。`);
+          }
+          this.preTranslateLoading = false;
+          // 预翻译成功后：关闭二级弹窗与已选词条弹窗，刷新主表（预翻译结果由后端落库）
+          this.operateVisible = false;
+          this.$emit("createClose");
+          this.$emit("cancelCreate");
+          this.$emit("refresh");
+          return;
         } else if (this.title === "选择任务") {
           //提交词条审核
           if (this.selectedTaskRows.length === 0) {
@@ -684,9 +765,9 @@ export default {
       } catch (err) {
         console.log("操作失败:", err);
       } finally {
-        // 只有在非"选择任务"的情况下才在这里关闭modal
-        // "选择任务"的情况由submitExamine自己处理
-        if (this.title !== "选择任务") {
+        // 只有在非"选择任务"和"预翻译"的情况下才在这里关闭modal
+        // "选择任务"的情况由submitExamine自己处理；"预翻译"由自己的分支处理（校验失败需保持弹窗打开）
+        if (this.title !== "选择任务" && this.title !== "预翻译") {
           this.operateVisible = false;
           this.$emit("createClose");
           this.$emit("cancelCreate");
@@ -839,6 +920,17 @@ export default {
         fileOptions: [],
         commentDisabled: false,
         tagDisabled: false,
+      };
+      // 预翻译：保留语种选择（缓存为用户偏好），优先级回归默认术语库
+      if (this.preTran.language && this.preTran.language.length > 0) {
+        localStorage.setItem(
+          "preTranslateLanguages",
+          JSON.stringify(this.preTran.language)
+        );
+      }
+      this.preTran = {
+        language: this.preTran.language,
+        priority: "shuyuku",
       };
     },
     // 动态设置表格高度

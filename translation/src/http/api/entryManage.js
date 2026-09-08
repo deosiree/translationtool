@@ -1,5 +1,5 @@
 //引入request.js文件
-import request, { requestMultipart } from "../request";
+import request, { requestMultipart, requestDeduped } from "../request";
 import {
   entryImportExcle as entryImportExcle_mock,
   entryImportExcle_v2 as entryImportExcle_v2_mock,
@@ -219,9 +219,9 @@ export function addSingleEntry(data) {
   });
 }
 
-// 查询分类限制字符串长度
+// 查询分类限制字符串长度（只读，并发去重）
 export function getClassfy(params) {
-  return request({
+  return requestDeduped({
     url: "/entryInfo/getClassfy",
     method: "POST",
     params
@@ -431,6 +431,18 @@ export function getSourceByLang() {
 export function updateEntryInfosByFile(params, data) {
   return requestMultipart({
     url: "/entryInfo/updateEntryInfosByFile",
+    method: "POST",
+    params,
+    data,
+  });
+}
+
+// 词条管理-已选词条：预翻译（与工作台 /workbench/preTranslate 的区别：传翻译语种 translateType，不传任务ID）
+// @param {Object} params - URL参数：{ translateType: 语种名, priority: 翻译优先级 }
+// @param {Array} data - 已选词条数组
+export function preTranslateEntry(params, data) {
+  return request({
+    url: "/entryInfo/preTranslate",
     method: "POST",
     params,
     data,
