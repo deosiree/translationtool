@@ -1,5 +1,5 @@
 <template>
-  <!-- 预翻译：词条管理-已选词条-预翻译配置弹窗（语种多选 + 翻译优先级 + 校验规则） -->
+  <!-- 预翻译：词条管理-已选词条-预翻译配置弹窗（语种多选 + 翻译优先级） -->
   <CustomModal modalTitle="预翻译" modalWidth="500px" :modalVisible="visible" :okLoading="loading" @handleClose="handleClose"
     @handleOK="handleOK" @afterClose="afterClose">
     <div style="width:100%;height:100%">
@@ -13,29 +13,18 @@
           <a-select v-model:value="preTran.priority" :options="translatePriorityOptions" placeholder="请选择">
           </a-select>
         </a-form-item>
-        <a-form-item label="校验规则" name="rules">
-          <RulesDropdown :options="rulesOptions" @update:options="rulesOptions = $event" />
-          <a-tooltip placement="top">
-            <template #title>
-              <span>预翻译返回后按勾选规则校验译文：通过的直接写入对应语种列；不通过的保持编辑态并标红</span>
-            </template>
-            <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
-          </a-tooltip>
-        </a-form-item>
       </a-form>
     </div>
   </CustomModal>
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
-import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
-import { QuestionCircleOutlined } from "@ant-design/icons-vue";
 import { TRANSLATE_PRIORITY_OPTIONS } from "@/constants/translatePriority.js";
 import commonParam from "@/constants/commonParam.js";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { cloneDeep } from "lodash-es";
 export default {
-  components: { CustomModal, RulesDropdown, QuestionCircleOutlined },
+  components: { CustomModal },
   emits: ["handleClose", "submit"],
   props: {
     visible: {
@@ -62,8 +51,6 @@ export default {
           : commonParam.langNameList, // 默认全选或从缓存读取
         priority: "shuyuku",
       },
-      // 深拷贝一份局部规则，避免与工作台全局 rulesOptions 共享引用互相污染
-      rulesOptions: commonParam.rulesOptions.map((item) => ({ ...item })),
     };
   },
   watch: {
@@ -74,13 +61,21 @@ export default {
     },
   },
   methods: {
+    /**
+     * 关闭配置弹窗。
+     * @returns {void}
+     */
     handleClose() {
       this.$emit("handleClose");
     },
+    /**
+     * 校验表单并提交预翻译配置。
+     * @returns {Promise<void>}
+     */
     async handleOK() {
       try {
         await this.$refs.preTranslateForm.validate();
-        // 语种偏好缓存；勾选的校验规则 key 列表一并提交
+        // 语种偏好缓存
         localStorage.setItem(
           "preTranslateLanguages",
           JSON.stringify(this.preTran.language)
@@ -88,14 +83,15 @@ export default {
         this.$emit("submit", {
           language: cloneDeep(this.preTran.language),
           priority: this.preTran.priority,
-          verifyMethods: this.rulesOptions
-            .filter((item) => item.checked)
-            .map((item) => item.key),
         });
       } catch (err) {
         // 校验失败保持弹窗打开
       }
     },
+    /**
+     * 关闭后重置优先级。
+     * @returns {void}
+     */
     afterClose() {
       this.preTran = {
         language: this.preTran.language,

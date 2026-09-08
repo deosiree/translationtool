@@ -9,7 +9,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount } from '@vue/test-utils'
-import { nextTick } from 'vue'
+import { h, nextTick } from 'vue'
 
 vi.mock('@/http/request', () => ({
   default: vi.fn(),
@@ -45,6 +45,9 @@ import { preTranslateEntry } from '@/http/api/entryManage'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
 import CreateVersionModal from '@/views/entry/createVersionModal/index.vue'
 import PreTranslateForm from '@/views/entry/createVersionModal/PreTranslateForm.vue'
+import CellOverflowTooltip from '@/components/table/CellOverflowTooltip.vue'
+import EntryStateBadge from '@/components/stateBadge/entryStateBadge.vue'
+import TransStateBadge from '@/components/stateBadge/transStateBadge.vue'
 
 describe('entryManage API - preTranslateEntry（/entryInfo/preTranslate）', () => {
   beforeEach(() => {
@@ -74,8 +77,74 @@ const ModalStub = {
   template: '<div><slot name="leftBottomBtn" /><slot /></div>'
 }
 const SpinStub = { template: '<div><slot /></div>' }
+const TooltipStub = { template: '<div><slot /></div>' }
+const RulesDropdownStub = {
+  name: 'RulesDropdownStub',
+  props: {
+    options: {
+      type: Array,
+      default: () => []
+    }
+  },
+  emits: ['update:options'],
+  template: '<div class="rules-dropdown-stub"></div>'
+}
+const OperationTableStub = {
+  name: 'OperationTableStub',
+  props: ['columns', 'dataSource'],
+  template: `
+    <div class="table-stub">
+      <div v-for="record in dataSource" :key="record.id" class="table-row-stub">
+        <slot name="bodyCell" :column="{ dataIndex: 'operation' }" :record="record" :text="''" />
+      </div>
+    </div>
+  `
+}
+const OverflowTableStub = {
+  name: 'OverflowTableStub',
+  props: {
+    columns: {
+      type: Array,
+      default: () => []
+    },
+    dataSource: {
+      type: Array,
+      default: () => []
+    }
+  },
+  setup(props, { slots }) {
+    return () => h('div', { class: 'table-stub' }, [
+      h(
+        'div',
+        { class: 'header-row' },
+        props.columns.map((column) =>
+          slots.headerCell?.({ title: column.title, column })
+        )
+      ),
+      ...props.dataSource.map((record) =>
+        h(
+          'div',
+          { class: 'body-row', key: record.id },
+          props.columns.map((column) =>
+            slots.bodyCell?.({
+              column,
+              record,
+              text: record[column.dataIndex]
+            })
+          )
+        )
+      )
+    ])
+  }
+}
 
-function mountShell(dataSource) {
+function mountShell(
+  dataSource,
+  tableStub = true,
+  { realCellOverflowTooltip = false, realBadges = false } = {}
+) {
+  const cellOverflowStub = realCellOverflowTooltip ? {} : { CellOverflowTooltip: true }
+  const badgeStubs = realBadges ? {} : { EntryStateBadge: true, TransStateBadge: true }
   return mount(CreateVersionModal, {
     props: {
       visible: true,
@@ -91,23 +160,24 @@ function mountShell(dataSource) {
       stubs: {
         'CustomModal': ModalStub,
         'a-button': {
-          template: '<button @click="$emit(\'click\')"><slot /></button>'
+          template: '<button @click="$emit(\'click\', $event)"><slot /></button>'
         },
         'a-form': true,
         'a-form-item': true,
         'a-select': true,
         'a-spin': SpinStub,
-        'a-table': true,
+        'a-tooltip': TooltipStub,
+        'a-table': tableStub,
         'a-config-provider': SpinStub,
         'TableCellTextArea': true,
-        'CellOverflowTooltip': true,
-        'EntryStateBadge': true,
-        'TransStateBadge': true,
+        'RulesDropdown': RulesDropdownStub,
         'ExportButton': true,
         'CreateVersionForm': true,
         'ExamineTaskForm': true,
         'WriteBackForm': true,
-        'PreTranslateForm': true
+        'PreTranslateForm': true,
+        ...cellOverflowStub,
+        ...badgeStubs
       }
     }
   })
@@ -142,6 +212,10 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
 
   it('配置提交后进入编辑模式：接口按语种并行、译文写入列、快照保存', async () => {
     wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
+    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((item) => ({
+      ...item,
+      checked: false
+    }))
 
     request.mockResolvedValue({
       code: 200,
@@ -231,6 +305,52 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     expect(wrapper.vm.preTranslateActive).toBe(false)
   })
 
+  it('预翻译部分保存成功：仅移除成功行的 dataSource 与已选状态', async () => {
+    const entries = [
+      { id: 'e1', entry: '断路器', english: '' },
+      { id: 'e2', entry: '隔离开关', english: '' }
+    ]
+    wrapper = mountShell(entries)
+    await wrapper.setProps({
+      selectedRows: entries,
+      selectedRowKeys: ['e1', 'e2']
+    })
+    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((item) => ({
+      ...item,
+      checked: false
+    }))
+
+    request.mockImplementation((config) => {
+      if (config.url === '/entryInfo/preTranslate') {
+        return Promise.resolve({
+          code: 200,
+          data: {
+            list: [
+              { id: 'e1', english: 'breaker' },
+              { id: 'e2', english: 'disconnector' }
+            ]
+          }
+        })
+      }
+      if (config.url === '/entryInfo/updateEntryInfo' && config.data.id === 'e2') {
+        return Promise.reject(new Error('落库失败'))
+      }
+      return Promise.resolve({ code: 200 })
+    })
+
+    await wrapper.vm.onPreTranslateSubmit({
+      language: ['英文'],
+      priority: 'shuyuku'
+    })
+    await wrapper.vm.preTranslateSave()
+    await nextTick()
+
+    expect(wrapper.emitted('update:dataSource').at(-1)[0].map((item) => item.id)).toEqual(['e2'])
+    expect(wrapper.emitted('update:selectedRows').at(-1)[0].map((item) => item.id)).toEqual(['e2'])
+    expect(wrapper.emitted('update:selectedRowKeys').at(-1)[0]).toEqual(['e2'])
+    expect(wrapper.emitted('createClose')).toBeFalsy()
+  })
+
   it('空已选词条提交：直接提示不调接口', async () => {
     wrapper = mountShell([])
     await wrapper.vm.onPreTranslateSubmit({
@@ -240,5 +360,245 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     })
     expect(request).not.toHaveBeenCalled()
     expect(wrapper.vm.preTranslateActive).toBe(false)
+  })
+
+  it('startEditRow：浏览态行生成独立编辑副本并配置语种校验规则', async () => {
+    const entries = [{ id: 'e1', entry: '断路器', english: 'origin' }]
+    wrapper = mountShell(entries)
+    request.mockResolvedValue({
+      code: 200,
+      data: { list: [{ id: 'e1', english: 'translated' }] }
+    })
+    await wrapper.vm.onPreTranslateSubmit({
+      language: ['英文'],
+      priority: 'shuyuku',
+      verifyMethods: []
+    })
+
+    const record = wrapper.vm.dataSource[0]
+    await wrapper.vm.startEditRow(record)
+
+    expect(wrapper.vm.editableData.e1).toBeDefined()
+    expect(wrapper.vm.editableData.e1).not.toBe(record)
+    expect(wrapper.vm.editableData.e1.english).toBe('translated')
+    expect(wrapper.vm.rules.e1.english).toBeTruthy()
+  })
+
+  it('customRow 双击与编辑按钮共用同一进入编辑态方法', async () => {
+    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
+    wrapper = mountShell(entries)
+    request.mockResolvedValue({
+      code: 200,
+      data: { list: [{ id: 'e1', english: 'translated' }] }
+    })
+    await wrapper.vm.onPreTranslateSubmit({
+      language: ['英文'],
+      priority: 'shuyuku',
+      verifyMethods: []
+    })
+
+    const startEditSpy = vi.spyOn(wrapper.vm, 'startEditRow')
+    const record = wrapper.vm.dataSource[0]
+    await wrapper.vm.customRow(record).onDblclick({ target: { closest: () => null } })
+
+    expect(startEditSpy).toHaveBeenCalledWith(record)
+    expect(wrapper.vm.editableData.e1).toBeDefined()
+  })
+
+  it('双击交互控件不触发行编辑，重复双击不覆盖未确认输入', async () => {
+    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
+    wrapper = mountShell(entries)
+    request.mockResolvedValue({
+      code: 200,
+      data: { list: [{ id: 'e1', english: 'translated' }] }
+    })
+    await wrapper.vm.onPreTranslateSubmit({
+      language: ['英文'],
+      priority: 'shuyuku',
+      verifyMethods: []
+    })
+
+    const record = wrapper.vm.dataSource[0]
+    await wrapper.vm.customRow(record).onDblclick({
+      target: { closest: () => ({ className: 'ant-input' }) }
+    })
+    expect(wrapper.vm.editableData.e1).toBeUndefined()
+
+    await wrapper.vm.startEditRow(record)
+    wrapper.vm.editableData.e1.english = '未确认输入'
+    await wrapper.vm.customRow(record).onDblclick({ target: { closest: () => null } })
+
+    expect(wrapper.vm.editableData.e1.english).toBe('未确认输入')
+  })
+
+  it('浏览态操作列显示编辑图标，进入编辑态后隐藏', async () => {
+    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
+    wrapper = mountShell(entries, OperationTableStub)
+    request.mockResolvedValue({
+      code: 200,
+      data: { list: [{ id: 'e1', english: 'translated' }] }
+    })
+    await wrapper.vm.onPreTranslateSubmit({
+      language: ['英文'],
+      priority: 'shuyuku',
+      verifyMethods: []
+    })
+
+    const editIcon = wrapper.find('.row-edit-icon')
+    expect(editIcon.exists()).toBe(true)
+    await editIcon.trigger('click')
+    await nextTick()
+
+    expect(wrapper.vm.editableData.e1).toBeDefined()
+    expect(wrapper.find('.row-edit-icon').exists()).toBe(false)
+  })
+
+  it('已选词条表格业务列按 200px 锁定，序号与操作列保持既有宽度', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: 'circuit breaker' }])
+    await wrapper.setProps({ visible: false })
+    await wrapper.setProps({ visible: true })
+    await nextTick()
+
+    const entryCol = wrapper.vm.columns.find((col) => col.dataIndex === 'entry')
+    const indexCol = wrapper.vm.columns.find((col) => col.dataIndex === 'index')
+    const operationCol = wrapper.vm.columns.find((col) => col.dataIndex === 'operation')
+
+    expect(entryCol.width).toBe(200)
+    expect(entryCol.ellipsis).toEqual({ showTitle: false })
+    expect(entryCol.customCell()).toEqual({
+      style: { width: '200px', minWidth: '200px', maxWidth: '200px' }
+    })
+    expect(indexCol.width).toBe(50)
+    expect(operationCol.width).toBe(200)
+  })
+
+  it('已选词条表格复用 table-cell-overflow 并为表头和普通正文渲染 Tooltip', async () => {
+    wrapper = mountShell(
+      [{ id: 'e1', entry: '超长词条内容用于验证省略和悬浮提示', english: 'long translation' }],
+      OverflowTableStub,
+      { realCellOverflowTooltip: true }
+    )
+    await wrapper.setProps({ visible: false })
+    await wrapper.setProps({ visible: true })
+    await nextTick()
+
+    expect(wrapper.find('.table-stub').classes()).toContain('table-cell-overflow')
+    const tooltips = wrapper.findAllComponents(CellOverflowTooltip)
+    expect(tooltips.some((tooltip) => tooltip.props('content') === '词条')).toBe(true)
+    expect(
+      tooltips.some((tooltip) => tooltip.props('content') === '超长词条内容用于验证省略和悬浮提示')
+    ).toBe(true)
+  })
+
+  it('状态列仍渲染 Badge，并在外层保留溢出 Tooltip', async () => {
+    wrapper = mountShell(
+      [{ id: 'e1', entry: '断路器', entryState: 0, englishTranslateState: '1' }],
+      OverflowTableStub,
+      { realCellOverflowTooltip: true, realBadges: true }
+    )
+    await wrapper.setProps({ visible: false })
+    await wrapper.setProps({ visible: true })
+    await nextTick()
+
+    wrapper.vm.columns = [
+      { title: '词条状态', dataIndex: 'entryState', colValue: 'entryState', index: 1 },
+      {
+        title: '英文翻译状态',
+        dataIndex: 'englishTranslateState',
+        colValue: 'englishTranslateState',
+        index: 2
+      }
+    ]
+    await nextTick()
+
+    expect(wrapper.findComponent(EntryStateBadge).exists()).toBe(true)
+    expect(wrapper.findComponent(TransStateBadge).exists()).toBe(true)
+    expect(wrapper.findAllComponents(CellOverflowTooltip).length).toBeGreaterThan(0)
+  })
+
+  it('批量选择顶部始终渲染工作台同款校验规则控件', () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器' }])
+
+    const rulesDropdown = wrapper.findComponent(RulesDropdownStub)
+    expect(rulesDropdown.exists()).toBe(true)
+    expect(rulesDropdown.props('options').length).toBeGreaterThan(0)
+  })
+
+  it('未预翻译时点击编辑图标可进入编辑态，底部切换为取消/保存', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }], OperationTableStub)
+
+    const editIcon = wrapper.find('.row-edit-icon')
+    expect(editIcon.exists()).toBe(true)
+    expect(wrapper.find('.row-delete-icon').exists()).toBe(true)
+
+    await editIcon.trigger('click')
+    await nextTick()
+
+    expect(wrapper.vm.editableData.e1).toBeDefined()
+    expect(wrapper.vm.manualEditActive).toBe(true)
+    expect(wrapper.vm.isEditMode).toBe(true)
+    expect(wrapper.find('.row-confirm-icon').exists()).toBe(true)
+    expect(wrapper.find('.row-edit-icon').exists()).toBe(false)
+  })
+
+  it('未预翻译时双击行可进入编辑态', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
+    const record = wrapper.vm.dataSource[0]
+
+    await wrapper.vm.customRow(record).onDblclick({ target: { closest: () => null } })
+
+    expect(wrapper.vm.editableData.e1).toBeDefined()
+    expect(wrapper.vm.manualEditActive).toBe(true)
+  })
+
+  it('普通编辑保存立即落库但保留已选词条', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: 'origin' }])
+    const record = wrapper.vm.dataSource[0]
+    await wrapper.vm.startEditRow(record)
+    wrapper.vm.editableData.e1.english = 'manual value'
+
+    request.mockResolvedValue({ code: 200 })
+    await wrapper.vm.handleOK()
+
+    const updateCall = request.mock.calls.map((c) => c[0]).find((c) => c.url === '/entryInfo/updateEntryInfo')
+    expect(updateCall).toBeTruthy()
+    expect(updateCall.data.english).toBe('manual value')
+    expect(updateCall.params).toEqual({ notes: '编辑词条' })
+    expect(wrapper.vm.dataSource.map((item) => item.id)).toEqual(['e1'])
+    expect(wrapper.vm.manualEditActive).toBe(false)
+    expect(wrapper.vm.createVersionFormVisible).toBe(false)
+  })
+
+  it('普通编辑取消恢复快照并退出编辑态', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: 'origin' }])
+    const record = wrapper.vm.dataSource[0]
+    await wrapper.vm.startEditRow(record)
+    wrapper.vm.editableData.e1.english = 'changed'
+    await wrapper.vm.rowConfirm(record)
+
+    expect(record.english).toBe('changed')
+    expect(wrapper.vm.manualEditActive).toBe(true)
+
+    wrapper.vm.cancelManualEdits()
+    await nextTick()
+
+    const emitted = wrapper.emitted('update:dataSource')
+    expect(emitted.at(-1)[0][0].english).toBe('origin')
+    expect(wrapper.vm.manualEditActive).toBe(false)
+    expect(wrapper.vm.editableData).toEqual({})
+  })
+
+  it('切换校验规则会清空当前编辑行红字', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
+    wrapper.vm.cellErrors = { e1: { english: '旧错误' } }
+
+    const nextRules = wrapper.vm.rulesOptions.map((item) => ({
+      ...item,
+      checked: false
+    }))
+    wrapper.findComponent(RulesDropdownStub).vm.$emit('update:options', nextRules)
+    await nextTick()
+
+    expect(wrapper.vm.cellErrors).toEqual({})
   })
 })

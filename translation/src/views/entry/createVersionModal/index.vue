@@ -1,41 +1,60 @@
 <template>
   <CustomModal :modalWidth="modalWidth" modalTitle="批量选择" :visible="visible" :fullFlag="true"
-    :showCancel="preTranslateActive" :cancelText="preTranslateActive ? '取消' : ''"
-    :okText="preTranslateActive ? '保存' : '创建产品版本'"
+    :showCancel="isEditMode" :cancelText="isEditMode ? '取消' : ''"
+    :okText="isEditMode ? '保存' : '创建产品版本'"
     @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div style="width:100%;height:515px">
       <div class="table">
-        <div>已选词条：</div>
+        <div class="selected-entry-toolbar">
+          <div>已选词条：</div>
+          <RulesDropdown :options="rulesOptions" @update:options="rulesOptions = $event" />
+        </div>
         <a-config-provider :locale="locale">
-          <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
+          <a-table class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
             :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
-            ref="historyTable" bordered>
+            :customRow="customRow" ref="historyTable" bordered>
+            <template #headerCell="{ title, column }">
+              <CellOverflowTooltip v-if="column.colValue" :content="title">
+                {{ title }}
+              </CellOverflowTooltip>
+            </template>
             <template #bodyCell="{ column, record, text }">
               <template v-if="column.dataIndex === 'entryState'">
-                <EntryStateBadge :entryState="text" />
+                <CellOverflowTooltip :content="text">
+                  <EntryStateBadge :entryState="text" />
+                </CellOverflowTooltip>
               </template>
-              <template v-if="langTranslateStateList.includes(column.dataIndex)">
-                <TransStateBadge :translateState="text" />
+              <template v-else-if="langTranslateStateList.includes(column.dataIndex)">
+                <CellOverflowTooltip :content="text">
+                  <TransStateBadge :translateState="text" />
+                </CellOverflowTooltip>
               </template>
-              <!-- 语种列（预翻译编辑态）：TableCellTextArea 红字编辑 / 浏览态 -->
-              <template v-if="editableTextColumns.includes(column.dataIndex)">
+              <!-- 语种列（行编辑态）：TableCellTextArea 红字编辑 / 浏览态 -->
+              <template v-else-if="editableTextColumns.includes(column.dataIndex)">
                 <TableCellTextArea v-if="editableData[record.id]" :value="editableData[record.id][column.dataIndex] ?? ''"
                   :error-message="cellErrors[record.id]?.[column.dataIndex]"
                   @update:value="(val) => onCellInput(val, record, column)" />
                 <CellOverflowTooltip v-else :content="text" />
               </template>
-              <template v-if="column.dataIndex === 'operation' && !preTranslateActive">
+              <template v-else-if="column.dataIndex === 'operation'">
                 <div class="editable-row-operations">
-                  <DeleteOutlined style="color:#369FFF;font-size:16px" @click="remove(record)" title="取消选择" />
+                  <template v-if="editableData[record.id]">
+                    <CheckOutlined class="row-confirm-icon" style="color: #369fff; margin-left: 8px"
+                      @click="rowConfirm(record)" title="保存" />
+                    <CloseOutlined class="row-discard-icon" style="color: red; margin-left: 8px"
+                      @click="rowDiscard(record)" title="取消" />
+                  </template>
+                  <template v-else>
+                    <EditOutlined class="row-edit-icon" style="color:#369FFF;font-size:16px;cursor:pointer"
+                      @click.stop="startEditRow(record)" @dblclick.stop title="编辑" />
+                    <DeleteOutlined class="row-delete-icon"
+                      style="color:#369FFF;font-size:16px;margin-left:8px;cursor:pointer" @click.stop="remove(record)"
+                      @dblclick.stop title="取消选择" />
+                  </template>
                 </div>
               </template>
-              <template v-if="column.dataIndex === 'operation' && preTranslateActive">
-                <div class="editable-row-operations">
-                  <CheckOutlined v-if="editableData[record.id]" style="color: #369fff; margin-left: 8px"
-                    @click="rowConfirm(record)" title="保存" />
-                  <CloseOutlined v-if="editableData[record.id]" style="color: red; margin-left: 8px"
-                    @click="rowDiscard(record)" title="取消" />
-                </div>
+              <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
+                <CellOverflowTooltip :content="formatCellText(text)" />
               </template>
             </template>
             <template #expandIcon="props">
@@ -72,8 +91,8 @@
         </a-config-provider>
       </div>
     </div>
-    <!-- 正常模式：操作按钮排；预翻译编辑模式：隐藏（底部只剩 取消/保存） -->
-    <template v-slot:leftBottomBtn v-if="!preTranslateActive">
+    <!-- 正常模式：操作按钮排；编辑模式：隐藏（底部只剩 取消/保存） -->
+    <template v-slot:leftBottomBtn v-if="!isEditMode">
       <a-button @click="cancelCreate">关闭</a-button>
       <a-button type="primary" v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
         @click="writeBackVisible = true">回写</a-button>
@@ -102,6 +121,8 @@ import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import { formatCellText } from "@/components/table/cellText";
+import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import CreateVersionForm from "./CreateVersionForm.vue";
 import ExamineTaskForm from "./ExamineTaskForm.vue";
 import WriteBackForm from "./WriteBackForm.vue";
@@ -115,15 +136,21 @@ import {
   CaretRightOutlined,
   CheckOutlined,
   CloseOutlined,
+  EditOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
 import { createVNode } from "vue";
 import { deleteEntryInfoByID } from "@/http/api/workbench.js";
-import { forbiddenEntryInfo } from "@/http/api/entryManage.js";
+import { forbiddenEntryInfo, updateEntryInfo } from "@/http/api/entryManage.js";
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import { pageChange as pageChangeUtil } from "@/utils/selectionUtils";
-import { onEditableCellInput } from "@/utils/validationUtils.js";
+import {
+  cancelEdit,
+  getMethods,
+  onEditableCellInput,
+  openSetEdit,
+} from "@/utils/validationUtils.js";
 import {
   handleSearch as handleSearchUtil,
   handleReset as handleResetUtil,
@@ -146,6 +173,7 @@ export default {
     CaretRightOutlined,
     CheckOutlined,
     CloseOutlined,
+    EditOutlined,
     ExportButton,
     EntryStateBadge,
     TransStateBadge,
@@ -155,6 +183,7 @@ export default {
     ExamineTaskForm,
     WriteBackForm,
     PreTranslateForm,
+    RulesDropdown,
   },
   emits: [
     "createClose",
@@ -201,7 +230,7 @@ export default {
   data() {
     return {
       locale: zh_CN,
-      modalWidth: "60%",
+      modalWidth: "90%",
       // tableHeight: { x: "100%", y: 395 },
       tableHeight: { x: "max-content", y: 395 },
       columns: [],
@@ -223,14 +252,17 @@ export default {
       examineFormVisible: false,
       writeBackVisible: false,
       preTranslateFormVisible: false,
+      rulesOptions: commonParam.rulesOptions.map((item) => ({ ...item })),
 
-      // ===== 预翻译编辑态（复用工作台 validationUtils 机制） =====
+      // ===== 行编辑态（复用工作台 validationUtils 机制） =====
       editableData: {},
       rules: {},
       cellErrors: {},
       preTranslateActive: false, // 编辑模式：底部切换为 取消/保存
       preTranslateSnapshot: null, // 取消恢复依据
       preTranslateLoading: false,
+      manualEditActive: false, // 非预翻译行编辑会话
+      manualEditSnapshot: null,
       // 保存对比快照时需要检查的列（entry 各语种）
       fieldsNeedSave: ["entry", ...commonParam.langValList],
     };
@@ -240,9 +272,13 @@ export default {
     this.product = this.currentProduct;
   },
   computed: {
-    // 可编辑语种列（固定为全部语种列；编辑态渲染优先于 TransStateBadge 列模板）
+    // 可编辑语种列（固定为全部语种列）
     editableTextColumns() {
-      return this.preTranslateActive ? commonParam.langValList : [];
+      return commonParam.langValList;
+    },
+    // 任意编辑会话中，底部仅保留取消/保存
+    isEditMode() {
+      return this.preTranslateActive || this.manualEditActive;
     },
   },
   watch: {
@@ -257,12 +293,19 @@ export default {
             preset: entryPresets.createVersion,
             ctx: { pagination: this.pagination },
             colPrefName: "colPref-productEntry",
-            normalWidth: 100,
+            normalWidth: 200,
             needFilter: false,
+            lockCellSize: true,
           });
         }
       },
       immediate: false, // 不立即执行
+    },
+    rulesOptions: {
+      deep: true,
+      handler() {
+        this.cellErrors = {};
+      },
     },
   },
   methods: {
@@ -293,19 +336,26 @@ export default {
         else newSelectedProducts.products.delete(record.productID);
         this.$emit("update:selectedProducts", newSelectedProducts);
       }
+      if (this.manualEditSnapshot) {
+        this.manualEditSnapshot = this.manualEditSnapshot.filter(
+          (item) => item.id != record.id
+        );
+      }
     },
     handleClose() {
-      if (this.preTranslateActive) {
-        // 编辑模式：确认后取消预翻译（模态框不关）
+      if (this.isEditMode) {
         Modal.confirm({
-          title: "是否取消预翻译?",
+          title: this.preTranslateActive ? "是否取消预翻译?" : "是否取消编辑?",
           icon: createVNode(ExclamationCircleOutlined),
-          content: "取消后，所有词条的预翻译结果将被丢弃",
+          content: this.preTranslateActive
+            ? "取消后，所有词条的预翻译结果将被丢弃"
+            : "取消后，本次未保存的修改将被丢弃",
           okText: "是",
           cancelText: "否",
           style: { top: "30%" },
           onOk: () => {
-            this.preTranslateCancel();
+            if (this.preTranslateActive) this.preTranslateCancel();
+            else this.cancelManualEdits();
           },
         });
         return;
@@ -316,6 +366,10 @@ export default {
     async handleOK() {
       if (this.preTranslateActive) {
         await this.preTranslateSave();
+        return;
+      }
+      if (this.manualEditActive) {
+        await this.saveManualEdits();
         return;
       }
       this.createVersionFormVisible = true;
@@ -343,6 +397,8 @@ export default {
       // 防御：万一编辑模式下被外层关闭，恢复现场
       if (this.preTranslateActive) {
         cancelAll(this);
+      } else if (this.manualEditActive) {
+        this.cancelManualEdits();
       }
     },
 
@@ -478,7 +534,10 @@ export default {
       this.preTranslateLoading = true;
       try {
         await withLoading(async () => {
-          await execute(this, config);
+          await execute(this, {
+            ...config,
+            verifyMethods: getMethods(this),
+          });
         });
         this.preTranslateFormVisible = false;
       } catch (err) {
@@ -510,6 +569,15 @@ export default {
         this.$emit("refresh");
       } else if (result.remaining != null) {
         // 部分保存成功：剩余行留在列表（编辑模式退出，可继续其他操作）
+        const remainingIds = new Set(result.remaining.map((record) => record.id));
+        this.$emit(
+          "update:selectedRows",
+          this.selectedRows.filter((record) => remainingIds.has(record.id))
+        );
+        this.$emit(
+          "update:selectedRowKeys",
+          this.selectedRowKeys.filter((id) => remainingIds.has(id))
+        );
         this.$emit("update:dataSource", result.remaining);
         this.$emit("refresh");
       }
@@ -521,13 +589,169 @@ export default {
       onEditableCellInput(this, record.id, column.dataIndex, value);
     },
 
+    /** 普通单元格文本格式化（供 CellOverflowTooltip 使用） */
+    formatCellText,
+
+    /**
+     * 浏览态进入行编辑：生成独立编辑副本并配置语种校验规则。
+     * @param {Object} record - 当前行数据
+     * @returns {Promise<boolean>} 是否成功进入编辑态
+     */
+    async startEditRow(record) {
+      if (this.editableData[record.id]) return false;
+      if (!this.preTranslateActive && !this.manualEditActive) {
+        this.manualEditSnapshot = cloneDeep(this.dataSource);
+        this.manualEditActive = true;
+      }
+      await openSetEdit(record, this.editableTextColumns, this);
+      return true;
+    },
+
+    /**
+     * 判断双击目标是否属于交互控件。
+     * @param {EventTarget} target - 双击事件目标
+     * @returns {boolean} 是否命中交互控件
+     */
+    isInteractiveRowTarget(target) {
+      if (!target || typeof target.closest !== "function") return false;
+      return !!target.closest(
+        "button, input, textarea, select, a, .ant-btn, .ant-select, .ant-checkbox-wrapper, .ant-input, .editable-row-operations"
+      );
+    },
+
+    /**
+     * 双击行进入编辑态；交互控件和已编辑行不重复初始化。
+     * @param {Object} record - 当前行数据
+     * @param {MouseEvent} event - 双击事件
+     * @returns {Promise<void>}
+     */
+    async handleRowDblclick(record, event) {
+      if (this.editableData[record.id]) return;
+      if (this.isInteractiveRowTarget(event?.target)) return;
+      await this.startEditRow(record);
+    },
+
+    /**
+     * 为表格行绑定双击编辑事件。
+     * @param {Object} record - 当前行数据
+     * @returns {Object} Ant Design Vue 行事件配置
+     */
+    customRow(record) {
+      return {
+        onDblclick: (event) => this.handleRowDblclick(record, event),
+      };
+    },
+
+    /**
+     * 结束普通编辑会话并清理临时状态。
+     * @returns {void}
+     */
+    finishManualEdit() {
+      this.manualEditActive = false;
+      this.manualEditSnapshot = null;
+      this.editableData = {};
+      this.rules = {};
+      this.cellErrors = {};
+    },
+
+    /**
+     * 取消普通编辑：恢复进入编辑前的 dataSource 快照。
+     * @returns {void}
+     */
+    cancelManualEdits() {
+      const restored = this.manualEditSnapshot
+        ? cloneDeep(this.manualEditSnapshot)
+        : this.dataSource;
+      this.$emit("update:dataSource", restored);
+      this.finishManualEdit();
+    },
+
+    /**
+     * 保存普通编辑：校验并提交编辑行，逐条落库，但保留已选词条。
+     * @returns {Promise<void>}
+     */
+    async saveManualEdits() {
+      const result = await withLoading(async () => {
+        let allPassed = true;
+        for (const record of this.dataSource) {
+          if (!this.editableData[record.id]) continue;
+          const ok = await confirmRow(this, record);
+          if (!ok) allPassed = false;
+        }
+        if (!allPassed) {
+          message.warning("存在未通过校验的译文，已标红，请修正后再保存。");
+          return { allPassed: false, failedCount: 0 };
+        }
+
+        const beforeById = new Map(
+          (this.manualEditSnapshot || []).map((record) => [record.id, record])
+        );
+        const changedRecords = this.dataSource.filter((record) => {
+          const before = beforeById.get(record.id);
+          if (!before) return true;
+          return this.fieldsNeedSave.some(
+            (col) => (record[col] ?? "") !== (before[col] ?? "")
+          );
+        });
+
+        if (changedRecords.length === 0) {
+          message.info("没有需要保存的改动。");
+          return { allPassed: true, failedCount: 0 };
+        }
+
+        const saveResults = await Promise.allSettled(
+          changedRecords.map((record) =>
+            updateEntryInfo(record, { notes: "编辑词条" }).then(() => record)
+          )
+        );
+        const savedRecords = saveResults
+          .filter((item) => item.status === "fulfilled")
+          .map((item) => item.value);
+        const failedCount = saveResults.length - savedRecords.length;
+
+        if (savedRecords.length > 0) {
+          const savedIds = new Set(savedRecords.map((record) => record.id));
+          this.manualEditSnapshot = (this.manualEditSnapshot || []).map((item) => {
+            if (!savedIds.has(item.id)) return item;
+            const current = this.dataSource.find((record) => record.id === item.id);
+            return current ? cloneDeep(current) : item;
+          });
+          message.success(`已保存 ${savedRecords.length} 条词条。`);
+        }
+        if (failedCount > 0) {
+          message.error(`有 ${failedCount} 条词条保存失败，已保留在列表中。`);
+        }
+        return { allPassed: true, failedCount };
+      });
+
+      if (result?.allPassed && result.failedCount === 0) {
+        this.finishManualEdit();
+      }
+    },
+
     // 行内 ✓：校验并提交该行（不落库，等底部保存）
     async rowConfirm(record) {
       await confirmRow(this, record);
     },
-    // 行内 ×：丢弃该行预翻译译文
+    // 行内 ×：丢弃该行编辑内容
     rowDiscard(record) {
-      discardRow(this, record);
+      if (this.preTranslateActive) {
+        discardRow(this, record);
+        return;
+      }
+      const before = this.manualEditSnapshot?.find((item) => item.id === record.id);
+      const editRow = this.editableData?.[record.id] || {};
+      if (before) {
+        const current = this.dataSource.find((item) => item.id === record.id);
+        if (current) {
+          for (const col of Object.keys(editRow)) {
+            if (col === "id" || col === "children") continue;
+            current[col] = before[col] ?? "";
+          }
+        }
+      }
+      cancelEdit(this, record.id);
+      if (this.cellErrors[record.id]) delete this.cellErrors[record.id];
     },
 
     // 动态设置表格高度
@@ -557,6 +781,18 @@ export default {
   width: 100%;
   margin-top: 5px;
   position: relative;
+}
+
+.selected-entry-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.editable-row-operations {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ant-form-inline .ant-form-item-with-help {
