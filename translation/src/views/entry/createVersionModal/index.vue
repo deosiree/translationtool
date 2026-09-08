@@ -1,13 +1,9 @@
 <template>
-  <CustomModal :modalWidth="modalWidth" modalTitle="批量选择" :visible="visible" :showCancel="false" :fullFlag="true"
-    cancelText="取消" okText="创建产品版本" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose"
-    @setTableHeight="setTableHeight">
+  <CustomModal :modalWidth="modalWidth" modalTitle="批量选择" :visible="visible" :fullFlag="true"
+    :showCancel="preTranslateActive" :cancelText="preTranslateActive ? '取消' : ''"
+    :okText="preTranslateActive ? '保存' : '创建产品版本'"
+    @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div style="width:100%;height:515px">
-      <!-- <a-form :model="search" layout="inline" autocomplete="off" ref="formRef">
-        <a-form-item label="版本名称" name="versionName" :rules="[{ required: true, message: '请输入版本名称!' }]">
-          <a-input v-model:value="search.versionName" placeholder="请输入版本名称"></a-input>
-        </a-form-item>
-      </a-form> -->
       <div class="table">
         <div>已选词条：</div>
         <a-config-provider :locale="locale">
@@ -21,9 +17,24 @@
               <template v-if="langTranslateStateList.includes(column.dataIndex)">
                 <TransStateBadge :translateState="text" />
               </template>
-              <template v-if="column.dataIndex === 'operation'">
+              <!-- 语种列（预翻译编辑态）：TableCellTextArea 红字编辑 / 浏览态 -->
+              <template v-if="editableTextColumns.includes(column.dataIndex)">
+                <TableCellTextArea v-if="editableData[record.id]" :value="editableData[record.id][column.dataIndex] ?? ''"
+                  :error-message="cellErrors[record.id]?.[column.dataIndex]"
+                  @update:value="(val) => onCellInput(val, record, column)" />
+                <CellOverflowTooltip v-else :content="text" />
+              </template>
+              <template v-if="column.dataIndex === 'operation' && !preTranslateActive">
                 <div class="editable-row-operations">
                   <DeleteOutlined style="color:#369FFF;font-size:16px" @click="remove(record)" title="取消选择" />
+                </div>
+              </template>
+              <template v-if="column.dataIndex === 'operation' && preTranslateActive">
+                <div class="editable-row-operations">
+                  <CheckOutlined v-if="editableData[record.id]" style="color: #369fff; margin-left: 8px"
+                    @click="rowConfirm(record)" title="保存" />
+                  <CloseOutlined v-if="editableData[record.id]" style="color: red; margin-left: 8px"
+                    @click="rowDiscard(record)" title="取消" />
                 </div>
               </template>
             </template>
@@ -61,154 +72,89 @@
         </a-config-provider>
       </div>
     </div>
-    <template v-slot:leftBottomBtn>
+    <!-- 正常模式：操作按钮排；预翻译编辑模式：隐藏（底部只剩 取消/保存） -->
+    <template v-slot:leftBottomBtn v-if="!preTranslateActive">
       <a-button @click="cancelCreate">关闭</a-button>
-      <a-button type="primary" v-if="$currentDepartment && $currentDepartment.ops.has('needIP')" @click="writeBackFun">回写</a-button>
+      <a-button type="primary" v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
+        @click="writeBackVisible = true">回写</a-button>
       <a-button type="primary" danger @click="deleteEntrys" v-if="$currentDepartment && $currentDepartment.ops.has('needDelete')">删除</a-button>
       <a-button type="primary" danger @click="forrbiddenEntrys"
         v-if="$currentDepartment && $currentDepartment.ops.has('needForbidden') && $store.state.admin">禁用</a-button>
       <ExportButton :dataSource="dataSource" :fieldOptions_="fieldOptions" size="middle" buttonTitle="导出" />
-      <a-button type="primary" @click="examine" v-if="$currentDepartment && $currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
-      <a-button type="primary" @click="preTranslateFun">预翻译</a-button>
+      <a-button type="primary" @click="examine"
+        v-if="$currentDepartment && $currentDepartment.ops.has('needExamine')">提交词条审核</a-button>
+      <a-button type="primary" @click="preTranslateVisible = true">预翻译</a-button>
     </template>
   </CustomModal>
-  <CustomModal :modalTitle="title" :modalWidth="operateWidth" :modalVisible="operateVisible" @handleClose="operateClose"
-    @handleOK="operateOk" @afterClose="afterOperateClose">
-    <div style="width:100%;height:100%">
-      <a-form v-if="title === '创建版本'" :model="version" autocomplete="off" ref="versionForm" :label-col="{ span: 6 }">
-        <a-form-item label="产品版本名称" name="versionName" :rules="[{ required: true, message: '请输入版本名称!' }]">
-          <a-input v-model:value="version.versionName" placeholder="请输入版本名称"></a-input>
-        </a-form-item>
-        <a-form-item label="备注" name="remarks">
-          <a-textarea v-model:value="version.remarks" placeholder="请输入备注" :rows="4" />
-        </a-form-item>
-      </a-form>
-      <div class="table" v-if="title === '选择任务'">
-        <a-table class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource"
-          :row-selection='taskRowSelection' :row-key="record => record.id" :scroll="{ x: '100%', y: '195px' }"
-          :pagination="false" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
-          ref="taskTable" bordered>
-        </a-table>
-      </div>
-      <a-spin :spinning="preTranslateLoading">
-        <a-form v-if="title === '预翻译'" :model="preTran" autocomplete="off" ref="preTranslateForm"
-          :label-col="{ span: 6 }">
-          <a-form-item label="翻译语种" name="language" :rules="[{ required: true, message: '请选择翻译语种!' }]">
-            <a-select mode="multiple" v-model:value="preTran.language" :options="langOptions" placeholder="请选择"
-              allowClear>
-            </a-select>
-          </a-form-item>
-          <a-form-item label="翻译优先级" name="priority">
-            <a-select v-model:value="preTran.priority" :options="translatePriorityOptions" placeholder="请选择">
-            </a-select>
-          </a-form-item>
-        </a-form>
-      </a-spin>
-      <a-spin :spinning="writeBackLoading">
-        <a-form v-if="title === '回写'" :model="writeBack" autocomplete="off" ref="writeBack" :label-col="{ span: 4 }">
-          <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
-            <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
-          </a-form-item>
-          <a-form-item label="回写语种" name="language" :rules="[{ required: true, message: '请选择回写语种!' }]">
-            <a-select mode="multiple" v-model:value="writeBack.language" :options="langOptions" placeholder="请选择"
-              @change="languageChange" allowClear>
-            </a-select>
-          </a-form-item>
-          <a-form-item label="回写类型" name="type">
-            <a-radio-group v-model:value="writeBack.type" name="radioGroup" @change="writeBackTypeChange">
-              <a-radio value="DEFAUT">默认 </a-radio>
-              <a-radio value="TS">TS文件</a-radio>
-              <a-radio value="DI">辞典</a-radio>
-            </a-radio-group>
-            <a-tooltip placement="top">
-              <template #title>
-                <span>默认：按词条来源回写；TS文件：写入到ts文件；辞典：写入到辞典</span>
-              </template>
-              <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
-            </a-tooltip>
-          </a-form-item>
-          <a-form-item :label="writeBack.label" name="file" v-if="writeBack.type != 'DEFAUT'">
-            <a-select show-search v-model:value="writeBack.file" :options="writeBack.fileOptions" placeholder="请选择"
-              allowClear></a-select>
-          </a-form-item>
-          <a-form-item label=" " :colon="false">
-            <a-checkbox v-model:checked="writeBack.isTag" :disabled="writeBack.tagDisabled">回写Tag</a-checkbox>
-            <a-checkbox v-model:checked="writeBack.isComment" :disabled="writeBack.commentDisabled">回写来源</a-checkbox>
-            <a-tooltip placement="top">
-              <template #title>
-                <span>词条默认复用，增加标识可以确保词条唯一性（不推荐）</span>
-              </template>
-              <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
-            </a-tooltip>
-          </a-form-item>
-          <!-- <a-form-item label="回写Tag" name="isTag">
-            <a-switch v-model:checked="writeBack.isTag" checked-children="是" un-checked-children="否" />
-          </a-form-item>
-          <a-form-item label="回写来源" name="isComment">
-            <a-switch v-model:checked="writeBack.isComment" checked-children="是" un-checked-children="否" />
-          </a-form-item> -->
-
-        </a-form>
-      </a-spin>
-    </div>
-  </CustomModal>
-
+  <!-- 二级操作弹窗（已按职责拆分） -->
+  <CreateVersionForm :visible="createVersionFormVisible" :dataSource="dataSource" :product="product"
+    @handleClose="createVersionFormVisible = false" @finished="onOperateFinished" />
+  <ExamineTaskForm :visible="examineFormVisible" :dataSource="dataSource" :product="product"
+    @handleClose="examineFormVisible = false" @finished="onOperateFinished" />
+  <WriteBackForm :visible="writeBackVisible" :dataSource="dataSource" @handleClose="writeBackVisible = false" />
+  <PreTranslateForm :visible="preTranslateFormVisible" :loading="preTranslateLoading"
+    @handleClose="preTranslateFormVisible = false" @submit="onPreTranslateSubmit" />
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import CreateVersionForm from "./CreateVersionForm.vue";
+import ExamineTaskForm from "./ExamineTaskForm.vue";
+import WriteBackForm from "./WriteBackForm.vue";
+import PreTranslateForm from "./PreTranslateForm.vue";
 import zh_CN from "ant-design-vue/es/locale/zh_CN";
 import {
-  MinusSquareOutlined,
   ExclamationCircleOutlined,
   DeleteOutlined,
-  QuestionCircleOutlined,
   SearchOutlined,
   CaretDownOutlined,
   CaretRightOutlined,
+  CheckOutlined,
+  CloseOutlined,
 } from "@ant-design/icons-vue";
-import { message, Modal, notification } from "ant-design-vue";
-import { defineComponent, ref, createVNode } from "vue";
-import { deleteEntryInfoByID, getI18nAdress } from "@/http/api/workbench.js";
-import { forbiddenEntryInfo, preTranslateEntry } from "@/http/api/entryManage.js";
-import {
-  createVersionByEntry,
-  addProductRelation,
-  updateEntryInfo,
-  writeBack,
-} from "@/http/api/entryManage";
-import { TRANSLATE_PRIORITY_OPTIONS } from "@/constants/translatePriority.js";
-import { entryExportByCondition } from "@/http/api/download";
-import { searchTaskInfo } from "@/http/api/task";
-import {
-  setInfo,
-  getDictionary,
-  getFileListByLang,
-} from "@/http/api/i18Server";
-import {
-  queryUserPartiality,
-  updateUserPartiality,
-} from "@/http/api/userPartiality";
+import { message, Modal } from "ant-design-vue";
+import { createVNode } from "vue";
+import { deleteEntryInfoByID } from "@/http/api/workbench.js";
+import { forbiddenEntryInfo } from "@/http/api/entryManage.js";
+import { updateUserPartiality } from "@/http/api/userPartiality";
 import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
-import { pageChange } from "@/utils/selectionUtils";
+import { pageChange as pageChangeUtil } from "@/utils/selectionUtils";
+import { onEditableCellInput } from "@/utils/validationUtils.js";
+import {
+  handleSearch as handleSearchUtil,
+  handleReset as handleResetUtil,
+} from "@/utils/tableUtils";
 import { applyTable } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
+import { withLoading } from "@/composables/useLoading";
+import { usePreTranslateEdit } from "@/composables/entry/usePreTranslateEdit.js";
 import { cloneDeep } from "lodash-es";
+
+const { execute, cancelAll, save, discardRow, confirmRow } = usePreTranslateEdit();
+
 export default {
   components: {
     CustomModal,
-    MinusSquareOutlined,
     ExclamationCircleOutlined,
     DeleteOutlined,
-    QuestionCircleOutlined,
     SearchOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
+    CheckOutlined,
+    CloseOutlined,
     ExportButton,
     EntryStateBadge,
     TransStateBadge,
+    TableCellTextArea,
+    CellOverflowTooltip,
+    CreateVersionForm,
+    ExamineTaskForm,
+    WriteBackForm,
+    PreTranslateForm,
   },
   emits: [
     "createClose",
@@ -230,6 +176,11 @@ export default {
     currentProduct: {
       type: Object,
     },
+    // 分类限制（getMaxLength 依赖；预翻译长度校验需要）
+    classifyLimit: {
+      type: Object,
+      default: () => ({}),
+    },
     selectedRowKeys: {
       type: Array,
       default: () => [],
@@ -248,21 +199,12 @@ export default {
   },
 
   data() {
-    // 从本地缓存读取用户偏好
-    const cachedLanguages = localStorage.getItem("writeBackLanguages");
-    // 预翻译语种偏好（与回写语种偏好独立缓存）
-    const cachedPreTranslateLanguages = localStorage.getItem("preTranslateLanguages");
     return {
       locale: zh_CN,
       modalWidth: "60%",
       // tableHeight: { x: "100%", y: 395 },
       tableHeight: { x: "max-content", y: 395 },
       columns: [],
-      version: {
-        language: null,
-        versionName: "",
-        remarks: "",
-      },
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
@@ -272,124 +214,25 @@ export default {
         showTotal: (total) => `共 ${total} 条`,
         onChange: this.pageChange,
       },
-      title: "",
-      operateVisible: false,
-      operateWidth: "500px",
-      exportLoading: false,
-      exportClass: {
-        field: ["abbr", "词条"],
-      },
       fieldOptions: entryParams.exportFields,
       product: {},
-      taskColumns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 70,
-          customRender: (text, record, index, column) => {
-            return text.index + 1;
-          },
-          fixed: "left",
-        },
-        {
-          title: "任务名称",
-          dataIndex: "name",
-          align: "center",
-          width: 150,
-          fixed: "left",
-          resizable: true,
-        },
-        {
-          title: "产品名称",
-          dataIndex: "productName",
-          align: "center",
-          width: 230,
-          resizable: true,
-        },
-        {
-          title: "版本名称",
-          dataIndex: "versionName",
-          align: "center",
-          width: 180,
-          resizable: true,
-        },
-        {
-          title: "翻译语种",
-          dataIndex: "translateType",
-          align: "center",
-          width: 150,
-        },
-        {
-          title: "开发员",
-          dataIndex: "developer",
-          align: "center",
-          width: 150,
-        },
-        {
-          title: "词条审核员",
-          dataIndex: "entryAuditor",
-          align: "center",
-          width: 150,
-        },
-        {
-          title: "翻译员",
-          dataIndex: "translator",
-          align: "center",
-          width: 150,
-        },
-        {
-          title: "翻译审核员",
-          dataIndex: "translationAuditor",
-          align: "center",
-          width: 150,
-        },
-        {
-          title: "任务描述",
-          dataIndex: "description",
-          align: "center",
-          width: 230,
-          ellipsis: true,
-          resizable: true,
-        },
-        {
-          title: "下发时间",
-          dataIndex: "deliveryTime",
-          align: "center",
-          width: 200,
-        },
-      ],
-      taskDataSource: [],
-      selectedTaskRows: [],
-      langOptions: Object.values(commonParam.languageMap).map((lang) => ({
-        label: lang.name,
-        value: lang.name,
-      })),
-      writeBack: {
-        language: cachedLanguages
-          ? JSON.parse(cachedLanguages)
-          : commonParam.langNameList, // 默认全选或从缓存读取["英文", "俄文", "西文", "法文"]commonParam.langNameList
-        type: "DEFAUT",
-        label: "",
-        file: null,
-        isTag: null,
-        isComment: null,
-        fileOptions: [],
-        commentDisabled: false,
-        tagDisabled: false,
-        ip: null,
-      },
-      writeBackLoading: false,
-      ipOptions: [],
       langTranslateStateList: commonParam.langTranslateStateList,
-      translatePriorityOptions: TRANSLATE_PRIORITY_OPTIONS,
-      preTran: {
-        language: cachedPreTranslateLanguages
-          ? JSON.parse(cachedPreTranslateLanguages)
-          : commonParam.langNameList, // 默认全选或从缓存读取
-        priority: "shuyuku",
-      },
+
+      // ===== 二级弹窗显隐（按职责拆分后各自独立） =====
+      createVersionFormVisible: false,
+      examineFormVisible: false,
+      writeBackVisible: false,
+      preTranslateFormVisible: false,
+
+      // ===== 预翻译编辑态（复用工作台 validationUtils 机制） =====
+      editableData: {},
+      rules: {},
+      cellErrors: {},
+      preTranslateActive: false, // 编辑模式：底部切换为 取消/保存
+      preTranslateSnapshot: null, // 取消恢复依据
       preTranslateLoading: false,
+      // 保存对比快照时需要检查的列（entry 各语种）
+      fieldsNeedSave: ["entry", ...commonParam.langValList],
     };
   },
 
@@ -397,13 +240,9 @@ export default {
     this.product = this.currentProduct;
   },
   computed: {
-    taskRowSelection() {
-      return {
-        type: "radio",
-        onChange: (selectedRowKeys, selectedRows) => {
-          this.selectedTaskRows = selectedRows;
-        },
-      };
+    // 可编辑语种列（固定为全部语种列；编辑态渲染优先于 TransStateBadge 列模板）
+    editableTextColumns() {
+      return this.preTranslateActive ? commonParam.langValList : [];
     },
   },
   watch: {
@@ -412,7 +251,6 @@ export default {
     },
     visible: {
       async handler(newVal) {
-        // console.log("visible changed:", newVal);
         if (newVal) {
           applyTable(this, {
             allCols: entryAllCols,
@@ -454,21 +292,39 @@ export default {
         if (num != 0) newSelectedProducts.products.set(record.productID, num);
         else newSelectedProducts.products.delete(record.productID);
         this.$emit("update:selectedProducts", newSelectedProducts);
-        // console.log("去除的不是本产品的词条", newSelectedProducts, num);
       }
-      // else {
-      //   console.log("去除的是本产品的词条", newSelectedProducts);
-      // }
     },
     handleClose() {
+      if (this.preTranslateActive) {
+        // 编辑模式：确认后取消预翻译（模态框不关）
+        Modal.confirm({
+          title: "是否取消预翻译?",
+          icon: createVNode(ExclamationCircleOutlined),
+          content: "取消后，所有词条的预翻译结果将被丢弃",
+          okText: "是",
+          cancelText: "否",
+          style: { top: "30%" },
+          onOk: () => {
+            this.preTranslateCancel();
+          },
+        });
+        return;
+      }
       this.$emit("createClose");
     },
-    // 创建版本
-    handleOK() {
-      this.operateVisible = true;
+    // 底部主按钮：正常模式=创建版本入口；预翻译模式=保存
+    async handleOK() {
+      if (this.preTranslateActive) {
+        await this.preTranslateSave();
+        return;
+      }
+      this.createVersionFormVisible = true;
       setModalAriaHidden(this, document);
-      this.operateWidth = "500px";
-      this.title = "创建版本";
+    },
+    // 二级表单完成（创建版本/提交审核）：关壳并清空选择
+    onOperateFinished() {
+      this.$emit("createClose");
+      this.$emit("cancelCreate");
     },
     cancelCreate() {
       Modal.confirm({
@@ -484,47 +340,11 @@ export default {
       });
     },
     afterClose() {
-      this.search = {
-        versionName: "",
-        language: null,
-      };
-      // this.$refs.formRef.clearValidate()
+      // 防御：万一编辑模式下被外层关闭，恢复现场
+      if (this.preTranslateActive) {
+        cancelAll(this);
+      }
     },
-
-    // // 导出Excel
-    // exportExcel() {
-    //   this.operateVisible = true;
-    //   setModalAriaHidden(this, document);
-    //   this.operateWidth = "500px";
-    //   this.title = "导出";
-
-    //   // 获取用户偏好
-    //   queryUserPartiality().then((res) => {
-    //     if (res.data.list && res.data.list.length > 0) {
-    //       let exportColumn = res.data.list[0].exportColumn;
-    //       if (exportColumn != null && exportColumn != "") {
-    //         this.exportClass.field = exportColumn.split(",");
-    //       }
-    //     }
-    //   });
-    // },
-    // // 导出Excel
-    // exportCSV() {
-    //   this.operateVisible = true;
-    //   setModalAriaHidden(this, document);
-    //   this.operateWidth = "500px";
-    //   this.title = "导出CSV";
-
-    //   // 获取用户偏好
-    //   queryUserPartiality().then((res) => {
-    //     if (res.data.list && res.data.list.length > 0) {
-    //       let exportColumn = res.data.list[0].exportColumn;
-    //       if (exportColumn != null && exportColumn != "") {
-    //         this.exportClass.field = exportColumn.split(",");
-    //       }
-    //     }
-    //   });
-    // },
 
     exportFieldChange(value) {
       let data = {
@@ -532,9 +352,8 @@ export default {
       };
       updateUserPartiality(data).then((res) => { });
     },
-    // 提交词条审核
+    // 提交词条审核（入口校验跨产品，表单已拆分到 ExamineTaskForm）
     examine() {
-      // 判断是否可以选择任务
       const productID =
         this.product.type === "module"
           ? this.product.parentId
@@ -545,13 +364,9 @@ export default {
         (products.size == 1 && products.has(productID))
       ) {
         // 只有这两种情况可以-1.切换记录中无其他产品2.切换记录中有且只有本产品
-        this.operateVisible = true;
+        this.examineFormVisible = true;
         setModalAriaHidden(this, document);
-        this.operateWidth = "50%";
-        this.title = "选择任务";
-        this.getTaskList(productID);
       } else {
-        // console.log(products, this.product, "非本产品:", productID);
         Modal.confirm({
           title: "存在非本产品的已选词条，不能选择任务。",
           icon: createVNode(ExclamationCircleOutlined),
@@ -563,261 +378,6 @@ export default {
           onCancel: () => { },
         });
       }
-    },
-    // 回写
-    writeBackFun() {
-      this.operateVisible = true;
-      setModalAriaHidden(this, document);
-      this.operateWidth = "500px";
-      this.title = "回写";
-      this.getIPs();
-    },
-    // 预翻译
-    preTranslateFun() {
-      this.operateVisible = true;
-      setModalAriaHidden(this, document);
-      this.operateWidth = "500px";
-      this.title = "预翻译";
-    },
-    // 获取该产品下的任务
-    getTaskList(productID) {
-      let params = {
-        pageIndex: -1,
-        pageSize: -1,
-      };
-      let data = {
-        productId: productID,
-        state: "1,2,3,4,5",
-      };
-      searchTaskInfo(data, params).then((res) => {
-        this.taskDataSource = res.data.list;
-        this.pagination.total = res.data.totalNum;
-      });
-    },
-    operateClose() {
-      this.operateVisible = false;
-    },
-    async operateOk() {
-      try {
-        if (this.title === "创建版本") {
-          // 验证表单
-          await this.$refs.versionForm.validate();
-
-          // TODO 创建版本接口
-          let params = {
-            productID: this.product.key,
-            versionName: this.version.versionName,
-            common: this.version.remarks,
-          };
-          await createVersionByEntry(params, this.dataSource);
-
-          message.success("创建版本完成！");
-        } else if (this.title === "回写") {
-          if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
-            message.info("请选择" + this.writeBack.label + "!");
-            return;
-          }
-
-          // 验证表单
-          await this.$refs.writeBack.validate();
-
-          this.writeBackLoading = true;
-          let successLanguages = [];
-          let failedLanguages = [];
-          let successmsg = "";
-          let failedmsg = "";
-          const promises = [];
-
-          // 遍历选中的语种列表，依次执行回写操作
-          for (const language of this.writeBack.language) {
-            let params = {
-              translateType: language,
-              isTag: this.writeBack.isTag ? 1 : 0,
-              isComment: this.writeBack.isComment ? 1 : 0,
-              writeType: this.writeBack.type,
-              fileName: this.writeBack.file,
-              i18nUrl: this.writeBack.ip,
-            };
-            promises.push(writeBack(params, this.dataSource));
-          }
-
-          await Promise.allSettled(promises).then((rls) => {
-            rls.forEach((item, index) => {
-              if (item.status === "rejected") {
-                failedLanguages.push(
-                  `${this.writeBack.language[index]}: ${item.data}`
-                );
-              } else {
-                if (item.value.data != "OK") {
-                  failedLanguages.push(`${this.writeBack.language[index]}`);
-                  const lastIndex = item.value.data.lastIndexOf("！");
-                  if (lastIndex !== -1) {
-                    failedmsg = item.value.data.substring(0, lastIndex + 1);
-                  } else {
-                    failedmsg = item.value.data;
-                  }
-                } else {
-                  successLanguages.push(this.writeBack.language[index]);
-                }
-              }
-            });
-          });
-
-          if (successLanguages.length > 0) {
-            successmsg += `以下语种回写成功：${successLanguages.join(", ")}。`;
-            notification.success({
-              message: successmsg,
-              duration: 0,
-            });
-          }
-          if (failedLanguages.length > 0) {
-            failedmsg += `以下语种回写失败：${failedLanguages.join(", ")}。`;
-            message.error(failedmsg);
-          }
-          this.writeBackLoading = false;
-        } else if (this.title === "预翻译") {
-          if (this.dataSource.length === 0) {
-            message.warn("没有已选词条，无法预翻译！");
-            return;
-          }
-          // 验证表单（翻译语种必选）；校验失败保持弹窗打开，不走共享 finally 的关闭逻辑
-          await this.$refs.preTranslateForm.validate();
-
-          this.preTranslateLoading = true;
-          let successLanguages = [];
-          let failedLanguages = [];
-          const promises = [];
-
-          // 遍历选中的语种列表，依次触发预翻译（并行）
-          for (const language of this.preTran.language) {
-            let params = {
-              translateType: language,
-              priority: this.preTran.priority,
-            };
-            promises.push(preTranslateEntry(params, this.dataSource));
-          }
-
-          await Promise.allSettled(promises).then((rls) => {
-            rls.forEach((item, index) => {
-              if (item.status === "fulfilled") {
-                successLanguages.push(this.preTran.language[index]);
-              } else {
-                failedLanguages.push(this.preTran.language[index]);
-              }
-            });
-          });
-
-          if (successLanguages.length > 0) {
-            notification.success({
-              message: `以下语种预翻译成功：${successLanguages.join(", ")}。`,
-              duration: 0,
-            });
-          }
-          if (failedLanguages.length > 0) {
-            message.error(`以下语种预翻译失败：${failedLanguages.join(", ")}。`);
-          }
-          this.preTranslateLoading = false;
-          // 预翻译成功后：关闭二级弹窗与已选词条弹窗，刷新主表（预翻译结果由后端落库）
-          this.operateVisible = false;
-          this.$emit("createClose");
-          this.$emit("cancelCreate");
-          this.$emit("refresh");
-          return;
-        } else if (this.title === "选择任务") {
-          //提交词条审核
-          if (this.selectedTaskRows.length === 0) {
-            message.warn("请选择任务！");
-            return;
-          }
-          // 判断词条中是否含有 中文释义和英文释义都不存在的词条
-          let notInterpretation = [];
-          this.dataSource.forEach((item) => {
-            if (
-              (item.englishInterpretation === null ||
-                item.englishInterpretation === "") &&
-              (item.chineseInterpretation === null ||
-                item.chineseInterpretation === "")
-            ) {
-              notInterpretation.push(item);
-            }
-          });
-          if (notInterpretation.length > 0) {
-            Modal.confirm({
-              title:
-                "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
-              icon: createVNode(ExclamationCircleOutlined),
-              content: "",
-              okText: "是",
-              cancelText: "否",
-              style: { top: "30%" },
-              onOk: () => {
-                this.submitExamine();
-              },
-              onCancel: () => { },
-            });
-            // Modal.confirm是异步的，不在这里关闭modal
-            return;
-          } else {
-            this.submitExamine();
-            return;
-          }
-        }
-      } catch (err) {
-        console.log("操作失败:", err);
-      } finally {
-        // 只有在非"选择任务"和"预翻译"的情况下才在这里关闭modal
-        // "选择任务"的情况由submitExamine自己处理；"预翻译"由自己的分支处理（校验失败需保持弹窗打开）
-        if (this.title !== "选择任务" && this.title !== "预翻译") {
-          this.operateVisible = false;
-          this.$emit("createClose");
-          this.$emit("cancelCreate");
-        }
-      }
-    },
-    // 提交词条审核
-    submitExamine() {
-      let params = {
-        notes: "",
-      };
-
-      // // 修改词条状态(前端不修改，由后端修改)
-      // this.dataSource.forEach((item) => {
-      //   if (item.entryState === 0) {
-      //     item.entryState = 1;
-      //     // updateEntryInfo(item, params).then((res) => {});// 本来词条审核那边有翻译的词条应该跳到翻译审核页面，现在直接跳到归档了，注掉就没问题了
-      //   }
-      // });
-
-      // 将词条提交到任务
-      let data = [];
-      this.dataSource.forEach((item) => {
-        let info = {
-          id: item.id,
-          productID: this.product.key,
-          taskId: this.selectedTaskRows[0].id,
-          versionID: this.selectedTaskRows[0].versionId,
-          enTransId: item.enTransId,
-          english: item.english,
-          fraTransId: item.fraTransId,
-          french: item.french,
-          ruTransId: item.ruTransId,
-          russian: item.russian,
-          spaTransId: item.spaTransId,
-          spanish: item.spanish,
-          entryState: item.entryState,
-        };
-        data.push(info);
-      });
-      addProductRelation(data)
-        .then((res) => {
-          message.success("已提交！");
-          this.operateVisible = false;
-          this.$emit("createClose");
-          this.$emit("cancelCreate");
-        })
-        .catch((err) => {
-          message.error("提交失败！", err.message);
-        });
     },
     // 禁用词条
     forrbiddenEntrys() {
@@ -907,32 +467,69 @@ export default {
       });
     },
 
-    afterOperateClose() {
-      this.version = { versionName: "", remarks: "" };
-      this.exportClass = { field: ["abbr", "词条"] };
-      this.writeBack = {
-        language: this.writeBack.language,
-        type: "DEFAUT",
-        label: "",
-        file: null,
-        isTag: null,
-        isComment: null,
-        fileOptions: [],
-        commentDisabled: false,
-        tagDisabled: false,
-      };
-      // 预翻译：保留语种选择（缓存为用户偏好），优先级回归默认术语库
-      if (this.preTran.language && this.preTran.language.length > 0) {
-        localStorage.setItem(
-          "preTranslateLanguages",
-          JSON.stringify(this.preTran.language)
-        );
+    // ===== 预翻译 v2：编辑态编排 =====
+
+    // 配置弹窗提交：执行预翻译并进入编辑模式
+    async onPreTranslateSubmit(config) {
+      if (this.dataSource.length === 0) {
+        message.warn("没有已选词条，无法预翻译！");
+        return;
       }
-      this.preTran = {
-        language: this.preTran.language,
-        priority: "shuyuku",
-      };
+      this.preTranslateLoading = true;
+      try {
+        await withLoading(async () => {
+          await execute(this, config);
+        });
+        this.preTranslateFormVisible = false;
+      } catch (err) {
+        message.error("预翻译失败！", err?.message);
+      } finally {
+        this.preTranslateLoading = false;
+      }
     },
+
+    // 编辑模式-取消：回滚快照（模态框不关）
+    preTranslateCancel() {
+      const restored = cancelAll(this);
+      this.$emit("update:dataSource", restored);
+    },
+
+    // 编辑模式-保存：校验编辑行 → 逐条落库 → 成功行移除；列表清空则关壳
+    async preTranslateSave() {
+      const result = await withLoading(async () => save(this));
+      if (!result.allPassed) {
+        return; // 存在校验失败行：红字已标，保持打开
+      }
+      if (result.remaining != null && result.remainingCount === 0) {
+        // 全部保存成功且移除完：清空选择并关壳、刷新主表
+        this.$emit("update:dataSource", []);
+        this.$emit("update:selectedRows", []);
+        this.$emit("update:selectedRowKeys", []);
+        this.$emit("createClose");
+        this.$emit("cancelCreate");
+        this.$emit("refresh");
+      } else if (result.remaining != null) {
+        // 部分保存成功：剩余行留在列表（编辑模式退出，可继续其他操作）
+        this.$emit("update:dataSource", result.remaining);
+        this.$emit("refresh");
+      }
+      // savedRecords 为空且 remaining 为空数组外的情况（无改动）：无操作
+    },
+
+    // 编辑单元格输入（onEditableCellInput 写 editableData + 清红字）
+    onCellInput(value, record, column) {
+      onEditableCellInput(this, record.id, column.dataIndex, value);
+    },
+
+    // 行内 ✓：校验并提交该行（不落库，等底部保存）
+    async rowConfirm(record) {
+      await confirmRow(this, record);
+    },
+    // 行内 ×：丢弃该行预翻译译文
+    rowDiscard(record) {
+      discardRow(this, record);
+    },
+
     // 动态设置表格高度
     setTableHeight(height, type) {
       if (type === "full") {
@@ -941,139 +538,16 @@ export default {
         this.tableHeight.y = 395;
       }
     },
-    // 回写类型切换事件
-    writeBackTypeChange() {
-      this.writeBack.file = null;
-      this.writeBack.fileOptions = [];
-      this.writeBack.isTag = false;
-      this.writeBack.isComment = false;
-      this.writeBack.commentDisabled = false;
-      this.writeBack.tagDisabled = false;
-
-      if (this.writeBack.type === "TS") {
-        this.writeBack.label = "ts文件";
-        this.writeBack.isTag = true;
-        this.writeBack.isComment = false;
-        this.writeBack.commentDisabled = true;
-        this.writeBack.tagDisabled = true;
-        if (
-          this.writeBack.language === null ||
-          this.writeBack.language === ""
-        ) {
-          message.warn("请选择回写语种！");
-          return;
-        }
-        // 遍历选中的语种，获取对应的 ts 文件列表
-        this.writeBack.language.forEach((language) => {
-          this.getTsFile(language);
-        });
-      } else if (this.writeBack.type === "DI") {
-        this.writeBack.label = "辞典";
-        // 获取辞典文件列表
-        this.getDictionary();
-      }
-      // 保存用户偏好到本地缓存
-      localStorage.setItem(
-        "writeBackLanguages",
-        JSON.stringify(this.writeBack.language)
-      );
+    // 列头筛选（转 tableUtils）
+    handleSearch(selectedKeys, confirm, dataIndex) {
+      handleSearchUtil(selectedKeys, confirm, dataIndex, this);
     },
-    // 获取ts文件
-    getTsFile(language) {
-      let params = {
-        language: language,
-        i18nUrl: this.writeBack.ip,
-      };
-      getFileListByLang(params).then((res) => {
-        res.data.list.forEach((item) => {
-          let option = {
-            label: item,
-            value: item,
-          };
-          this.writeBack.fileOptions.push(option);
-          // console.log("fileOptions:", this.writeBack.fileOptions);
-        });
-      });
+    handleReset(clearFilters) {
+      handleResetUtil(clearFilters, this);
     },
-    // 获取辞典
-    getDictionary() {
-      let params = {
-        i18nUrl: this.writeBack.ip,
-      };
-      getDictionary(params).then((res) => {
-        // getDictionary().then((res) => {// 之前这里没写完，待重构优化，选择默认时就是辞典的就进入辞典，ts文件的就进入ts文件，用不上ts文件/辞典的选项
-        res.data.list.forEach((item) => {
-          let option = {
-            label: item,
-            value: item,
-          };
-          this.writeBack.fileOptions.push(option);
-        });
-      });
-    },
-    // 回写语种change事件
-    languageChange() {
-      if (this.writeBack.type === "TS") {
-        this.writeBack.fileOptions = [];
-        // 遍历选中的语种，获取对应的 ts 文件列表
-        this.writeBack.language.forEach((language) => {
-          this.getTsFile(language);
-        });
-      }
-      // 保存用户偏好到本地缓存
-      localStorage.setItem(
-        "writeBackLanguages",
-        JSON.stringify(this.writeBack.language)
-      );
-    },
-    // 获取i18服务器ip
-    getIPs() {
-      this.ipOptions = [];
-      getI18nAdress().then((res) => {
-        res.data.list.forEach((item) => {
-          let ip = {
-            label: item.ip,
-            value: item.ip,
-          };
-          // if(item.state === '1'){
-          //     this.writeBack.ip = item.ip
-          // }
-          this.ipOptions.push(ip);
-        });
-      });
-    },
-    // // 导出xml文件，装置的格式
-    // exportXml() {
-    //   // 手动构建 XML 字符串
-    //   let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<DICT local_language="0">\n`;
-    //   this.dataSource.forEach((item) => {
-    //     let abbr = item.abbr != null ? item.abbr : "";
-    //     let cn_desc = item.entry != null ? item.entry : "";
-    //     let en_desc = item.english != null ? item.english : "";
-    //     let local_desc = item.entry != null ? item.entry : "";
-    //     let es_desc = item.spanish != null ? item.spanish : "";
-    //     let ru_desc = item.russian != null ? item.russian : "";
-
-    //     xml += `\t<ITEM abbr="${abbr}" cn_desc="${cn_desc}" en_desc="${en_desc}" local_desc="${en_desc}" es_desc="${es_desc}" ru_desc="${ru_desc}" />\n`;
-    //   });
-    //   xml += `</DICT>`;
-
-    //   // 导出 XML 文件
-    //   const blob = new Blob([xml], { type: "application/xml" });
-    //   const url = URL.createObjectURL(blob);
-    //   const link = document.createElement("a");
-    //   link.href = url;
-    //   link.download = "sysdict.xml";
-
-    //   link.click();
-    //   URL.revokeObjectURL(url);
-
-    //   this.$emit("createClose");
-    //   this.$emit("cancelCreate");
-    // },
     // 分页切换
     pageChange(page, pageSize) {
-      pageChange(this, page, pageSize);
+      pageChangeUtil(this, page, pageSize);
     },
   },
 };

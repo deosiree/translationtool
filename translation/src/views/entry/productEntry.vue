@@ -870,6 +870,7 @@
     :selectedProducts="selectedProducts"
     :dataSource="selectEntry"
     :currentProduct="product"
+    :classifyLimit="classifyLimit"
     :selectedRowKeys="selectedRowKeys"
     :selectedRows="selectedRows"
     @update:dataSource="selectEntry = $event"
