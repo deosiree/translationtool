@@ -297,5 +297,39 @@ export const requestForm = formInstance;
 export const requestMultipart = multipartInstance;
 export const requestBinary = binaryInstance;
 
+// ==================== Inflight 去重（opt-in，仅只读接口使用） ====================
+// 同 key（method+url+params+data）的进行中请求共享同一 Promise，settle 即删：
+// 只合并"并发重复"请求，不做结果缓存，也不影响写操作（写接口勿用）。
+
+const inflight = new Map(); // key -> Promise
+
+function buildDedupeKey(config) {
+  const { url, method, params, data } = config;
+  return JSON.stringify([url, String(method || "").toLowerCase(), params ?? null, data ?? null]);
+}
+
+/**
+ * 带并发去重的 JSON 请求。适用于只读统计类接口（如 getTaskPending / getClassfy）：
+ * 多组件同屏拉取或快速重复触发时，合并为一次网络请求，所有调用方共享同一结果。
+ * @param {Object} config - 与 request() 相同的 axios config
+ * @returns {Promise} 共享的请求 Promise（成功/失败均会从 inflight 表移除，下次调用重新发起）
+ */
+export function requestDeduped(config) {
+  // FormData/Blob 等不可稳定序列化的 body 直接旁路去重（防误合并/序列化异常）
+  if (typeof FormData !== "undefined" && config?.data instanceof FormData) {
+    return jsonInstance(config);
+  }
+  const key = buildDedupeKey(config);
+  const existing = inflight.get(key);
+  if (existing) {
+    return existing;
+  }
+  const promise = jsonInstance(config).finally(() => {
+    inflight.delete(key);
+  });
+  inflight.set(key, promise);
+  return promise;
+}
+
 // 默认导出 JSON 实例（向后兼容）
 export default jsonInstance;

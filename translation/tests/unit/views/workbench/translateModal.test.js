@@ -4,7 +4,7 @@ import { nextTick } from 'vue'
 import TranslateModal from '@/views/workbench/translateModal.vue'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
 import * as validationUtils from '@/utils/validationUtils'
-import { isLoading, resetLoading, startLoading } from '@/composables/useLoading'
+import { isLoading, resetLoading, startLoading, endLoading } from '@/composables/useLoading'
 
 vi.mock('@/utils/domUtils', () => ({
   setModalAriaHidden: vi.fn(),
@@ -268,24 +268,53 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
     revalSpy.mockRestore()
   })
 
-  it('子弹窗 AfterClose 应 resetLoading，避免主弹窗仍开时 loading 残留', async () => {
+  it('子弹窗 AfterClose 不再 resetLoading：不击杀并发在途计数，仅重置弹窗自身状态', async () => {
     wrapper = mountWithTableStub()
     await nextTick()
 
+    // 模拟外部在途任务（如父组件红点刷新）占用计数
     startLoading()
     expect(isLoading()).toBe(true)
+
+    // 子弹窗关闭只重置自身状态，不得清零全局计数（否则并发请求的遮罩提前消失）
     wrapper.vm.preTranslateAfterClose()
-    expect(isLoading()).toBe(false)
+    expect(isLoading()).toBe(true) // 在途计数保留
     expect(wrapper.vm.preTran.priority).toBeNull()
 
-    startLoading()
     wrapper.vm.exportAfterClose()
-    expect(isLoading()).toBe(false)
+    expect(isLoading()).toBe(true)
     expect(wrapper.vm.exportModal.field).toEqual(['abbr', '词条'])
 
-    startLoading()
     wrapper.vm.replaceAfterClose()
-    expect(isLoading()).toBe(false)
+    expect(isLoading()).toBe(true)
     expect(wrapper.vm.replaceModal).toEqual({ sourceStr: null, replaceStr: null })
+
+    // 外部任务正常结束后计数归零（配对由 withLoading / finally 保证，无残留）
+    endLoading()
+    expect(isLoading()).toBe(false)
+  })
+
+  it('preTranslateOK 校验抛错时 endLoading 与关窗仍必达（计数配对优于 resetLoading 兜底）', async () => {
+    const { preTranslate } = await import('@/http/api/workbench')
+    preTranslate.mockResolvedValueOnce({ data: { list: [] } })
+    const revalSpy = vi
+      .spyOn(validationUtils, 'verifyArray_workbench_page')
+      .mockRejectedValueOnce(new Error('verify failed'))
+
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { id: 'task-1' }
+    wrapper.vm.language = { value: 'english', state: 'englishState' }
+    wrapper.vm.dataSource = [{ id: 'e1', entry: '词条', english: 'ok' }]
+    wrapper.vm.preTranslateVisible = true
+
+    // preTranslateOK 未返回内部 promise 链，需等待微任务队列走完（含 async finally）
+    wrapper.vm.preTranslateOK()
+    await new Promise(resolve => setTimeout(resolve, 50))
+
+    // 校验失败：loading 不残留、子弹窗仍被关闭（原先依赖 afterClose resetLoading 兜底的泄漏源已修复）
+    expect(isLoading()).toBe(false)
+    expect(wrapper.vm.preTranslateVisible).toBe(false)
+    revalSpy.mockRestore()
   })
 })

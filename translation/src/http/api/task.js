@@ -1,4 +1,4 @@
-import request from "../request";
+import request, { requestDeduped } from "../request";
 
 // 查询任务列表
 export function searchTaskInfo(data, params) {
@@ -86,9 +86,9 @@ export function createTaskByLang(params, data) {
   });
 }
 
-// 获取指定任务的待处理词条数
+// 获取指定任务的待处理词条数（只读统计，并发去重）
 export function getTaskPending(data) {
-  return request({
+  return requestDeduped({
     url: "/taskManage/getTaskPending",
     method: "POST",
     data

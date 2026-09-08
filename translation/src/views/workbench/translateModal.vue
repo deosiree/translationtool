@@ -335,7 +335,7 @@ import {
   showEditOperation as showEditOp,
   hideEditOperation as hideEditOp,
 } from "@/utils/validationUtils"; // 引入工具函数
-import { loading, startLoading, endLoading, resetLoading } from "@/composables/useLoading";
+import { loading, startLoading, endLoading } from "@/composables/useLoading";
 import commonParam, { workbenchParams } from "@/constants/commonParam.js";
 import { PipelinePanel, ColumnActions } from "@/views/workbench/components";
 import {
@@ -652,20 +652,23 @@ export default {
     // 根据查询条件，过滤dataSource
     getSearch() {
       startLoading();
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      this.selectedRowIndex = null;
-      this.dataSource = this.allData.filter((item) => {
-        const keywordMatch =
-          !this.search.keyWords || item.entry.includes(this.search.keyWords);
-        const stateMatch =
-          !this.search.translateState ||
-          item[this.language.state] === this.search.translateState;
-        return keywordMatch && stateMatch;
-      });
-      this.pagination.current = 1;
-      this.pagination.total = this.dataSource.length;
-      endLoading();
+      try {
+        this.selectedRowKeys = [];
+        this.selectedRows = [];
+        this.selectedRowIndex = null;
+        this.dataSource = this.allData.filter((item) => {
+          const keywordMatch =
+            !this.search.keyWords || item.entry.includes(this.search.keyWords);
+          const stateMatch =
+            !this.search.translateState ||
+            item[this.language.state] === this.search.translateState;
+          return keywordMatch && stateMatch;
+        });
+        this.pagination.current = 1;
+        this.pagination.total = this.dataSource.length;
+      } finally {
+        endLoading();
+      }
     },
     onCellInput(value, record, column) {
       onEditableCellInput(this, record.id, column.dataIndex, value);
@@ -691,9 +694,7 @@ export default {
       this.selectedRowKeys = [];
       this.selectedRows = [];
       this.selectedRowIndex = null;
-      this.allData = [];
-      this.dataSource = [];
-      // this.setTranslateColumn(); // 设置翻译列展示的语种
+      // 不清空 allData/dataSource：旧数据保留至新响应整体替换，避免表格闪白
       const params = {
         taskID: this.task.id,
         entryState: "3",
@@ -722,10 +723,17 @@ export default {
         })
         .catch((err) => {
           message.error(err.message);
+          // 查询失败清空：防止弹窗复用时残留上一任务的词条，
+          // 被误保存到当前任务（taskID 不符的跨任务写）
+          this.allData = [];
+          this.dataSource = [];
         })
         .finally(async () => {
-          await revalidateLoaded(this, this.language.value);
-          endLoading();
+          try {
+            await revalidateLoaded(this, this.language.value);
+          } finally {
+            endLoading();
+          }
         });
     },
     async handleOK() {
@@ -817,8 +825,7 @@ export default {
             const successCount = arrCount.updateNum - failCount;
             if (successCount) messageTextParts.push(`更新翻译${successCount}条`);
             if (failCount) messageTextParts.push(`更新翻译失败${failCount}条`);
-            await this.getTranslateEntry(); //刷新
-            if (this.allData.length == 0) this.handleClose();
+            await this.getTranslateEntry(); //刷新（是否关闭弹窗由下方统一判断）
           })
           .catch((err) => {
             message.error("操作失败！", err, 1);
@@ -1288,20 +1295,26 @@ export default {
           message.error("预翻译失败！", err.message);
         })
         .finally(async () => {
-          await verifyArray_workbench_page(
-            this.pagination,
-            this.language.value,
-            this
-          );
-          endLoading();
-          this.preTranslateVisible = false;
+          // 校验失败也要保证 endLoading 与关窗必达（计数配对优于 afterClose 全局清零兜底）
+          try {
+            await verifyArray_workbench_page(
+              this.pagination,
+              this.language.value,
+              this
+            );
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.warn("[translateModal] verifyArray_workbench_page failed", err);
+          } finally {
+            endLoading();
+            this.preTranslateVisible = false;
+          }
         });
     },
     preTranslateClose() {
       this.preTranslateVisible = false;
     },
     preTranslateAfterClose() {
-      resetLoading();
       this.preTran.priority = null;
     },
     clickInput(event) {
@@ -1311,7 +1324,6 @@ export default {
       record.translateID = "";
     },
     afterClose() {
-      resetLoading();
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
       this.selectedRowKeys = [];
@@ -1382,7 +1394,6 @@ export default {
         });
     },
     exportAfterClose() {
-      resetLoading();
       this.exportModal.field = ["abbr", "词条"];
     },
     beforeUpload(file, fileList) {
@@ -1415,8 +1426,11 @@ export default {
           message.error("导入失败！", err.message);
         })
         .finally(async () => {
-          await revalidateLoaded(this, this.language.value);
-          endLoading();
+          try {
+            await revalidateLoaded(this, this.language.value);
+          } finally {
+            endLoading();
+          }
         });
     },
     // 下一个词条 快捷键
@@ -1695,7 +1709,6 @@ export default {
         });
     },
     replaceAfterClose() {
-      resetLoading();
       this.replaceModal = {
         sourceStr: null,
         replaceStr: null,

@@ -146,13 +146,13 @@
 
   </div>
   <ImportModal ref="import" :visible="importVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" @handleClose="importClose"
-    @afterSave="refreshCurrentTask" />
+    @afterSave="refreshTaskBadges" />
   <ExamineModal ref="examine" :visible="examineVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" :modalTitle="examineTitle"
-    @handleClose="examineClose" @afterSave="refreshCurrentTask" />
+    @handleClose="examineClose" @afterSave="refreshTaskBadges" />
   <TranslateModal ref="translate" :visible="translateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
-    @handleClose="translateClose" />
+    @handleClose="translateClose" @afterSave="refreshTaskBadges" />
   <ExamineTranslateModal ref="examineTranslate" :visible="examineTranslateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
-    @handleClose="examineTranslateClose" @afterSave="refreshCurrentTask" />
+    @handleClose="examineTranslateClose" @afterSave="refreshTaskBadges" />
   <ArchiveModal ref="archiveModalRef" :visible="archiveVisible" :currentTask="currentTask" @handleClose="archiveClose" @refresh="refreshTask" />
   <BatchPreTranslateModal
     :visible="batchPreTranslateVisible"
@@ -188,11 +188,11 @@ import {
 } from "@ant-design/icons-vue";
 import { getToDoTaskInfo, getFinishTaskInfo } from "@/http/api/task";
 import { getClassfy } from "@/http/api/entryManage";
-import { getLanguage } from "@/http/api/translate";
 import { updateTaskInfo } from "@/http/api/task";
 import { getEntryInfoList } from "@/http/api/workbench";
 import { getProduct } from "@/http/api/product";
 import { getTaskPending } from "@/http/api/task";
+import { fetchLanguages } from "@/composables/useLanguageCache";
 import { setTableHeight } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import {
@@ -201,7 +201,7 @@ import {
   pageChange,
 } from "@/utils/selectionUtils";
 import commonParam from "@/constants/commonParam";
-import { loading, startLoading, endLoading } from "@/composables/useLoading";
+import { loading, startLoading, endLoading, withLoading } from "@/composables/useLoading";
 export default {
   setup() {
     return { loading };
@@ -350,6 +350,7 @@ export default {
       examineTranslateVisible: false,
       archiveVisible: false,
       classifyLimit: {},
+      lastClassifyProductId: null, // getClassfy 去重：上次已加载分类的产品ID
       isTreeOr2D: null, // 树展示（层级）/平铺展示
       pagination: {
         showSizeChanger: true,
@@ -433,6 +434,7 @@ export default {
         if (
           this.$currentDepartment && this.$currentDepartment.ops.has("needBranch") &&
           newVal != null &&
+          oldVal != null && // 初始化（null→值）不触发：mounted 已做首次查询，避免重复
           newVal !== oldVal
         ) {
           localStorage.setItem(
@@ -469,35 +471,35 @@ export default {
         event.stopPropagation();
       }
 
-      // 设置加载状态
+      // 设置加载状态（try/finally 保证计数不泄漏）
       startLoading();
+      try {
+        // 调用正确的onExpand函数（通过props传递进来的）
+        if (typeof onExpand === "function") {
+          onExpand(record, event);
+        }
 
-      // 调用正确的onExpand函数（通过props传递进来的）
-      if (typeof onExpand === "function") {
-        onExpand(record, event);
+        // 记录展开状态的props（用于查询时重新计算状态）
+        if (isExpanded) {
+          // 折叠时，从记录中移除
+          this.expandSource = this.expandSource.filter(
+            (item) => item.id !== record.id
+          );
+        } else {
+          // 展开时，添加到记录中
+          this.expandSource.push({
+            id: record.id,
+            record: record,
+            isExpanded: true,
+          });
+        }
+
+        // 在展开时计算该分支下任务的未完成状态
+        await this.getBranchPending(); // 只获得展开分支的任务执行状态
+      } finally {
+        // 清除加载状态
+        endLoading();
       }
-
-      // 记录展开状态的props（用于查询时重新计算状态）
-      if (isExpanded) {
-        // 折叠时，从记录中移除
-        this.expandSource = this.expandSource.filter(
-          (item) => item.id !== record.id
-        );
-      } else {
-        // 展开时，添加到记录中
-        this.expandSource.push({
-          id: record.id,
-          record: record,
-          isExpanded: true,
-        });
-        
-      }
-
-      // 在展开时计算该分支下任务的未完成状态
-      await this.getBranchPending();// 只获得展开分支的任务执行状态
-
-      // 清除加载状态
-      endLoading();
     },
     // 获取展开的分支的任务执行状态
     async getBranchPending() {
@@ -554,12 +556,15 @@ export default {
       });
       return { tasks: tasks, totalNum: totalTaskPendingNum };
     },
-    // 获取翻译语种
+    // 获取翻译语种（模块级缓存，与悬浮工具箱等共享同一请求）
     getLanguage() {
-      let data = {};
-      getLanguage(data).then((res) => {
-        this.translateTypes = res.data.list;
-      });
+      fetchLanguages()
+        .then((res) => {
+          this.translateTypes = res.data.list;
+        })
+        .catch((err) => {
+          console.error("获取语种列表失败:", err);
+        });
     },
     // 更改翻译语种
     SelectTranslateType() {
@@ -748,8 +753,11 @@ export default {
     getClassfy(task) {
       if (!task.productId || task.productId === "") {
         this.classifyLimit = {};
+        this.lastClassifyProductId = null;
         return;
       }
+      // 同一任务重复点击不重发（classifyLimit 只随 productId 变化）
+      if (this.lastClassifyProductId === task.productId) return;
       let params = {
         parentId: task.productId,
         type: "module",
@@ -757,12 +765,13 @@ export default {
       getClassfy(params)
         .then((res) => {
           this.classifyLimit = {};
+          this.lastClassifyProductId = task.productId;
           res.data.list.forEach((element) => {
             this.classifyLimit[element.title] = element;
           });
         })
         .catch((err) => {
-          message.err(err.message);
+          message.error(err.message);
         });
     },
     clickCard(index) {
@@ -789,9 +798,8 @@ export default {
     },
     init() {
       this.setTableHeight();
-      this.getLanguage();
       this.getTaskTotal();
-      // this.getTask();// 分页pageChange中已经有调用了
+      // getLanguage 已在 mounted 调用（语种走模块级缓存，勿重复请求）
     },
     setTableHeight() {
       this.$nextTick(() => {
@@ -800,18 +808,18 @@ export default {
     },
     // 获取待办事项和已办事项数量
     getTaskTotal() {
+      // 待办事项（全量：toDoTasks 供"全部选择"缓存使用）
       let params = {
         pageIndex: -1,
         pageSize: -1,
       };
-      // 待办事项
       getToDoTaskInfo(params, {}).then((res) => {
         this.toDoNum = res.data?.totalNum || 0;
         this.toDoTasks = res.data?.list || [];
         // console.log("需要查询是否完成的任务1", this.toDoTasks);
       });
-      // 已办事项
-      getFinishTaskInfo(params, {}).then((res) => {
+      // 已办事项（仅需 totalNum，拉 1 条避免全量响应）
+      getFinishTaskInfo({ pageIndex: 1, pageSize: 1 }, {}).then((res) => {
         this.finishNum = res.data?.totalNum || 0;
       });
     },
@@ -896,56 +904,30 @@ export default {
       }
       this.replaceSelectedRecords(updatedTasks);
     },
-    // 刷新当前任务的红点标红
-    async refreshCurrentTask(task) {
-      // console.log("刷新当前任务的红点标红", task);
-      startLoading();
-
-      let updatedTask;
-      if (this.isTreeOr2D == "tree") {
-        // 层级展示
-        const oldNum_total = task.num__total;
-        const { tasks: updateTasks, totalNum } = await this.getTaskPending([
-          task,
-        ]);
-        updatedTask = updateTasks[0];
-
-        // 使用id来查找任务所在的分支
-        let branchIndex = this.dataSource.findIndex((branch) => {
-          return (
-            branch.child && branch.child.some((t) => t.id === updatedTask.id)
-          );
-        });
-
-        if (branchIndex !== -1) {
-          // 更新分支中的任务
-          const taskIndex = this.dataSource[branchIndex].child.findIndex(
-            (t) => t.id === updatedTask.id
-          );
-          if (taskIndex !== -1) {
-            this.dataSource[branchIndex].child[taskIndex] = updatedTask;
-            this.dataSource[branchIndex].num__total += totalNum - oldNum_total;
+    // 刷新当前任务红点（任务行 badge + 流水线各阶段 badge）。
+    // getTaskPending 原地写 task.num_* 字段：dataSource 行 / currentTask / TimeLine.task 同引用，一次写入三方同步。
+    async refreshTaskBadges(task) {
+      if (!task || !task.id || String(task.id).startsWith("branch_")) return;
+      try {
+        await withLoading(async () => {
+          await this.getTaskPending([task]);
+          if (this.isTreeOr2D == "tree") {
+            // 层级展示：重算所属分支的合计角标（全量重算，不依赖旧值）
+            const branch = this.dataSource.find(
+              (b) => b.child && b.child.some((t) => t.id === task.id)
+            );
+            if (branch && branch.child.length > 0) {
+              branch.num__total = branch.child.reduce(
+                (sum, t) => sum + (t.num__total || 0),
+                0
+              );
+            }
           }
-        } else {
-          console.log("没找到对应的分支名称");
-        }
-      } else {
-        // 平铺展示
-        const { tasks: updateTasks, totalNum } = await this.getTaskPending([
-          task,
-        ]);
-        updatedTask = updateTasks[0];
-        // 使用id来查找任务所在的分支
-        let taskIndex = this.dataSource.findIndex(
-          (t) => t.id === updatedTask.id
-        );
-        if (taskIndex !== -1) {
-          // 更新分支中的任务
-          this.dataSource[taskIndex] = updatedTask;
-        }
+          this.replaceSelectedRecords([task]);
+        });
+      } catch (err) {
+        message.error("红点刷新失败：" + (err?.message || err));
       }
-      this.replaceSelectedRecords([updatedTask]);
-      endLoading();
     },
     // 构建树结构数据
     buildTreeData(taskList) {
@@ -1026,8 +1008,9 @@ export default {
     },
     importClose() {
       this.importVisible = false;
-      // 刷新词条数量
+      // 刷新流水线"导入"角标 + 任务行红点
       this.$refs.timeLineRef.initEntryCount();
+      this.refreshTaskBadges(this.currentTask);
     },
     // 词条审核
     examineEntry() {
@@ -1038,8 +1021,9 @@ export default {
     },
     examineClose() {
       this.examineVisible = false;
-      // 刷新词条数量
+      // 刷新流水线"导入"角标 + 任务行红点
       this.$refs.timeLineRef.initEntryCount();
+      this.refreshTaskBadges(this.currentTask);
     },
     // 词条翻译
     translateEntry() {
@@ -1050,8 +1034,9 @@ export default {
     },
     translateClose() {
       this.translateVisible = false;
-      // 刷新词条数量
+      // 刷新流水线"导入"角标 + 任务行红点
       this.$refs.timeLineRef.initEntryCount();
+      this.refreshTaskBadges(this.currentTask);
     },
     // 翻译审核
     examineTranslate() {
@@ -1061,8 +1046,9 @@ export default {
     },
     examineTranslateClose() {
       this.examineTranslateVisible = false;
-      // 刷新词条数量
+      // 刷新流水线"导入"角标 + 任务行红点
       this.$refs.timeLineRef.initEntryCount();
+      this.refreshTaskBadges(this.currentTask);
     },
     // 归档
     archiveEntry() {

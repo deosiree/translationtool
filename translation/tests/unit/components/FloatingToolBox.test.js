@@ -12,6 +12,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import FloatingToolBox from '@/components/FloatingToolBox/index.vue'
 import { nextTick } from 'vue'
+import { __resetLanguageCacheForTest } from '@/composables/useLanguageCache'
 
 // Mock依赖
 vi.mock('@/utils/notificationUtils', () => ({
@@ -472,7 +473,9 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
   describe('数据获取', () => {
     it('应该获取语种列表', async () => {
       const { getLanguage } = await import('@/http/api/translate')
-      
+      // 语种走模块级缓存：先清缓存，保证本用例真实发起请求（用例间隔离）
+      __resetLanguageCacheForTest()
+
       wrapper = mount(FloatingToolBox, {
         global: {
           mocks: {
@@ -510,6 +513,8 @@ describe('FloatingToolBox - 悬浮工具仓组件', () => {
 
     it('应该处理API错误', async () => {
       const { getLanguage } = await import('@/http/api/translate')
+      // 语种走模块级缓存：先清缓存，保证错误路径真实被触发（而非命中成功缓存假通过）
+      __resetLanguageCacheForTest()
       getLanguage.mockRejectedValueOnce(new Error('API Error'))
       
       // 捕获console.error以避免测试输出错误

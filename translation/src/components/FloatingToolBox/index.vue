@@ -44,7 +44,7 @@ import BackFillModal from "@/components/Button/fileManage/backFill/modal.vue";
 import BackFillModal_v1_5 from "@/components/Button/fileManage/backFill/modal_v1.5.vue";
 import BackFillModal_v2_5 from "@/components/Button/fileManage/backFill/modal_v2.5.vue";
 import { closeAllNotifications } from "@/utils/notificationUtils";
-import { getLanguage } from "@/http/api/translate";
+import { fetchLanguages } from "@/composables/useLanguageCache";
 import { normalizeFloatingPosition } from "@/utils";
 import "@/assets/style/common.less";
 
@@ -391,10 +391,9 @@ export default {
       // 暂时不自动隐藏，等待后续优化
       // this.panelVisible = false;
     },
-    // 获取语种列表
+    // 获取语种列表（模块级缓存，与工作台等共享同一请求）
     getLanguage() {
-      let data = {};
-      getLanguage(data)
+      fetchLanguages()
         .then((res) => {
           if (res && res.data && Array.isArray(res.data.list)) {
             this.translateTypes = res.data.list;

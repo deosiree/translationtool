@@ -21,15 +21,15 @@
                 <a-button type="primary" ghost size="small" :disabled="isButtonDisabled(item)"
                   @click="importEntry">导入</a-button>
               </a-badge>
-              <a-badge :count="entryCheckCount" :overflow-count="99" v-if="item.state === '2'">
+              <a-badge :count="task.num_entryExamine || 0" :overflow-count="99" v-if="item.state === '2'">
                 <a-button type="primary" ghost size="small" :disabled="isButtonDisabled(item)"
                   @click="examineEntry">词条审核</a-button>
               </a-badge>
-              <a-badge :count="transalteCount" :overflow-count="99" v-if="item.state === '3'">
+              <a-badge :count="task.num_translate || 0" :overflow-count="99" v-if="item.state === '3'">
                 <a-button type="primary" ghost size="small" :disabled="isButtonDisabled(item)"
                   @click="translateEntry">翻译</a-button>
               </a-badge>
-              <a-badge :count="translateCheckCount" :overflow-count="99" v-if="item.state === '4'">
+              <a-badge :count="task.num_translateExamine || 0" :overflow-count="99" v-if="item.state === '4'">
                 <a-button type="primary" ghost size="small" :disabled="isButtonDisabled(item)"
                   @click="examineTranslate">翻译审核</a-button>
               </a-badge>
@@ -61,8 +61,8 @@ import { defineComponent, ref, createVNode } from "vue";
 import { ExclamationCircleOutlined } from "@ant-design/icons-vue";
 import { updateTaskInfo } from "@/http/api/task";
 import { getEntryTempByTaskID, getEntryInfoList } from "@/http/api/workbench";
-import { STAGE_QUERY_PARAMS } from "@/constants/batchPreTranslateSteps";
 import { setInfoByTask, setInfo } from "@/http/api/i18Server";
+import { withLoading } from "@/composables/useLoading";
 // import commen from '../../views/entry/common.js'
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 export default {
@@ -86,9 +86,6 @@ export default {
       task: {},
       taskList: [],
       entryRejectCount: 0,
-      entryCheckCount: 0,
-      transalteCount: 0,
-      translateCheckCount: 0,
     };
   },
   mounted() {
@@ -260,9 +257,9 @@ export default {
       let msg = "";
       if (
         this.entryRejectCount > 0 ||
-        this.entryCheckCount > 0 ||
-        this.transalteCount > 0 ||
-        this.translateCheckCount > 0
+        this.task.num_entryExamine > 0 ||
+        this.task.num_translate > 0 ||
+        this.task.num_translateExamine > 0
       ) {
         msg = "当前任务存在未处理完成的词条";
       }
@@ -296,12 +293,10 @@ export default {
         },
       });
     },
-    // 获取词条数量
+    // 刷新"导入"角标：被驳回词条数（口径与 getTaskPending.importNum「导入阶段总数」不同，不能混用）。
+    // 其余三个阶段角标直接读任务对象 num_* 字段（getTaskPending 原地写入，父组件刷新即同步）。
     initEntryCount() {
-      this.getEntryReject();
-      this.getEntryCheck();
-      this.getTranslate();
-      this.getTranslateCheck();
+      return withLoading(() => this.getEntryReject());
     },
     // 获取被驳回的词条
     getEntryReject() {
@@ -310,60 +305,12 @@ export default {
         entryState: "2",
         entry: "",
       };
-      getEntryInfoList(params, [])
+      return getEntryInfoList(params, [])
         .then((res) => {
           this.entryRejectCount = res.data.list.length;
         })
         .catch((err) => {
           this.entryRejectCount = 0;
-          message.error(err.message);
-        });
-    },
-    // 获取待审核的词条（口径同 STAGE_QUERY_PARAMS.entryExamine，与批量预翻译共用）
-    getEntryCheck() {
-      let params = {
-        taskID: this.task.id,
-        entryState: STAGE_QUERY_PARAMS.entryExamine.entryState,
-        entry: "",
-      };
-      getEntryInfoList(params, STAGE_QUERY_PARAMS.entryExamine.transStates)
-        .then((res) => {
-          this.entryCheckCount = res.data.list.length;
-        })
-        .catch((err) => {
-          this.entryCheckCount = 0;
-          message.error(err.message);
-        });
-    },
-    // 获取待翻译的词条（口径同 STAGE_QUERY_PARAMS.preTranslate，与批量预翻译共用）
-    getTranslate() {
-      let params = {
-        taskID: this.task.id,
-        entryState: STAGE_QUERY_PARAMS.preTranslate.entryState,
-        entry: "",
-      };
-      getEntryInfoList(params, STAGE_QUERY_PARAMS.preTranslate.transStates)
-        .then((res) => {
-          this.transalteCount = res.data.list.length;
-        })
-        .catch((err) => {
-          this.transalteCount = 0;
-          message.error(err.message);
-        });
-    },
-    // 获取翻译审核的词条（口径同 STAGE_QUERY_PARAMS.translateExamine，与批量预翻译共用）
-    getTranslateCheck() {
-      let params = {
-        taskID: this.task.id,
-        entryState: STAGE_QUERY_PARAMS.translateExamine.entryState,
-        entry: "",
-      };
-      getEntryInfoList(params, STAGE_QUERY_PARAMS.translateExamine.transStates)
-        .then((res) => {
-          this.translateCheckCount = res.data.list.length;
-        })
-        .catch((err) => {
-          this.translateCheckCount = 0;
           message.error(err.message);
         });
     },
