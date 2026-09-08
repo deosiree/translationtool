@@ -915,7 +915,7 @@ import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
 import Input from "@/components/cellEditor/input_IME.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
 import EditReason from "@/views/entry/editReason.vue";
-import CreateVersionModal from "@/views/entry/createVersionModal.vue";
+import CreateVersionModal from "@/views/entry/createVersionModal/index.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
 import Dictionary from "@/views/entry/dictionary.vue";
 import { message, Modal } from "ant-design-vue";

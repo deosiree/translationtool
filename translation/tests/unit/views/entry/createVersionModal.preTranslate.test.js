@@ -77,7 +77,7 @@ describe('CreateVersionModal - 预翻译分支', () => {
 
   it('多语种并行：遍历选中语种逐个调用接口并汇总成功语种', async () => {
     const { mount } = await import('@vue/test-utils')
-    const { default: CreateVersionModal } = await import('@/views/entry/createVersionModal.vue')
+    const { default: CreateVersionModal } = await import('@/views/entry/createVersionModal/index.vue')
 
     // 模拟法文语种后端失败；rejected Promise 预挂 catch 避免 unhandled rejection 告警
     const frenchFailure = Promise.reject(new Error('预翻译失败'))
@@ -154,7 +154,7 @@ describe('CreateVersionModal - 预翻译分支', () => {
 
   it('语种为空时不发起请求', async () => {
     const { mount } = await import('@vue/test-utils')
-    const { default: CreateVersionModal } = await import('@/views/entry/createVersionModal.vue')
+    const { default: CreateVersionModal } = await import('@/views/entry/createVersionModal/index.vue')
 
     // 表单 stub：validate 拒绝（语种必填校验失败）
     // 注意：rejected Promise 必须预先挂 catch，避免暴露给 Vue 运行时造成 unhandled rejection

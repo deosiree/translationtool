@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
-import CreateVersionModal from '@/views/entry/createVersionModal.vue'
+import CreateVersionModal from '@/views/entry/createVersionModal/index.vue'
 import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
 
 // Mock 依赖
