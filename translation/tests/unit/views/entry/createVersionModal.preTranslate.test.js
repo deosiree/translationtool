@@ -43,6 +43,7 @@ vi.mock('ant-design-vue', () => ({
 import request from '@/http/request'
 import { preTranslateEntry } from '@/http/api/entryManage'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
+import { resetLoading } from '@/composables/useLoading'
 import CreateVersionModal from '@/views/entry/createVersionModal/index.vue'
 import PreTranslateForm from '@/views/entry/createVersionModal/PreTranslateForm.vue'
 import CellOverflowTooltip from '@/components/table/CellOverflowTooltip.vue'
@@ -74,6 +75,12 @@ describe('entryManage API - preTranslateEntry（/entryInfo/preTranslate）', () 
 // 壳测试：Modal stub 渲染插槽（默认 stub 不渲染插槽会导致表单 ref 挂不上）
 const ModalStub = {
   name: 'ModalStub',
+  props: {
+    okLoading: {
+      type: Boolean,
+      default: false
+    }
+  },
   template: '<div><slot name="leftBottomBtn" /><slot /></div>'
 }
 const SpinStub = { template: '<div><slot /></div>' }
@@ -193,6 +200,14 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
 
   afterEach(() => {
     if (wrapper) wrapper.unmount()
+    resetLoading()
+  })
+
+  it('壳暴露全局 loading，供 okLoading / 表格遮罩绑定', () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
+    expect(wrapper.vm.loading).toBeDefined()
+    expect(wrapper.vm.loading).toBe(false)
+    expect(wrapper.findComponent(ModalStub).props('okLoading')).toBe(false)
   })
 
   it('点击预翻译按钮应打开配置弹窗', async () => {
@@ -303,6 +318,53 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     expect(wrapper.emitted('cancelCreate')).toBeTruthy()
     expect(wrapper.emitted('refresh')).toBeTruthy()
     expect(wrapper.vm.preTranslateActive).toBe(false)
+  })
+
+  it('编辑态保存中连点：写接口只触发一次', async () => {
+    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
+    wrapper = mountShell(entries)
+    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((item) => ({
+      ...item,
+      checked: false
+    }))
+
+    request.mockResolvedValue({
+      code: 200,
+      data: { list: [{ id: 'e1', english: 'final value' }] }
+    })
+    await wrapper.vm.onPreTranslateSubmit({
+      language: ['英文'],
+      priority: 'shuyuku',
+      verifyMethods: []
+    })
+
+    let resolveUpdate
+    const updateGate = new Promise((resolve) => {
+      resolveUpdate = resolve
+    })
+    request.mockImplementation((config) => {
+      if (config.url === '/entryInfo/updateEntryInfo') {
+        return updateGate.then(() => ({ code: 200 }))
+      }
+      return Promise.resolve({ code: 200 })
+    })
+
+    const first = wrapper.vm.preTranslateSave()
+    await nextTick()
+    expect(wrapper.vm.loading).toBe(true)
+
+    const second = wrapper.vm.preTranslateSave()
+    const viaHandleOK = wrapper.vm.handleOK()
+
+    resolveUpdate()
+    await Promise.all([first, second, viaHandleOK])
+    await nextTick()
+
+    const updateCalls = request.mock.calls
+      .map((c) => c[0])
+      .filter((c) => c.url === '/entryInfo/updateEntryInfo')
+    expect(updateCalls).toHaveLength(1)
+    expect(wrapper.vm.loading).toBe(false)
   })
 
   it('预翻译部分保存成功：仅移除成功行的 dataSource 与已选状态', async () => {

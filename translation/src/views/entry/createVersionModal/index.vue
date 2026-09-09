@@ -1,7 +1,7 @@
 <template>
   <CustomModal :modalWidth="modalWidth" modalTitle="批量选择" :visible="visible" :fullFlag="true"
     :showCancel="isEditMode" :cancelText="isEditMode ? '取消' : ''"
-    :okText="isEditMode ? '保存' : '创建产品版本'"
+    :okText="isEditMode ? '保存' : '创建产品版本'" :okLoading="loading"
     @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
     <div style="width:100%;height:515px">
       <div class="table">
@@ -11,7 +11,8 @@
         </div>
         <a-config-provider :locale="locale">
           <a-table class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
-            :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
+            :pagination="pagination" :loading="loading"
+            :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
             :customRow="customRow" ref="historyTable" bordered>
             <template #headerCell="{ title, column }">
               <CellOverflowTooltip v-if="column.colValue" :content="title">
@@ -157,7 +158,7 @@ import {
 } from "@/utils/tableUtils";
 import { applyTable } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
-import { withLoading } from "@/composables/useLoading";
+import { withLoading, loading, isLoading } from "@/composables/useLoading";
 import { usePreTranslateEdit } from "@/composables/entry/usePreTranslateEdit.js";
 import { cloneDeep } from "lodash-es";
 
@@ -194,6 +195,13 @@ export default {
     "update:selectedRows", // 添加 update:selectedRows 事件
     "update:selectedProducts",
   ],
+  setup() {
+    /**
+     * 暴露全局 loading，供保存按钮 okLoading 与表格遮罩绑定。
+     * @returns {{ loading: import('vue').ComputedRef<boolean> }}
+     */
+    return { loading };
+  },
   props: {
     visible: {
       type: Boolean,
@@ -364,6 +372,7 @@ export default {
     },
     // 底部主按钮：正常模式=创建版本入口；预翻译模式=保存
     async handleOK() {
+      if (isLoading()) return;
       if (this.preTranslateActive) {
         await this.preTranslateSave();
         return;
@@ -555,6 +564,7 @@ export default {
 
     // 编辑模式-保存：校验编辑行 → 逐条落库 → 成功行移除；列表清空则关壳
     async preTranslateSave() {
+      if (isLoading()) return;
       const result = await withLoading(async () => save(this));
       if (!result.allPassed) {
         return; // 存在校验失败行：红字已标，保持打开
