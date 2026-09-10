@@ -43,7 +43,7 @@ public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileImp
 
     String upgrade(UpgradeVO upgradeVO, HttpServletRequest request);
 
-    String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
+    List<EntryUpdateInfoEntity> updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
 
 
     boolean checkBeforeAddSingleEntry(EntryInfoEntity entryInfoEntity,String department);

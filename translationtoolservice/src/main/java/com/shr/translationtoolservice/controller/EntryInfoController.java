@@ -527,11 +527,37 @@ public class EntryInfoController extends BaseController {
     @CrossOrigin
     @Transactional(propagation = Propagation.NESTED)
     @Token
-    public HttpResponse<String> updateEntryInfoList(@RequestBody List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes) {
+    public HttpResponse<ResponseListModel<EntryUpdateInfoEntity>> updateEntryInfoList(@RequestBody List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes) {
 
-        String result = entryInfoService.updateEntryInfoList(entryInfoEntities, request, notes);
 
-        return checkResult(result);
+        try {
+            List<EntryUpdateInfoEntity> updateEntryInfoList = entryInfoService.updateEntryInfoList(entryInfoEntities, request, notes);
+
+            ResponseListModel<EntryUpdateInfoEntity> responseListModel = new ResponseListModel<>();
+            responseListModel.setList(updateEntryInfoList);
+            responseListModel.setTotalNum(updateEntryInfoList.size());
+
+            boolean isPartialSuccessfully = false;
+            for(EntryUpdateInfoEntity updateInfoEntity : updateEntryInfoList){
+                if(!updateInfoEntity.isSuccess()){
+                    isPartialSuccessfully = true;
+                    break;
+                }
+            }
+            HttpResponse<ResponseListModel<EntryUpdateInfoEntity>> httpResponse = new HttpResponse<>();
+            HttpResponse.Type type = isPartialSuccessfully ? HttpResponse.Type.INTERNAL_ERROR : HttpResponse.Type.OK;
+            httpResponse.setCode(type.getVal());
+            httpResponse.setData(responseListModel);
+            httpResponse.setType(type);
+            httpResponse.setMessage("更新完成");
+            
+            return httpResponse;
+
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+            return error(null, e.getMessage());
+        }
+
     }
 
     //编辑词条

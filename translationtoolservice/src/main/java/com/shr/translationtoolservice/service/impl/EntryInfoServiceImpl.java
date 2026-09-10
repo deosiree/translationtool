@@ -51,6 +51,7 @@ import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
@@ -367,6 +368,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return ConstantInterface.OK_STR;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     @Override
     public String updateEntryInfo(EntryInfoEntity entryInfoEntity, HttpServletRequest request, String notes) {
         EntryInfoEntity beforEntry = entryInfoMapper.selectEntryById(entryInfoEntity);
@@ -736,18 +738,18 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return null;
     }
 
+    @Transactional(propagation = Propagation.REQUIRED)
     @Override
-    public String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes) {
-        String result = "";
-        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            if (StringUtils.isBlank(entryInfoEntity.getTableName())) {
-                return ErrorCodeList.TBALE_IS_NULL;
-            }
-            result = updateEntryInfo(entryInfoEntity, request, notes);
+    public List<EntryUpdateInfoEntity> updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes) {
+   
+        List<EntryUpdateInfoEntity> entryUpdateInfoEntities = new ArrayList<>();
 
+        for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
+            String result = updateEntryInfo(entryInfoEntity, request, notes);
+            entryUpdateInfoEntities.add(new EntryUpdateInfoEntity(entryInfoEntity.getId(), result.equals(ConstantInterface.OK_STR), result));
         }
 
-        return result;
+        return entryUpdateInfoEntities;
     }
 
     private int constructOperate(EntryOperate entryOperate, String entryId, HttpServletRequest request) {
