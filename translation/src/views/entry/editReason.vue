@@ -11,11 +11,9 @@
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
-import { updateEntryInfo, updateTranslation } from "@/http/api/entryManage";
-import { addTranslate } from "@/http/api/translate";
+import { updateEntryInfoList } from "@/http/api/entryManage";
 import { message } from "ant-design-vue";
-import { v4 as uuidv4 } from "uuid";
-import { cloneDeep } from "lodash-es";
+import { partitionBatchUpdateResults } from "@/utils/batchUpdateResults.js";
 export default {
   components: {
     Modal,
@@ -42,12 +40,6 @@ export default {
         reason: "",
       },
       editEntry: [],
-      languageMap: {
-        english: { idName: "enTransId", chinese: "英文" },
-        french: { idName: "fraTransId", chinese: "法文" },
-        spanish: { idName: "spaTransId", chinese: "西文" },
-        russian: { idName: "ruTransId", chinese: "俄文" },
-      },
       okLoading: false,
     };
   },
@@ -58,110 +50,42 @@ export default {
     this.$nextTick(() => {});
   },
   watch: {
-    entry(newval, oldval) {
+    entry(newval) {
       this.editEntry = newval;
     },
   },
   methods: {
-    handleOK() {
+    async handleOK() {
       this.okLoading = true;
-      this.$refs.formRef
-        .validate()
-        .then(() => {
-          // console.log(this.editEntry)
-          let params = {
-            notes: this.edit.reason,
-          };
+      try {
+        await this.$refs.formRef.validate();
+        const params = {
+          notes: this.edit.reason,
+        };
+        const res = await updateEntryInfoList(this.editEntry, params);
+        const { successIds, failed } = partitionBatchUpdateResults(res);
+        const successIdSet = new Set(successIds);
 
-          this.editEntry.forEach((entry) => {
-            updateEntryInfo(entry, params).then((res) => {
-              this.$emit("editOk", entry);
-              if (res.type == "ERROR") {
-                console.log(res.data);
-                message.warning(`保存失败，${res.data}`);
-              } else {
-                message.success("已保存！");
-              }
-            });
-            this.okLoading = false;
-          });
+        for (const entry of this.editEntry) {
+          if (successIdSet.has(entry.id)) {
+            this.$emit("editOk", entry);
+          }
+        }
 
-          // this.editEntry.forEach(entry => {
-          //     // if(this.$store.state.admin){
-          //         let tran = []
-          //         let english = {
-          //             id: entry.enTransId,
-          //             translate: entry.english,
-          //             language: 'english'
-          //         }
-          //         let russian = {
-          //             id: entry.ruTransId,
-          //             translate: entry.russian,
-          //             language: 'russian'
-          //         }
-          //         let spanish = {
-          //             id: entry.spaTransId,
-          //             translate: entry.spanish,
-          //             language: 'spanish'
-          //         }
-          //         let french = {
-          //             id: entry.fraTransId,
-          //             translate: entry.french,
-          //             language: 'french'
-          //         }
-          //         tran.push(english)
-          //         tran.push(russian)
-          //         tran.push(spanish)
-          //         tran.push(french)
-          //         let updateData = []
-          //         let addData = []
-          //         let tempEntry = cloneDeep(entry)
-          //         tran.forEach(item => {
-          //             if(item.translate === '' || item.translate === null){
-          //                 tempEntry[this.languageMap[item.language].idName] = ""
-          //             }
-          //             if(item.id != undefined && item.id != '' && item.id != null
-          //             && item.translate != null && item.translate != '' ){
-          //                 updateData.push(item)
-          //             }else{
-          //                 if(item.translate != '' && item.translate != null){
-          //                     addData.push(item)
-          //                 }
-          //             }
-          //         })
-          //         // 修改翻译
-          //         if(updateData.length > 0){
-          //             updateTranslation(updateData).then((res) => {
-
-          //             })
-          //         }
-
-          //         addData.forEach(item => {
-          //             let id = uuidv4()
-          //             item.id = id
-          //             tempEntry[this.languageMap[item.language].idName] = id
-          //             // 新增翻译
-          //             item.type = this.languageMap[item.language].chinese
-          //             item.entry = tempEntry.entry
-          //             item.versionID = tempEntry.versionID
-          //             item.translateState = '1'
-          //             addTranslate(item).then((res) => {
-
-          //             })
-          //         })
-          //         entry = tempEntry
-          //     // }
-          //     updateEntryInfo(entry,params).then((res) => {
-
-          //         this.$emit("editOk",entry.id)
-          //     })
-          // })
-          // message.success("编辑成功！")
-        })
-        .catch((err) => {
-          // console.log('error', err);
-          this.okLoading = false;
-        });
+        if (failed.length > 0) {
+          const detail = failed
+            .map((item) => `${item.id}: ${item.message}`)
+            .join("；");
+          message.warning(`有 ${failed.length} 条保存失败：${detail}`);
+        }
+        if (successIds.length > 0) {
+          message.success(`已保存 ${successIds.length} 条！`);
+        }
+      } catch (err) {
+        // 表单校验失败或接口 reject
+      } finally {
+        this.okLoading = false;
+      }
     },
     handleClose() {
       this.$emit("editClose");

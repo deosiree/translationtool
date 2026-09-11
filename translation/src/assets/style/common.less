@@ -120,6 +120,19 @@
   .ant-table-cell {
     overflow: hidden;
   }
+  // 右固定列左侧分隔：与左固定「词条」列同风格——深一点的细线，不要阴影
+  .ant-table-cell-fix-right {
+    border-left: 1px solid #d9d9d9 !important;
+  }
+  .ant-table-ping-right .ant-table-cell-fix-right {
+    border-left: 1px solid #d9d9d9 !important;
+    box-shadow: none !important;
+    &::before,
+    &::after {
+      box-shadow: none !important;
+      display: none !important;
+    }
+  }
   .cell-overflow-tooltip {
     display: block;
     max-width: 100%;

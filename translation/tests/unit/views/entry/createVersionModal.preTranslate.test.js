@@ -302,15 +302,24 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
       verifyMethods: []
     })
 
-    // 保存接口
-    request.mockResolvedValue({ code: 200 })
+    // 保存接口（批量 per-row）
+    request.mockResolvedValue({
+      code: 200,
+      data: {
+        list: [{ id: 'e1', success: true, message: 'OK' }],
+        totalNum: 1,
+      },
+      message: '更新完成',
+    })
     await wrapper.vm.preTranslateSave()
     await nextTick()
 
-    // 逐条 updateEntryInfo 被调用（url = /entryInfo/updateEntryInfo）
-    const updateCall = request.mock.calls.map(c => c[0]).find(c => c.url === '/entryInfo/updateEntryInfo')
+    // 批量 updateEntryInfoList 被调用
+    const updateCall = request.mock.calls.map(c => c[0]).find(c => c.url === '/entryInfo/updateEntryInfoList')
     expect(updateCall).toBeTruthy()
-    expect(updateCall.data.english).toBe('final value')
+    expect(Array.isArray(updateCall.data)).toBe(true)
+    expect(updateCall.data[0].english).toBe('final value')
+    expect(updateCall.params).toEqual({ notes: '预翻译' })
 
     // 全部移除 → 关壳三件套 + refresh
     expect(wrapper.emitted('update:dataSource').at(-1)[0]).toEqual([])
@@ -343,8 +352,14 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
       resolveUpdate = resolve
     })
     request.mockImplementation((config) => {
-      if (config.url === '/entryInfo/updateEntryInfo') {
-        return updateGate.then(() => ({ code: 200 }))
+      if (config.url === '/entryInfo/updateEntryInfoList') {
+        return updateGate.then(() => ({
+          code: 200,
+          data: {
+            list: [{ id: 'e1', success: true, message: 'OK' }],
+            totalNum: 1,
+          },
+        }))
       }
       return Promise.resolve({ code: 200 })
     })
@@ -362,7 +377,7 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
 
     const updateCalls = request.mock.calls
       .map((c) => c[0])
-      .filter((c) => c.url === '/entryInfo/updateEntryInfo')
+      .filter((c) => c.url === '/entryInfo/updateEntryInfoList')
     expect(updateCalls).toHaveLength(1)
     expect(wrapper.vm.loading).toBe(false)
   })
@@ -394,8 +409,17 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
           }
         })
       }
-      if (config.url === '/entryInfo/updateEntryInfo' && config.data.id === 'e2') {
-        return Promise.reject(new Error('落库失败'))
+      if (config.url === '/entryInfo/updateEntryInfoList') {
+        return Promise.resolve({
+          code: 203,
+          data: {
+            list: [
+              { id: 'e1', success: true, message: 'OK' },
+              { id: 'e2', success: false, message: '落库失败' },
+            ],
+            totalNum: 2,
+          },
+        })
       }
       return Promise.resolve({ code: 200 })
     })
@@ -619,12 +643,20 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     await wrapper.vm.startEditRow(record)
     wrapper.vm.editableData.e1.english = 'manual value'
 
-    request.mockResolvedValue({ code: 200 })
+    request.mockResolvedValue({
+      code: 200,
+      data: {
+        list: [{ id: 'e1', success: true, message: 'OK' }],
+        totalNum: 1,
+      },
+      message: '更新完成',
+    })
     await wrapper.vm.handleOK()
 
-    const updateCall = request.mock.calls.map((c) => c[0]).find((c) => c.url === '/entryInfo/updateEntryInfo')
+    const updateCall = request.mock.calls.map((c) => c[0]).find((c) => c.url === '/entryInfo/updateEntryInfoList')
     expect(updateCall).toBeTruthy()
-    expect(updateCall.data.english).toBe('manual value')
+    expect(Array.isArray(updateCall.data)).toBe(true)
+    expect(updateCall.data[0].english).toBe('manual value')
     expect(updateCall.params).toEqual({ notes: '编辑词条' })
     expect(wrapper.vm.dataSource.map((item) => item.id)).toEqual(['e1'])
     expect(wrapper.vm.manualEditActive).toBe(false)

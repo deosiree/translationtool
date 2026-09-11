@@ -11,17 +11,18 @@
  *   4. 底部切换为"取消/保存"模式（preTranslateActive）
  *   5. cancel：按快照恢复 dataSource、清编辑态/红字，模态框不关
  *   6. save：仍在编辑态的行先逐列校验（过→提交进 record；不过→保持编辑+红字），
- *      然后取有改动的行逐条 updateEntryInfo({notes:"预翻译"})，成功行从已选列表移除；
- *      全部保存成功且列表清空 → 通知壳关闭模态框，否则保持打开
+ *      然后取有改动的行一次 updateEntryInfoList({notes:"预翻译"})，按 data.list[].success
+ *      成功行从已选列表移除；全部保存成功且列表清空 → 通知壳关闭模态框，否则保持打开
  *
  * 复用 validationUtils 的现成机制：byteLength/getMaxLength/isBlankTranslation/openSetEdit/
  * cancelEdit/setCellError/clearCellError/clearCellErrorsForRecords/validateEditableCell
  */
 import { message, notification } from "ant-design-vue";
 import { cloneDeep } from "lodash-es";
-import { preTranslateEntry, updateEntryInfo } from "@/http/api/entryManage";
+import { preTranslateEntry, updateEntryInfoList } from "@/http/api/entryManage";
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
 import commonParam from "@/constants/commonParam.js";
+import { partitionBatchUpdateResults } from "@/utils/batchUpdateResults.js";
 import {
   byteLength,
   getMaxLength,
@@ -301,15 +302,11 @@ export function usePreTranslateEdit() {
       return { savedRecords: [], allPassed: true, remainingCount: vm.dataSource.length };
     }
 
-    // 3. 逐条保存（词条管理惯例：updateEntryInfo 逐条，notes 免编辑原因）
-    const savePromises = changedRecords.map((record) =>
-      updateEntryInfo(record, { notes: "预翻译" }).then(() => record)
-    );
-    const saveResults = await Promise.allSettled(savePromises);
-    const savedRecords = saveResults
-      .filter((item) => item.status === "fulfilled")
-      .map((item) => item.value);
-    const failedCount = saveResults.length - savedRecords.length;
+    // 3. 批量保存（updateEntryInfoList；按 data.list[].success 区分成败）
+    const res = await updateEntryInfoList(changedRecords, { notes: "预翻译" });
+    const { successIds, failedCount } = partitionBatchUpdateResults(res);
+    const successIdSet = new Set(successIds);
+    const savedRecords = changedRecords.filter((record) => successIdSet.has(record.id));
 
     if (failedCount > 0) {
       message.error(`有 ${failedCount} 条词条保存失败，已保留在列表中。`);
@@ -319,8 +316,7 @@ export function usePreTranslateEdit() {
     }
 
     // 4. 成功行移除出已选列表（由壳 emit update:*）
-    const savedIds = new Set(savedRecords.map((r) => r.id));
-    const remaining = vm.dataSource.filter((record) => !savedIds.has(record.id));
+    const remaining = vm.dataSource.filter((record) => !successIdSet.has(record.id));
 
     vm.preTranslateActive = false;
     vm.preTranslateSnapshot = null;

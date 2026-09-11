@@ -1,7 +1,7 @@
 /**
  * usePreTranslateEdit 编排器单测（纯 vm 模式，mock API 层）
  * 覆盖：快照/并行合并/校验驱动编辑态（toLong 超长红字、special 批量判定、空白译文跳过）/
- *       取消回滚/保存（逐条 updateEntryInfo、成功行移除、校验失败拦截）
+ *       取消回滚/保存（批量 updateEntryInfoList、成功行移除、校验失败拦截）
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
@@ -21,18 +21,28 @@ vi.mock('ant-design-vue', () => ({
 
 vi.mock('@/http/api/entryManage', () => ({
   preTranslateEntry: vi.fn(),
-  updateEntryInfo: vi.fn(),
+  updateEntryInfoList: vi.fn(),
 }))
 
 vi.mock('@/http/api/glossary', () => ({
   checkSykEntryBeforeSave: vi.fn(),
 }))
 
-import { preTranslateEntry, updateEntryInfo } from '@/http/api/entryManage'
+import { preTranslateEntry, updateEntryInfoList } from '@/http/api/entryManage'
 import { checkSykEntryBeforeSave } from '@/http/api/glossary'
 import { usePreTranslateEdit } from '@/composables/entry/usePreTranslateEdit'
 
 const { execute, cancelAll, save, discardRow, confirmRow } = usePreTranslateEdit()
+
+/** 构造批量更新成功响应 */
+function batchUpdateRes(list, code = 200) {
+  return {
+    code,
+    type: code === 200 ? 'OK' : 'INTERNAL_ERROR',
+    data: { list, totalNum: list.length },
+    message: '更新完成',
+  }
+}
 
 /** 构造测试 vm（壳组件的编辑态相关状态子集） */
 function buildVm(entries, { classifyLimit = {} } = {}) {
@@ -218,7 +228,7 @@ describe('usePreTranslateEdit - cancelAll', () => {
 })
 
 describe('usePreTranslateEdit - save', () => {
-  it('保存：改动行逐条 updateEntryInfo(notes=预翻译)，成功行移除，全部保存且清空则 remainingCount=0', async () => {
+  it('保存：改动行一次 updateEntryInfoList(notes=预翻译)，成功行移除，全部保存且清空则 remainingCount=0', async () => {
     const entries = [entry({ id: 'e1' })]
     const vm = buildVm(entries)
     preTranslateEntry.mockResolvedValue(
@@ -226,13 +236,16 @@ describe('usePreTranslateEdit - save', () => {
     )
     await execute(vm, { language: ['英文'], priority: 'shuyuku', verifyMethods: [] })
 
-    updateEntryInfo.mockResolvedValue({ code: 200 })
+    updateEntryInfoList.mockResolvedValue(
+      batchUpdateRes([{ id: 'e1', success: true, message: 'OK' }])
+    )
     const result = await save(vm)
 
-    expect(updateEntryInfo).toHaveBeenCalledTimes(1)
-    // 传入的是已写入译文的词条 + notes
-    const [dataArg, paramsArg] = updateEntryInfo.mock.calls[0]
-    expect(dataArg.english).toBe('saved value')
+    expect(updateEntryInfoList).toHaveBeenCalledTimes(1)
+    // 传入的是已写入译文的词条数组 + notes
+    const [dataArg, paramsArg] = updateEntryInfoList.mock.calls[0]
+    expect(Array.isArray(dataArg)).toBe(true)
+    expect(dataArg[0].english).toBe('saved value')
     expect(paramsArg).toEqual({ notes: '预翻译' })
     // 返回剩余 0（全部移除）
     expect(result.allPassed).toBe(true)
@@ -250,7 +263,7 @@ describe('usePreTranslateEdit - save', () => {
 
     const result = await save(vm)
 
-    expect(updateEntryInfo).not.toHaveBeenCalled()
+    expect(updateEntryInfoList).not.toHaveBeenCalled()
     expect(result.savedRecords).toHaveLength(0)
     expect(result.remainingCount).toBe(1)
     expect(vm.preTranslateActive).toBe(false)
@@ -267,12 +280,18 @@ describe('usePreTranslateEdit - save', () => {
     )
     await execute(vm, { language: ['英文'], priority: 'shuyuku', verifyMethods: [] })
 
-    updateEntryInfo.mockImplementation((dataArg) => {
-      if (dataArg.id === 'e2') return Promise.reject(new Error('落库失败'))
-      return Promise.resolve({ code: 200 })
-    })
+    updateEntryInfoList.mockResolvedValue(
+      batchUpdateRes(
+        [
+          { id: 'e1', success: true, message: 'OK' },
+          { id: 'e2', success: false, message: '落库失败' },
+        ],
+        203
+      )
+    )
     const result = await save(vm)
 
+    expect(updateEntryInfoList).toHaveBeenCalledTimes(1)
     expect(result.savedRecords.map((r) => r.id)).toEqual(['e1'])
     expect(result.remaining.map((r) => r.id)).toEqual(['e2'])
     expect(result.remainingCount).toBe(1)
@@ -291,7 +310,7 @@ describe('usePreTranslateEdit - save', () => {
     const result = await save(vm)
 
     expect(result.allPassed).toBe(false)
-    expect(updateEntryInfo).not.toHaveBeenCalled()
+    expect(updateEntryInfoList).not.toHaveBeenCalled()
     expect(vm.editableData.e1).toBeDefined() // 校验失败保持编辑态
     expect(vm.cellErrors.e1?.english).toContain('允许最大字符数为2')
   })

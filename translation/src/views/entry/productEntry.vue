@@ -2577,4 +2577,10 @@ export default {
 :deep(.ant-pagination) {
   margin: 8px 0px 0px 0px;
 }
+
+.editable-row-operations {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 </style>

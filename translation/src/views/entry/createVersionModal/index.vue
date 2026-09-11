@@ -142,7 +142,7 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { createVNode } from "vue";
 import { deleteEntryInfoByID } from "@/http/api/workbench.js";
-import { forbiddenEntryInfo, updateEntryInfo } from "@/http/api/entryManage.js";
+import { forbiddenEntryInfo, updateEntryInfoList } from "@/http/api/entryManage.js";
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import { pageChange as pageChangeUtil } from "@/utils/selectionUtils";
@@ -160,6 +160,7 @@ import { applyTable } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { withLoading, loading, isLoading } from "@/composables/useLoading";
 import { usePreTranslateEdit } from "@/composables/entry/usePreTranslateEdit.js";
+import { partitionBatchUpdateResults } from "@/utils/batchUpdateResults.js";
 import { cloneDeep } from "lodash-es";
 
 const { execute, cancelAll, save, discardRow, confirmRow } = usePreTranslateEdit();
@@ -677,7 +678,7 @@ export default {
     },
 
     /**
-     * 保存普通编辑：校验并提交编辑行，逐条落库，但保留已选词条。
+     * 保存普通编辑：校验并提交编辑行，批量落库，但保留已选词条。
      * @returns {Promise<void>}
      */
     async saveManualEdits() {
@@ -709,20 +710,16 @@ export default {
           return { allPassed: true, failedCount: 0 };
         }
 
-        const saveResults = await Promise.allSettled(
-          changedRecords.map((record) =>
-            updateEntryInfo(record, { notes: "编辑词条" }).then(() => record)
-          )
+        const res = await updateEntryInfoList(changedRecords, { notes: "编辑词条" });
+        const { successIds, failedCount } = partitionBatchUpdateResults(res);
+        const successIdSet = new Set(successIds);
+        const savedRecords = changedRecords.filter((record) =>
+          successIdSet.has(record.id)
         );
-        const savedRecords = saveResults
-          .filter((item) => item.status === "fulfilled")
-          .map((item) => item.value);
-        const failedCount = saveResults.length - savedRecords.length;
 
         if (savedRecords.length > 0) {
-          const savedIds = new Set(savedRecords.map((record) => record.id));
           this.manualEditSnapshot = (this.manualEditSnapshot || []).map((item) => {
-            if (!savedIds.has(item.id)) return item;
+            if (!successIdSet.has(item.id)) return item;
             const current = this.dataSource.find((record) => record.id === item.id);
             return current ? cloneDeep(current) : item;
           });

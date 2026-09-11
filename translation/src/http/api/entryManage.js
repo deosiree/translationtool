@@ -134,6 +134,20 @@ export function updateEntryInfo(data, params) {
   });
 }
 
+/**
+ * 批量编辑词条（per-row 结果：data.list[{ id, success, message }] + data.totalNum）
+ * @param {Array} data - EntryInfoEntity 数组
+ * @param {Object} [params] - URL 参数，如 { notes }
+ */
+export function updateEntryInfoList(data, params) {
+  return request({
+    url: "/entryInfo/updateEntryInfoList",
+    method: "POST",
+    data,
+    params
+  });
+}
+
 // 禁用词条
 export function forbiddenEntryInfo(data) {
   return request({

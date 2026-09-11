@@ -408,6 +408,8 @@ export const entryPresets = {
       { value: "srcTabName", hidden: true },
       { value: "isLatestVersion", hidden: true },
       { value: "environmentRemark", hidden: true },
+      // 操作列仅「详情」/「保存·取消」，对齐 commonEntry 80px（builder 默认 130 过宽）
+      { value: "operation", width: 80 },
     ],
     defaults: { hidden: false },
   },
