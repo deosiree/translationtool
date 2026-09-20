@@ -755,7 +755,9 @@ describe('ImportModal - 窄视口横滚应在模态内而非 document', () => {
     )
     expect(importSrc).toContain('PipeShell')
     expect(shellSrc).toContain('pipe-shell')
-    expect(shellSrc).toMatch(/\.pipe-shell\s+\.content\s*\{[\s\S]*?min-width:\s*1100px/)
+    expect(shellSrc).toMatch(
+      /\.pipe-shell\s+\.modalContent\s+\.content\s*\{[\s\S]*?min-width:\s*1100px/
+    )
     expect(shellSrc).toMatch(/\.pipe-shell\s+\.modalContent\s*\{[\s\S]*?overflow-x:\s*auto/)
     expect(shellSrc).toMatch(
       /\.pipe-shell\s+\.ant-modal\s*\{[\s\S]*?max-width:\s*calc\(100vw\s*-\s*24px\)/

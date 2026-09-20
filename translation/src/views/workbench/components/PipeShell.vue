@@ -93,7 +93,8 @@ export default {
   overflow-x: auto;
   overflow-y: auto;
 }
-.pipe-shell .content {
+/* 三层选择器压过各阶段 scoped .content[data-v] 的 min-width:0 */
+.pipe-shell .modalContent .content {
   min-width: 1100px; /* PIPE_MIN */
 }
 body.ant-modal-open {
@@ -104,7 +105,7 @@ body.ant-modal-open {
   width: 100%;
   min-width: 0;
 }
-.pipe-shell.full-modal .content {
+.pipe-shell.full-modal .modalContent .content {
   min-width: 0;
 }
 .pipe-shell.full-modal.ant-modal-wrap > div {

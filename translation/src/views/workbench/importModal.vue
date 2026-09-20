@@ -2801,7 +2801,7 @@ export default {
   align-items: stretch;
   gap: 16px;
   align-self: stretch;
-  min-width: 0;
+  /* 勿设 min-width:0，否则盖掉 PipeShell 的内容最小宽 1100 */
 
   :deep(.ant-table-wrapper) {
     width: 100%;
