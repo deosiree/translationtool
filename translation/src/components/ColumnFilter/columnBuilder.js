@@ -63,13 +63,51 @@ export function applyLockCellSize(col) {
 }
 
 /**
+ * 流体列：只锁 minWidth（取 col.width），不设 maxWidth，随表宽扩展
+ * @param {Object} col Ant Table 列配置
+ * @returns {Object}
+ */
+export function applyFluidCellSize(col) {
+  if (!col) return col;
+  col.ellipsis = { showTitle: false };
+  col.customCell = () => {
+    const w = toCssSize(col.width);
+    return { style: { minWidth: w } };
+  };
+  col.customHeaderCell = () => {
+    const w = toCssSize(col.width);
+    return { style: { minWidth: w } };
+  };
+  return col;
+}
+
+/**
+ * lockCellSize 时按 fluid 集合选择锁死或流体
+ * @param {Object} col
+ * @param {string} colValue 逻辑 value（def.value）
+ * @param {boolean} lockCellSize
+ * @param {string[]|Set<string>|null} fluidColValues
+ * @returns {Object}
+ */
+function applyCellSizeMode(col, colValue, lockCellSize, fluidColValues) {
+  if (!lockCellSize) return col;
+  const fluidSet =
+    fluidColValues instanceof Set
+      ? fluidColValues
+      : new Set(fluidColValues || []);
+  if (fluidSet.has(colValue)) return applyFluidCellSize(col);
+  return applyLockCellSize(col);
+}
+
+/**
  * 构建序号列（含分页偏移的 customRender）
  * @param {import('./colPreset.js').ColDef} def 列定义
  * @param {Object} ctx 含 pagination 的上下文
  * @param {boolean} [lockCellSize=false] 是否锁定单元格宽
+ * @param {string[]|Set<string>|null} [fluidColValues=null] 流体列 value 集合
  * @returns {Object} Ant Table 列配置
  */
-function buildIndexCol(def, ctx, lockCellSize = false) {
+function buildIndexCol(def, ctx, lockCellSize = false, fluidColValues = null) {
   const pagination = ctx?.pagination || { pageSize: 20, current: 1 };
   const col = {
     title: def.label,
@@ -82,7 +120,7 @@ function buildIndexCol(def, ctx, lockCellSize = false) {
     customRender: (text) =>
       text.index + 1 + pagination.pageSize * (pagination.current - 1),
   };
-  return lockCellSize ? applyLockCellSize(col) : col;
+  return applyCellSizeMode(col, def.value, lockCellSize, fluidColValues);
 }
 
 /**
@@ -168,6 +206,7 @@ function applyValueBehaviors(col, def, needFilter) {
  * @param {number} [normalWidth=100] 默认列宽
  * @param {boolean} [needFilter=false] 是否启用列头筛选
  * @param {boolean} [lockCellSize=false] 是否锁定单元格宽并关闭原生 title
+ * @param {string[]|Set<string>|null} [fluidColValues=null] 流体列 value（仅 minWidth）
  * @returns {Object} Ant Table 列配置（含 colValue）
  */
 export function buildCol(
@@ -175,10 +214,11 @@ export function buildCol(
   ctx,
   normalWidth = 100,
   needFilter = false,
-  lockCellSize = false
+  lockCellSize = false,
+  fluidColValues = null
 ) {
   if (def.value === "index") {
-    return buildIndexCol(def, ctx, lockCellSize);
+    return buildIndexCol(def, ctx, lockCellSize, fluidColValues);
   }
 
   const col = {
@@ -193,7 +233,7 @@ export function buildCol(
   };
 
   applyValueBehaviors(col, def, needFilter);
-  return lockCellSize ? applyLockCellSize(col) : col;
+  return applyCellSizeMode(col, def.value, lockCellSize, fluidColValues);
 }
 
 /**
@@ -217,6 +257,7 @@ export function filterWbColsForCtx(cols, ctx) {
  * @param {boolean} [needFilter=false] 是否启用列头筛选
  * @param {Function|null} [filterCols] 二次过滤函数 (resolvedCols, ctx) => cols
  * @param {boolean} [lockCellSize=false] 是否锁定单元格宽并关闭原生 title
+ * @param {string[]|Set<string>|null} [fluidColValues=null] 流体列 value
  * @returns {{ columnSettingsList: Array, columns: Array }}
  */
 export function buildTable(
@@ -226,7 +267,8 @@ export function buildTable(
   normalWidth = 100,
   needFilter = false,
   filterCols = null,
-  lockCellSize = false
+  lockCellSize = false,
+  fluidColValues = null
 ) {
   const resolved = resolvePresetCols(preset, allCols);
   const filtered = filterCols ? filterCols(resolved, ctx) : resolved;
@@ -247,7 +289,9 @@ export function buildTable(
   const columns = defaultValues
     .map((v) => defMap.get(v))
     .filter(Boolean)
-    .map((def) => buildCol(def, ctx, normalWidth, needFilter, lockCellSize))
+    .map((def) =>
+      buildCol(def, ctx, normalWidth, needFilter, lockCellSize, fluidColValues)
+    )
     .sort((a, b) => a.index - b.index);
 
   return { columnSettingsList, columns };

@@ -85,6 +85,49 @@ describe('columnBuilder', () => {
     expect(col.customFilterDropdown).toBe(true)
   })
 
+  it('lockCellSize + fluidColValues：流体列仅 minWidth，刚性列含 maxWidth', () => {
+    const fluid = buildCol(
+      { label: '词条', value: 'entry', index: 1, width: 200 },
+      {},
+      100,
+      false,
+      true,
+      ['entry', 'translate']
+    )
+    const rigid = buildCol(
+      { label: '存在状态', value: 'isExist', index: 2, width: 100 },
+      {},
+      100,
+      false,
+      true,
+      ['entry', 'translate']
+    )
+    const fluidStyle = fluid.customCell()
+    const rigidStyle = rigid.customCell()
+    expect(fluidStyle.style.minWidth).toBe('200px')
+    expect(fluidStyle.style.maxWidth).toBeUndefined()
+    expect(rigidStyle.style.minWidth).toBe('100px')
+    expect(rigidStyle.style.maxWidth).toBe('100px')
+    expect(rigidStyle.style.width).toBe('100px')
+  })
+
+  it('buildTable 传入 fluidColValues 时 entry 为流体、index 仍锁死', () => {
+    const { columns } = buildTable(
+      wbAllCols,
+      { ovrd: [], defaults: null },
+      { pagination: { pageSize: 20, current: 1 } },
+      100,
+      false,
+      null,
+      true,
+      ['entry', 'translate']
+    )
+    const entry = columns.find((c) => c.colValue === 'entry')
+    const index = columns.find((c) => c.colValue === 'index')
+    expect(entry.customCell().style.maxWidth).toBeUndefined()
+    expect(index.customCell().style.maxWidth).toBe('50px')
+  })
+
   it('buildTable 应解析动态 dataIndex 并排除当前语种列', () => {
     const task = {
       transMap: {
@@ -300,6 +343,36 @@ describe('columnTable', () => {
       const tagCol = vm.columns.find((c) => c.colValue === 'tag')
       expect(tagCol.ellipsis).toEqual({ showTitle: false })
       expect(tagCol.customCell().style.width).toBe('100px')
+    })
+
+    it('fluidColValues 含 english 时新增英文列为流体（无 maxWidth）', () => {
+      const vm = {
+        checkedColumn: [],
+        colBuildCtx: { pagination: { pageSize: 20, current: 1 } },
+        columnSettingsList: mockColumnSettingsList,
+        columns: [
+          { dataIndex: 'index', colValue: 'index', index: 0 },
+          { dataIndex: 'entry', colValue: 'entry', index: 2 },
+          { dataIndex: 'operation', colValue: 'operation', index: 100 },
+        ],
+        $columnFilterPref: {
+          lockCellSize: true,
+          fluidColValues: ['entry', 'translate', 'english'],
+        },
+      }
+
+      changeColumn(
+        colPrefName,
+        100,
+        ['index', 'entry', 'english', 'operation'],
+        vm,
+        false,
+        mockColumnSettingsList
+      )
+
+      const eng = vm.columns.find((c) => c.colValue === 'english')
+      expect(eng.customCell().style.minWidth).toBe('100px')
+      expect(eng.customCell().style.maxWidth).toBeUndefined()
     })
   })
 

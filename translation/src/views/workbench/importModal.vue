@@ -1,11 +1,9 @@
 <template>
-  <CustomModal
+  <PipeShell
     :visible="visible"
     :modalTitle="modalTitle"
-    :modalWidth="modalWidth"
     :showCancel="false"
     :okLoading="loading"
-    :fullFlag="true"
     okText="保存"
     @handleClose="handleClose"
     @handleOK="handleOK"
@@ -39,10 +37,10 @@
           ></RulesDropdown>
         </template>
         <template #beforeFormBar>
-          <!-- 本阶段专有：数据源选择与导入 -->
+          <!-- 方案 B：语义组两段（数据类型+IP / 词条文件+回写辞典+导入），组内可 wrap -->
           <div class="platformBox">
-            <div style="width: 100%">
-              <a-form layout="inline" style="margin-top: 10px">
+            <div class="import-form-row import-form-row--source" ref="fileRef">
+              <a-form layout="inline" class="import-flow-item">
                 <a-form-item label="数据类型">
                   <a-radio-group
                     v-model:value="dataType"
@@ -98,124 +96,118 @@
                     >
                   </a-radio-group>
                 </a-form-item>
-                <a-form-item
-                  v-if="
-                    $currentDepartment && $currentDepartment.ops.has('needIP')
-                  "
-                  label="IP"
-                >
+              </a-form>
+              <a-form
+                v-if="
+                  $currentDepartment && $currentDepartment.ops.has('needIP')
+                "
+                layout="inline"
+                class="import-flow-item"
+              >
+                <a-form-item label="IP">
                   <a-select
                     v-model:value="ip"
                     :options="ips"
                     @change="ipChange"
-                    style="width: 250px"
+                    style="width: 200px"
                     placeholder="请选择IP"
                     allowClear
+                    size="small"
                   ></a-select>
                 </a-form-item>
               </a-form>
             </div>
             <div
-              class="dataTypeBox file-import-row"
               v-if="dataType === 'file'"
-              ref="fileRef"
+              class="import-form-row import-form-row--file"
             >
-              <a-row :gutter="12" type="flex" align="middle">
-                <a-col :flex="'auto'" style="min-width: 0">
-                  <a-form-item
-                    label="词条文件"
-                    name="filefilename"
-                    class="file-import-item"
+              <a-form-item
+                label="词条文件"
+                name="filefilename"
+                class="import-flow-item file-import-item"
+              >
+                <div class="file-import-controls">
+                  <FileSelectWithEncoding
+                    v-model:encoding="fileEncoding"
+                    v-model:filePath="filePath"
+                    :accept="accept"
+                    :encoding-locked="true"
+                    showPathInput
+                    path-placeholder="请选择词条文件"
+                    :path-input-style="{
+                      width: '140px',
+                      maxWidth: '140px',
+                      flexShrink: 0,
+                    }"
+                    button-text="选择文件"
+                    size="small"
+                    :before-upload="beforeUpload"
+                    @change="handleChange"
+                  />
+                  <a
+                    class="template-download-link"
+                    @click="templateFileDownload"
+                    >下载模板</a
                   >
-                    <div class="file-import-controls">
-                      <FileSelectWithEncoding
-                        v-model:encoding="fileEncoding"
-                        v-model:filePath="filePath"
-                        :accept="accept"
-                        :encoding-locked="true"
-                        showPathInput
-                        path-placeholder="请选择词条文件"
-                        :path-input-style="{
-                          width: '140px',
-                          maxWidth: '140px',
-                          flexShrink: 0,
-                        }"
-                        button-text="选择文件"
-                        size="small"
-                        :before-upload="beforeUpload"
-                        @change="handleChange"
-                      />
-                      <a
-                        class="template-download-link"
-                        @click="templateFileDownload"
-                        >下载模板</a
-                      >
-                    </div>
-                  </a-form-item>
-                </a-col>
-                <a-col flex="none">
-                  <a-form-item
-                    v-if="
-                      $currentDepartment && $currentDepartment.ops.has('needIP')
-                    "
-                    label="回写辞典"
-                    name="diFileName"
-                    class="file-import-item"
-                  >
-                    <a-select
-                      v-model:value="filediFileName"
-                      allowClear
-                      placeholder="请选择回写辞典目录"
-                      style="width: 160px"
-                      :options="dictionaryOptions"
-                      size="small"
-                      show-search
-                      :filter-option="
-                        (input, option) =>
-                          option.label
-                            .toLowerCase()
-                            .includes(input.toLowerCase())
-                      "
-                    />
-                    <a-tooltip placement="top">
-                      <template #title>
-                        <span>添加辞典</span>
-                      </template>
-                      <PlusSquareOutlined
-                        @click="createDictionary"
-                        style="color: #369fff; margin-left: 6px"
-                      />
-                    </a-tooltip>
-                  </a-form-item>
-                  <a-form-item
-                    v-else-if="templateTypes"
-                    label="选择模板"
-                    name="templateType"
-                    class="file-import-item"
-                  >
-                    <a-select
-                      v-model:value="templateType"
-                      allowClear
-                      placeholder="请选择模板类型"
-                      style="width: 160px"
-                      size="small"
-                      :options="templateTypes"
-                    />
-                  </a-form-item>
-                </a-col>
-                <a-col flex="none">
-                  <a-form-item class="file-import-item">
-                    <a-button
-                      type="primary"
-                      ghost
-                      size="small"
-                      :loading="loading"
-                      @click="importEntryData"
-                      >导入</a-button
-                    >
-                  </a-form-item>
-                </a-col>
-              </a-row>
+                </div>
+              </a-form-item>
+              <a-form-item
+                v-if="
+                  $currentDepartment && $currentDepartment.ops.has('needIP')
+                "
+                label="回写辞典"
+                name="diFileName"
+                class="import-flow-item file-import-item"
+              >
+                <a-select
+                  v-model:value="filediFileName"
+                  allowClear
+                  placeholder="请选择回写辞典目录"
+                  style="width: 160px"
+                  :options="dictionaryOptions"
+                  size="small"
+                  show-search
+                  :filter-option="
+                    (input, option) =>
+                      option.label
+                        .toLowerCase()
+                        .includes(input.toLowerCase())
+                  "
+                />
+                <a-tooltip placement="top">
+                  <template #title>
+                    <span>添加辞典</span>
+                  </template>
+                  <PlusSquareOutlined
+                    @click="createDictionary"
+                    style="color: #369fff; margin-left: 6px"
+                  />
+                </a-tooltip>
+              </a-form-item>
+              <a-form-item
+                v-else-if="templateTypes"
+                label="选择模板"
+                name="templateType"
+                class="import-flow-item file-import-item"
+              >
+                <a-select
+                  v-model:value="templateType"
+                  allowClear
+                  placeholder="请选择模板类型"
+                  style="width: 160px"
+                  size="small"
+                  :options="templateTypes"
+                />
+              </a-form-item>
+              <a-button
+                type="primary"
+                ghost
+                size="small"
+                class="import-flow-item import-flow-item--action"
+                :loading="loading"
+                @click="importEntryData"
+                >导入</a-button
+              >
             </div>
             <div class="dataTypeBox" v-if="dataType === 'ts'">
               <a-form ref="tsFormRef" :model="tsFile" style="width: 100%">
@@ -722,19 +714,12 @@
             </div>
           </div>
         </template>
-        <!-- 表格上方：词条/存在状态筛选 + 过滤语种 -->
-        <div
-          style="
-            width: auto;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-          "
-        >
+        <!-- 表格上方：词条/存在状态筛选 -->
+        <div class="import-table-filters">
           <a-form
             layout="inline"
             autocomplete="off"
-            style="display: flex; gap: 8px"
+            style="display: flex; gap: 8px; align-items: center"
           >
             <a-form-item
               label="词条"
@@ -784,10 +769,6 @@
         >
           <template #icon> <DeleteOutlined /> </template>删除
         </a-button>
-        <LanguageFilter
-          v-model="filterLanguage"
-          @change="filterLanguageChange"
-        />
         <template #trailing>
           <!-- 展示列 + 释义覆盖（工具栏最右侧，非表头放大镜） -->
           <ColumnActions
@@ -807,9 +788,17 @@
             @change="syncColumnsFromPref"
           />
         </template>
+        <template #subToolbar>
+          <div class="select">
+            <LanguageFilter
+              v-model="filterLanguage"
+              @change="filterLanguageChange"
+            />
+          </div>
+        </template>
       </PipelinePanel>
     </div>
-    <template v-slot:leftBottomBtn>
+    <template #leftBottomBtn>
       <a-button
         type="primary"
         size="small"
@@ -827,7 +816,7 @@
         >取消聚合</a-button
       >
     </template>
-  </CustomModal>
+  </PipeShell>
   <Dict
     :visible="createDictVisible"
     :currentIP="ip"
@@ -890,6 +879,7 @@
 <script>
 import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
+import PipeShell from "@/views/workbench/components/PipeShell.vue";
 import Dict from "@/views/dictionary/dictModal.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
@@ -1035,6 +1025,7 @@ export default {
     CheckOutlined,
     CloseOutlined,
     CustomModal,
+    PipeShell,
     ExclamationCircleOutlined,
     PlusSquareOutlined,
     SettingOutlined,
@@ -1078,7 +1069,6 @@ export default {
   },
   data() {
     return {
-      modalWidth: "70%",
       // 当前登录用户信息（从 Vuex 注入），用于一些接口参数（如 departmentType）
       user: null,
       task: {},
@@ -1214,6 +1204,7 @@ export default {
     },
     importRowSelection() {
       return {
+        columnWidth: 48,
         selectedRowKeys: this.selectedRowKeys,
         onChange: this.onSelectChange,
         checkStrictly: false,
@@ -1222,6 +1213,13 @@ export default {
           { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
         ],
       };
+    },
+    /** 词条 + 翻译 + 各语种「xx翻译」列可随表宽流体扩展 */
+    importFluidColValues() {
+      const langValues = Object.values(commonParam.languageMap || {})
+        .map((m) => m?.value)
+        .filter(Boolean);
+      return ["entry", "translate", ...langValues];
     },
   },
   watch: {
@@ -1277,6 +1275,7 @@ export default {
               needFilter: true,
               filterCols: filterWbColsForCtx,
               lockCellSize: true,
+              fluidColValues: this.importFluidColValues,
             });
           });
         }
@@ -2799,38 +2798,61 @@ export default {
   background-color: #f3f3f3;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: stretch;
   gap: 16px;
   align-self: stretch;
+  min-width: 0;
+
+  :deep(.ant-table-wrapper) {
+    width: 100%;
+    min-width: 0;
+  }
 
   .platformBox {
     width: 100%;
-    background-color: white;
-    padding: 0px 16px 16px 16px;
+    box-sizing: border-box;
+    background-color: #fff;
+    padding: 12px 16px 16px;
     border-radius: 4px;
-  }
 
-  .dataTypeBox {
-    // display: flex;
-    // align-items: center;
-    // align-self: stretch;
-    width: 100%;
-    // border-radius: 4px;
-    background-color: white;
-    // padding: 16px;
-    // border: 1px solid #f0f0f0;
-    :deep(.ant-tabs-nav) {
-      margin-bottom: 10px;
+    :deep(.ant-form-item) {
+      margin-bottom: 0;
     }
-  }
-  .file-import-row {
+    :deep(.ant-row) {
+      height: auto;
+      min-height: 0;
+      margin-bottom: 0;
+      row-gap: 12px;
+      align-items: center;
+    }
+
+    /* 方案 B：两段语义行，组内 flex-wrap */
+    .import-form-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px 16px;
+      width: 100%;
+    }
+    .import-form-row--source {
+      margin-bottom: 8px;
+    }
+    .import-form-row--file {
+      margin-bottom: 0;
+    }
+    .import-flow-item {
+      margin: 0;
+    }
+    .import-flow-item--action {
+      margin-left: auto;
+    }
     .file-import-item {
       margin-bottom: 0;
     }
     .file-import-controls {
       display: inline-flex;
       align-items: center;
-      flex-wrap: nowrap;
+      flex-wrap: wrap;
       gap: 8px;
     }
     .template-download-link {
@@ -2839,20 +2861,26 @@ export default {
       flex-shrink: 0;
     }
   }
-  .dataTypeBox2 {
-    display: flex;
+
+  .dataTypeBox {
     width: 100%;
-    // border-radius: 4px;
     background-color: white;
-    // padding: 16px;
-    // border: 1px solid #f0f0f0;
     :deep(.ant-tabs-nav) {
       margin-bottom: 10px;
     }
   }
-  .ant-row {
-    height: 50px;
-    // height: 38px;
+  .dataTypeBox2 {
+    display: flex;
+    width: 100%;
+    background-color: white;
+    :deep(.ant-tabs-nav) {
+      margin-bottom: 10px;
+    }
+  }
+  .import-table-filters {
+    width: auto;
+    display: flex;
+    align-items: center;
   }
 }
 :deep(.ant-pagination) {

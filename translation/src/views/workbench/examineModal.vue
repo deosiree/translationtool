@@ -1,6 +1,14 @@
 <template>
-  <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" okText="保存" :okLoading="loading"
-    @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <PipeShell
+    :visible="visible"
+    :modalTitle="modalTitle"
+    :okLoading="loading"
+    okText="保存"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+    @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
+  >
     <div class="content">
       <!-- 工具栏壳：校验规则 + 查询/批量审核 + 展示列/CoverButton + 过滤语种 -->
       <PipelinePanel
@@ -65,15 +73,15 @@
         </template>
       </PipelinePanel>
     </div>
-    <template v-slot:leftBottomBtn>
+    <template #leftBottomBtn>
       <a-button type="primary" size="small" style="margin-left:8px;float:left" class="resetBtn" @click="aggregation">聚合</a-button>
       <a-button type="primary" size="small" style="margin-left:8px;float:left" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button>
     </template>
-  </CustomModal>
+  </PipeShell>
 </template>
 <script>
 import "@/assets/style/common.less";
-import CustomModal from "@/components/modal/index.vue";
+import PipeShell from "@/views/workbench/components/PipeShell.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
@@ -156,7 +164,7 @@ export default {
     CloseOutlined,
     SettingOutlined,
     InfoCircleOutlined,
-    CustomModal,
+    PipeShell,
     RulesDropdown,
     EntryStateSelect,
     IsExistBadge,
@@ -191,7 +199,7 @@ export default {
 
   data() {
     return {
-      modalWidth: "70%",
+      // modal width 由 PipeShell 默认 90%
       task: {},
       keyWords: "",
       // tableHeight: { x: "100%", y: "415px" },

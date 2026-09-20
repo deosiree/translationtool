@@ -1,6 +1,15 @@
 <template>
-  <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" :okLoading="loading" :showCancel="false"
-    okText="归档并结束任务" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <PipeShell
+    :visible="visible"
+    :modalTitle="modalTitle"
+    :okLoading="loading"
+    :showCancel="false"
+    okText="归档并结束任务"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+    @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
+  >
     <div class="content">
       <!-- 工具栏壳：任务信息 + 查询区 + 内联展示列 -->
       <PipelinePanel
@@ -28,12 +37,12 @@
         <a-button v-if="canShowDelete" type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
       </PipelinePanel>
     </div>
-    <template v-slot:leftBottomBtn>
+    <template #leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
       <a-button type="primary" ghost @click="placeOnFile" v-if="$currentDepartment && $currentDepartment.ops.has('needIP')">归档</a-button>
       <a-button type="primary" ghost @click="placeOnFile2">结束任务</a-button>
     </template>
-  </CustomModal>
+  </PipeShell>
   <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK"
     @afterClose="ipSelectAfterClose">
     <div style="width:100%;height:100%">
@@ -47,6 +56,7 @@
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import PipeShell from "@/views/workbench/components/PipeShell.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
@@ -102,6 +112,7 @@ export default {
     CloseOutlined,
     ExclamationCircleOutlined,
     CustomModal,
+    PipeShell,
     IsExistBadge,
     EntryStateSelect,
     TransStateSelect,
@@ -130,7 +141,7 @@ export default {
 
   data() {
     return {
-      modalWidth: "70%",
+      // modal width 由 PipeShell 默认 90%
       task: {},
       keyWords: "",
       // tableHeight: { x: "100%", y: "415px" },

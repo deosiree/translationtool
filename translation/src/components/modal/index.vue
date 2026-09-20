@@ -8,7 +8,7 @@
     :footer="!footer ? null : undefined"
     :afterClose="afterClose"
     :maskClosable='false'
-    :wrap-class-name=" fullScreen ? 'full-modal' : null"
+    :wrap-class-name="wrapClassNames"
     centered
     ok-text="确定"
     cancel-text="取消"
@@ -106,6 +106,11 @@ export default {
         fullFlag:{
             type: Boolean,
             default: false
+        },
+        // 额外挂到 modal wrap 上的 class（与全屏 full-modal 可并存）
+        wrapClassName: {
+            type: String,
+            default: ''
         }
     },
     data() {
@@ -128,6 +133,12 @@ export default {
         }
     },
     computed: {
+        wrapClassNames() {
+            const names = []
+            if (this.fullScreen) names.push('full-modal')
+            if (this.wrapClassName) names.push(this.wrapClassName)
+            return names.length ? names.join(' ') : null
+        },
         computedBodyStyle() {
             // 默认保持旧行为：固定 height（百分比）
             // 当设置了 bodyMaxHeight 时，使用 maxHeight + auto 高度，避免内部内容“顶破” modal

@@ -59,6 +59,10 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
         mocks: createUserStoreMock(),
         stubs: {
           CustomModal: { template: '<div><slot /></div>' },
+          PipeShell: {
+            name: 'PipeShell',
+            template: '<div class="pipe-shell-stub"><slot /><slot name="leftBottomBtn" /></div>',
+          },
           'a-table': tableBodyStub,
           'a-form': {
             name: 'AForm',

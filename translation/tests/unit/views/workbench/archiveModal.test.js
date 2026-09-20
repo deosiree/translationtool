@@ -49,6 +49,7 @@ describe('ArchiveModal - user 属性重构测试', () => {
           mocks: storeMock,
           stubs: {
             'CustomModal': true,
+            'PipeShell': true,
             'a-form': true,
             'a-form-item': true,
             'a-button': true
@@ -76,6 +77,7 @@ describe('ArchiveModal - user 属性重构测试', () => {
           mocks: storeMock,
           stubs: {
             'CustomModal': true,
+            'PipeShell': true,
             'a-form': true,
             'a-form-item': true,
             'a-button': true
@@ -101,6 +103,7 @@ describe('ArchiveModal - user 属性重构测试', () => {
           mocks: storeMock,
           stubs: {
             'CustomModal': true,
+            'PipeShell': true,
             'a-form': true,
             'a-form-item': true,
             'a-button': true

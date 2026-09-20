@@ -1,6 +1,14 @@
 <template>
-  <Modal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" okText="保存" :okLoading="loading"
-    @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <PipeShell
+    :visible="visible"
+    :modalTitle="modalTitle"
+    :okLoading="loading"
+    okText="保存"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+    @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
+  >
     <div class="content">
 
       <!-- 工具栏壳：校验规则 + 查询/批量审核 + 内联展示列 -->
@@ -40,11 +48,11 @@
         <a-button v-if="canShowDelete" type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
       </PipelinePanel>
     </div>
-  </Modal>
+  </PipeShell>
 </template>
 <script>
 import "@/assets/style/common.less";
-import Modal from "@/components/modal/index.vue";
+import PipeShell from "@/views/workbench/components/PipeShell.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
@@ -123,7 +131,7 @@ export default {
   components: {
     CheckOutlined,
     CloseOutlined,
-    Modal,
+    PipeShell,
     QuestionCircleOutlined,
     SettingOutlined,
     ExclamationCircleOutlined,
@@ -159,7 +167,7 @@ export default {
 
   data() {
     return {
-      modalWidth: "70%",
+      // modal width 由 PipeShell 默认 90%
       task: {},
       keyWords: "",
       tableHeight: { x: "max-content", y: 415 },

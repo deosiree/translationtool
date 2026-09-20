@@ -74,7 +74,11 @@ const tableBodyStub = {
 
 function importModalTableStubs() {
   return {
-    CustomModal: { template: '<div class="custom-modal-stub"><slot /></div>' },
+    CustomModal: { template: '<div class="custom-modal-stub"><slot /><slot name="leftBottomBtn" /></div>' },
+    PipeShell: {
+      name: 'PipeShell',
+      template: '<div class="pipe-shell-stub"><slot /><slot name="leftBottomBtn" /></div>',
+    },
     'a-table': tableBodyStub,
     'a-form': {
       name: 'AForm',
@@ -141,6 +145,7 @@ describe('ImportModal - user 属性重构测试', () => {
           mocks: storeMock,
           stubs: {
             'CustomModal': true,
+            'PipeShell': true,
             'a-form': true,
             'a-form-item': true,
             'a-upload': true,
@@ -172,6 +177,7 @@ describe('ImportModal - user 属性重构测试', () => {
           mocks: storeMock,
           stubs: {
             'CustomModal': true,
+            'PipeShell': true,
             'a-form': true,
             'a-form-item': true,
             'a-upload': true,
@@ -204,6 +210,7 @@ describe('ImportModal - user 属性重构测试', () => {
           mocks: storeMock,
           stubs: {
             'CustomModal': true,
+            'PipeShell': true,
             'a-form': true,
             'a-form-item': true,
             'a-upload': true,
@@ -446,6 +453,17 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
     await nextTick()
     await wrapper.vm.$nextTick()
     expect(wrapper.vm.$columnFilterPref?.lockCellSize).toBe(true)
+    expect(wrapper.vm.$columnFilterPref?.fluidColValues).toEqual(
+      expect.arrayContaining(['entry', 'translate', 'english'])
+    )
+    expect(wrapper.vm.importRowSelection.columnWidth).toBe(48)
+    const entryCol = wrapper.vm.columns.find((c) => c.colValue === 'entry')
+    const isExistCol = wrapper.vm.columns.find((c) => c.colValue === 'isExist')
+    expect(entryCol?.customCell?.().style.maxWidth).toBeUndefined()
+    expect(entryCol?.customCell?.().style.minWidth).toBeTruthy()
+    if (isExistCol?.customCell) {
+      expect(isExistCol.customCell().style.maxWidth).toBeTruthy()
+    }
     expect(wrapper.find('.table-stub').classes()).toContain('table-cell-overflow')
   })
 
@@ -717,5 +735,72 @@ describe('ImportModal - saveEntrys 校验与状态', () => {
     expect(loadingDuringRevalidate).toBe(true)
     expect(isLoading()).toBe(false)
     revalSpy.mockRestore()
+  })
+})
+
+describe('ImportModal - 窄视口横滚应在模态内而非 document', () => {
+  it('PipeShell：内容 min-width 1100 + modalContent 横滚 + 外壳限视口', async () => {
+    const fs = await import('node:fs')
+    const path = await import('node:path')
+    const shellSrc = fs.readFileSync(
+      path.resolve(
+        __dirname,
+        '../../../../src/views/workbench/components/PipeShell.vue'
+      ),
+      'utf8'
+    )
+    const importSrc = fs.readFileSync(
+      path.resolve(__dirname, '../../../../src/views/workbench/importModal.vue'),
+      'utf8'
+    )
+    expect(importSrc).toContain('PipeShell')
+    expect(shellSrc).toContain('pipe-shell')
+    expect(shellSrc).toMatch(/\.pipe-shell\s+\.content\s*\{[\s\S]*?min-width:\s*1100px/)
+    expect(shellSrc).toMatch(/\.pipe-shell\s+\.modalContent\s*\{[\s\S]*?overflow-x:\s*auto/)
+    expect(shellSrc).toMatch(
+      /\.pipe-shell\s+\.ant-modal\s*\{[\s\S]*?max-width:\s*calc\(100vw\s*-\s*24px\)/
+    )
+    expect(shellSrc).toMatch(/body\.ant-modal-open\s*\{[\s\S]*?overflow:\s*hidden/)
+    expect(importSrc).toMatch(/\.import-form-row--source/)
+    expect(importSrc).toMatch(/\.import-form-row--file/)
+  })
+
+  it('注入契约样式后：外壳限视口、内容可横滚、body 锁 overflow', () => {
+    const style = document.createElement('style')
+    style.textContent = `
+      body.ant-modal-open { overflow: hidden !important; }
+      .pipe-shell.ant-modal-wrap {
+        display: flex; align-items: center; justify-content: center; overflow: auto;
+      }
+      .pipe-shell .ant-modal {
+        max-width: calc(100vw - 24px) !important; min-width: 0; margin: 0;
+      }
+      .pipe-shell .modalContent { overflow-x: auto; overflow-y: auto; }
+      .pipe-shell .content { min-width: 1100px; }
+    `
+    document.head.appendChild(style)
+    document.body.classList.add('ant-modal-open')
+
+    const wrap = document.createElement('div')
+    wrap.className = 'ant-modal-wrap ant-modal-centered pipe-shell'
+    const modal = document.createElement('div')
+    modal.className = 'ant-modal'
+    const modalContent = document.createElement('div')
+    modalContent.className = 'modalContent'
+    const content = document.createElement('div')
+    content.className = 'content'
+    modalContent.appendChild(content)
+    modal.appendChild(modalContent)
+    wrap.appendChild(modal)
+    document.body.appendChild(wrap)
+
+    expect(getComputedStyle(modal).maxWidth).toContain('px')
+    expect(getComputedStyle(content).minWidth).toBe('1100px')
+    expect(getComputedStyle(modalContent).overflowX).toMatch(/auto|scroll/)
+    expect(getComputedStyle(document.body).overflow).toMatch(/hidden/)
+
+    wrap.remove()
+    style.remove()
+    document.body.classList.remove('ant-modal-open')
   })
 })

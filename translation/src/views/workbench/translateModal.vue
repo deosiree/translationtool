@@ -1,6 +1,14 @@
 <template>
-  <Modal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" okText="保存" :okLoading="loading" :fullFlag="true"
-    @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <PipeShell
+    :visible="visible"
+    :modalTitle="modalTitle"
+    :okLoading="loading"
+    okText="保存"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+    @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
+  >
     <div class="content">
       <div class="table">
         <!-- 工具栏壳：校验规则 + 栅格搜索区（展示列嵌在右侧列） -->
@@ -207,7 +215,7 @@
         </a-spin>
       </div>
     </div>
-  </Modal>
+  </PipeShell>
   <Modal :visible="preTranslateVisible" modalTitle="预翻译" :okLoading="loading" @handleClose="preTranslateClose"
     @handleOK="preTranslateOK" @afterClose="preTranslateAfterClose">
     <div style="width:100%;height:100%">
@@ -260,6 +268,7 @@
 <script>
 import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
+import PipeShell from "@/views/workbench/components/PipeShell.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
@@ -356,6 +365,7 @@ export default {
   },
   components: {
     Modal,
+    PipeShell,
     QuestionCircleOutlined,
     InfoCircleOutlined,
     DownOutlined,
@@ -390,7 +400,7 @@ export default {
   },
   data() {
     return {
-      modalWidth: "75%",
+      // modal width 由 PipeShell 默认 90%
       task: {},
       search: {
         keyWords: "",
