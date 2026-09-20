@@ -6,8 +6,12 @@
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "preview": "serve -s dist -l 8080",
-    "lint": "vue-cli-service lint src/views src/http",
-    "lint:all": "vue-cli-service lint",
+    "lint": "vue-cli-service lint --no-fix src prototype",
+    "lint:fix": "vue-cli-service lint --no-fix src prototype",
+    "lint:all": "vue-cli-service lint --no-fix",
+    "check:imports": "node scripts/check-resolved-imports.js",
+    "review": "npm run check:imports",
+    "review:full": "npm run check:imports && npm run lint:fix",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
@@ -61,6 +65,8 @@
     "electron-devtools-installer": "^3.1.0",
     "eslint": "^7.32.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^4.2.5",
     "eslint-plugin-vue": "^8.0.3",
     "jsdom": "^27.4.0",
@@ -75,28 +81,103 @@
   "eslintConfig": {
     "root": true,
     "env": {
-      "node": true
+      "node": true,
+      "browser": true,
+      "es2021": true
     },
     "extends": [
       "plugin:vue/vue3-essential",
-      "eslint:recommended"
+      "eslint:recommended",
+      "plugin:import/errors",
+      "plugin:import/warnings"
+    ],
+    "plugins": [
+      "import"
     ],
     "parserOptions": {
-      "parser": "@babel/eslint-parser"
+      "parser": "@babel/eslint-parser",
+      "requireConfigFile": false,
+      "ecmaVersion": 2021,
+      "sourceType": "module"
     },
-    "rules": {},
+    "settings": {
+      "import/resolver": {
+        "alias": {
+          "map": [
+            [
+              "@",
+              "./src"
+            ],
+            [
+              "@prototype",
+              "./prototype"
+            ]
+          ],
+          "extensions": [
+            ".js",
+            ".vue",
+            ".json"
+          ]
+        }
+      },
+      "import/extensions": [
+        ".js",
+        ".vue",
+        ".json"
+      ]
+    },
+    "rules": {
+      "no-unused-vars": [
+        "warn",
+        {
+          "argsIgnorePattern": "^_",
+          "varsIgnorePattern": "^_"
+        }
+      ],
+      "no-prototype-builtins": "warn",
+      "import/no-unresolved": [
+        "error",
+        {
+          "commonjs": true,
+          "caseSensitive": true
+        }
+      ],
+      "import/named": "off",
+      "import/namespace": "off",
+      "import/default": "off",
+      "import/no-named-as-default": "off",
+      "import/no-named-as-default-member": "off",
+      "import/no-duplicates": "warn",
+      "vue/multi-word-component-names": "off",
+      "vue/no-unused-components": "warn",
+      "vue/no-unused-vars": "warn",
+      "vue/require-prop-type-constructor": "warn",
+      "vue/require-valid-default-prop": "warn",
+      "no-console": "off",
+      "no-debugger": "warn"
+    },
     "overrides": [
       {
         "files": [
-          "src/views/**/*.vue"
+          "src/**/*.{js,vue}",
+          "prototype/**/*.{js,vue}"
         ],
         "rules": {
-          "no-unused-vars": "warn",
-          "no-prototype-builtins": "warn",
-          "vue/no-unused-components": "warn",
-          "vue/multi-word-component-names": "warn",
-          "vue/require-prop-type-constructor": "warn",
-          "vue/require-valid-default-prop": "warn"
+          "import/no-unresolved": "error"
+        }
+      },
+      {
+        "files": [
+          "tests/**/*.{js,vue}",
+          "**/*.test.js",
+          "**/*.spec.js"
+        ],
+        "env": {
+          "jest": true
+        },
+        "rules": {
+          "import/no-unresolved": "off",
+          "no-unused-vars": "off"
         }
       }
     ]

@@ -395,7 +395,6 @@
         </div>
       </template>
     </OperationArea>
-    <EditReason :visible="editVisible" :entry="editEntry" @editClose="editClose" @editOk="editOk" />
   </div>
   <CreateVersionModal :visible="createVisible" :selectedProducts="selectedProducts" :dataSource="selectEntry"
     :currentProduct="product" :selectedRowKeys="selectedRowKeys" :selectedRows="selectedRows"
@@ -430,7 +429,6 @@ import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
-import EditReason from "@/views/entry/editReason.vue";
 import CreateVersionModal from "@prototype/entryCheck/createVersionModal.vue";
 import CopyAttrsModal from "@prototype/entryCheck/copyAttrsModal.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
@@ -445,6 +443,7 @@ import {
   deleteEntryInfo,
   updatePublicEntry,
   addSingleEntry,
+  updateEntryInfoList,
   getClassfy,
   getClassTree,
   entryImportExcle,
@@ -452,6 +451,8 @@ import {
   getEntrySourcesByClassify,
   getWriteFileNamesByClassify,
 } from "@/http/api/entryManage";
+import { partitionBatchUpdateResults } from "@/utils/batchUpdateResults.js";
+import { EDIT_NOTES } from "@/constants/editNotes.js";
 import { getSecondClassify } from "@/http/api/secondClassify";
 import {
   queryUserPartiality,
@@ -517,7 +518,6 @@ export default {
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
-    EditReason,
     CreateVersionModal,
     CopyAttrsModal,
     SecondClassify,
@@ -750,8 +750,6 @@ export default {
       operationAreaHeight: 190,
       currentVersion: null,
       productVersions: [],
-      editVisible: false,
-      editEntry: [],
       createVersionFlag: false,
       selectEntry: [], // 已选词条（可能会跨产品，还涉及了分页）
       createVisible: false,
@@ -1733,9 +1731,7 @@ export default {
             this.pagination.total = this.pagination.total + 1;
           });
         } else {
-          this.editEntry = [this.editableData[id]];
-          this.editVisible = true;
-          setModalAriaHidden(this, document);
+          this.confirmSave([this.editableData[id]]);
         }
 
         // 更新选中的值
@@ -1823,27 +1819,67 @@ export default {
     },
     // 批量保存
     batchSave() {
-      let edit = [];
+      const edit = [];
       for (let key in this.editableData) {
         edit.push(this.editableData[key]);
       }
-      this.editEntry = edit;
-      this.editVisible = true;
-      setModalAriaHidden(this, document);
+      this.confirmSave(edit);
     },
-    editOk(entry) {
+    /**
+     * 确认后保存；无输入框，仅确认。
+     * @param {Object[]} rows
+     */
+    confirmSave(rows) {
+      if (!rows || rows.length === 0) return;
+      Modal.confirm({
+        title: "确认保存当前修改？",
+        okText: "确定",
+        cancelText: "取消",
+        style: { top: "30%" },
+        onOk: () => this.saveRows(rows),
+      });
+    },
+    /**
+     * 批量落库；notes 为废弃字段兜底。
+     * @param {Object[]} rows
+     */
+    async saveRows(rows) {
+      try {
+        const res = await updateEntryInfoList(rows, {
+          notes: EDIT_NOTES,
+        });
+        const { successIds, failed } = partitionBatchUpdateResults(res);
+        const successIdSet = new Set(successIds);
+        for (const entry of rows) {
+          if (successIdSet.has(entry.id)) {
+            this.afterSave(entry);
+          }
+        }
+        if (failed.length > 0) {
+          const detail = failed
+            .map((item) => `${item.id}: ${item.message}`)
+            .join("；");
+          message.warning(`有 ${failed.length} 条保存失败：${detail}`);
+        }
+        if (successIds.length > 0) {
+          message.success(`已保存 ${successIds.length} 条！`);
+        }
+      } catch (err) {
+        // 接口 reject
+      }
+    },
+    /**
+     * 单行保存成功后的本地 UI 同步。
+     * @param {Object} entry
+     */
+    afterSave(entry) {
       delete this.editableData[entry.id];
       delete this.rules[entry.id];
       let index = this.dataSource.findIndex((item) => item.id === entry.id);
       this.dataSource.splice(index, 1);
       this.dataSource.splice(index, 0, entry);
-
-      this.editVisible = false;
       delete this.rowClassify2Option[entry.id];
       this.getEntryByClassfy(false, this.accurSearch);
-    },
-    editClose() {
-      this.editVisible = false;
     },
 
     // 表格列可伸缩

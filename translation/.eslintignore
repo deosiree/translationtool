@@ -9,3 +9,5 @@ clearCopy/**
 
 # views 下的拷贝文件（通常是临时/对照，不作为核心基线）
 src/views/**/* copy.vue
+
+*.min.js

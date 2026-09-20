@@ -16,6 +16,7 @@ import {
   setCellError,
 } from "@/utils/validationUtils.js";
 import commonParam from "@/constants/commonParam.js";
+import { EDIT_NOTES } from "@/constants/editNotes.js";
 
 /**
  * 只提交不校验：editableData → record 并退出编辑。
@@ -140,7 +141,7 @@ async function rehydrateFailedRow(vm, record, before, effective) {
  */
 export async function runSaveFlow(vm, options = {}) {
   const {
-    notes = "编辑词条",
+    notes = EDIT_NOTES,
     snapshot = null,
     removeOnSuccess = false,
     onSync = null,

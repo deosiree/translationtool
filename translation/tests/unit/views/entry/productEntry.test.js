@@ -28,6 +28,7 @@ vi.mock('@/http/api/entryManage', () => ({
   deleteEntryInfo: vi.fn(),
   updatePublicEntry: vi.fn(),
   addSingleEntry: vi.fn(),
+  updateEntryInfoList: vi.fn(),
   getClassfy: vi.fn(),
   getClassTree: vi.fn(),
   entryImportExcle: vi.fn(),
@@ -88,9 +89,17 @@ vi.mock('ant-design-vue', () => ({
     warning: vi.fn(),
     info: vi.fn(),
   },
-  Modal: {},
+  Modal: {
+    confirm: vi.fn(({ onOk }) => {
+      if (typeof onOk === 'function') return onOk()
+    }),
+  },
   notification: {},
 }))
+
+import { updateEntryInfoList } from '@/http/api/entryManage'
+import { EDIT_NOTES } from '@/constants/editNotes.js'
+import { Modal } from 'ant-design-vue'
 
 const testProduct = {
   type: 'module',
@@ -128,7 +137,6 @@ function mountProductEntry(storeMock = createUserStoreMock(), options = {}) {
         AccurSearchButton: true,
         EntryStateSelect: true,
         TransStateSelect: true,
-        EditReason: true,
         CreateVersionModal: true,
         SecondClassify: true,
         Dictionary: true,
@@ -399,7 +407,6 @@ describe('ProductEntry - 浏览省略与编辑文本域', () => {
           AccurSearchButton: true,
           EntryStateSelect: true,
           TransStateSelect: true,
-          EditReason: true,
           CreateVersionModal: true,
           SecondClassify: true,
           Dictionary: true,
@@ -708,7 +715,6 @@ describe('ProductEntry - 校验规则显隐与操作区布局', () => {
           AccurSearchButton: true,
           EntryStateSelect: true,
           TransStateSelect: true,
-          EditReason: true,
           CreateVersionModal: true,
           SecondClassify: true,
           Dictionary: true,
@@ -773,7 +779,6 @@ describe('ProductEntry - 操作列编辑态加宽', () => {
           AccurSearchButton: true,
           EntryStateSelect: true,
           TransStateSelect: true,
-          EditReason: true,
           CreateVersionModal: true,
           SecondClassify: true,
           Dictionary: true,
@@ -825,7 +830,6 @@ describe('ProductEntry - 修改校验规则复检编辑态', () => {
           AccurSearchButton: true,
           EntryStateSelect: true,
           TransStateSelect: true,
-          EditReason: true,
           CreateVersionModal: true,
           SecondClassify: true,
           Dictionary: true,
@@ -892,7 +896,6 @@ describe('ProductEntry - 单元格校验触发时机', () => {
           AccurSearchButton: true,
           EntryStateSelect: true,
           TransStateSelect: true,
-          EditReason: true,
           CreateVersionModal: true,
           SecondClassify: true,
           Dictionary: true,
@@ -930,5 +933,48 @@ describe('ProductEntry - 单元格校验触发时机', () => {
     await wrapper.vm.onCellBlur(record, { dataIndex: 'english' })
     await nextTick()
     expect(wrapper.vm.cellErrors.e1?.english).toBe('翻错了')
+  })
+})
+
+describe('ProductEntry - 保存确认与 notes 兜底', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  it('confirmSave：确认后带 EDIT_NOTES 调用 updateEntryInfoList', async () => {
+    updateEntryInfoList.mockResolvedValue({
+      data: {
+        list: [{ id: 'e1', success: true, message: 'OK' }],
+        totalNum: 1,
+      },
+    })
+
+    wrapper = mountProductEntry()
+    wrapper.vm.dataSource = [{ id: 'e1', entry: '断路器' }]
+    wrapper.vm.editableData = { e1: { id: 'e1', entry: '断路器', english: 'breaker' } }
+    wrapper.vm.rules = {}
+    wrapper.vm.rowClassify2Option = {}
+    wrapper.vm.getEntryByClassfy = vi.fn()
+
+    const row = { id: 'e1', entry: '断路器', english: 'breaker' }
+    wrapper.vm.confirmSave([row])
+    await nextTick()
+    await Promise.resolve()
+
+    expect(Modal.confirm).toHaveBeenCalled()
+    expect(updateEntryInfoList).toHaveBeenCalledWith([row], {
+      notes: EDIT_NOTES,
+    })
+    expect(wrapper.vm.editableData.e1).toBeUndefined()
+  })
+
+  it('confirmSave：空列表不弹确认', () => {
+    wrapper = mountProductEntry()
+    wrapper.vm.confirmSave([])
+    expect(Modal.confirm).not.toHaveBeenCalled()
+    expect(updateEntryInfoList).not.toHaveBeenCalled()
   })
 })

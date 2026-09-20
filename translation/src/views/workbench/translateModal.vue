@@ -167,13 +167,17 @@
                 <div class="tran">
                   <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px" />
                   <div class="local-translate-meta">
-                    <span class="local-translate-title">{{ item.title }}</span>
-                    <span
+                    <div class="local-translate-title">
+                      <CellOverflowTooltip :content="item.title" />
+                    </div>
+                    <div
                       v-if="item.formattedUpdateTime"
                       class="local-translate-time"
                     >
-                      {{ item.formattedUpdateTime }}
-                    </span>
+                      <CellOverflowTooltip
+                        :content="item.formattedUpdateTime"
+                      />
+                    </div>
                   </div>
                 </div>
                 <div class="tips">
@@ -1806,36 +1810,35 @@ export default {
 
           .local-translate-meta {
             display: flex;
+            flex-wrap: wrap;
             flex: 1 1 auto;
             min-width: 0;
-            justify-content: space-between;
-            align-items: flex-start;
-            gap: 12px;
+            gap: 4px 12px;
+            align-items: center;
           }
 
           .local-translate-title {
-            flex: 1 1 auto;
+            flex: 1 1 8em;
             min-width: 0;
+            max-width: 100%;
             color: var(--text-icon-font-gy-190-primary, rgba(0, 0, 0, 0.9));
             font-family: Microsoft YaHei;
             font-size: 14px;
             font-style: normal;
             font-weight: 400;
             line-height: 22px;
-            white-space: normal;
-            word-break: break-word;
-            overflow-wrap: anywhere;
           }
 
           .local-translate-time {
-            flex: 0 0 auto;
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 100%;
             color: var(--text-icon-font-gy-340-placeholder, rgba(0, 0, 0, 0.4));
             font-family: Microsoft YaHei;
             font-size: 12px;
             font-style: normal;
             font-weight: 400;
             line-height: 20px;
-            white-space: nowrap;
             text-align: right;
           }
 

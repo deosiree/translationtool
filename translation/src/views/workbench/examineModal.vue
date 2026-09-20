@@ -70,16 +70,6 @@
       <a-button type="primary" size="small" style="margin-left:8px;float:left" class="yellowBtn" @click="cancelAggregation">取消聚合</a-button>
     </template>
   </CustomModal>
-  <CustomModal :visible="rejectReasonVisible" modalTitle="驳回原因" @handleClose="rejectReasonClose" @handleOK="rejectReasonOK"
-    @afterClose="rejectReasonAfterClose">
-    <div style="width:100%;height:100%">
-      <a-form ref="exportForm" name="custom-validation" :model="rejectReason">
-        <a-form-item label="驳回原因" name="reason">
-          <a-textarea v-model:value="rejectReason.reason" placeholder="请输入驳回原因" allow-clear />
-        </a-form-item>
-      </a-form>
-    </div>
-  </CustomModal>
 </template>
 <script>
 import "@/assets/style/common.less";
@@ -139,7 +129,6 @@ import {
   onSelectChange as onSelectChangeUtil,
 } from "@/utils/selectionUtils";
 import { interpretation2value } from "@/utils/translationUtils";
-import { setModalAriaHidden } from "@/utils/domUtils";
 import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
 import {
   onEditableCellInput,
@@ -238,10 +227,6 @@ export default {
       // 历史字段 filteredData：曾由 handleTableChange 写入，仓库内无读取方；批量勾选走 this.filters + selectionUtils（AND）。
       antClearFilter: null,
       selectAllName: "全选",
-      rejectReasonVisible: false,
-      rejectReason: {
-        reason: "",
-      },
       filterLanguage: null,
       filterSource: [],
     };
@@ -621,11 +606,13 @@ export default {
         });
       }
     },
-    // 通过按钮点击事件
-    pass() {
+    /**
+     * 批量设置选中行审核状态并清空多选。
+     * @param {0|1} state 0 驳回，1 通过
+     */
+    applyAudit(state) {
       this.selectedRows.forEach((item) => {
-        item.auditState = 1;
-
+        item.auditState = state;
         if (item.children && item.children.length > 0) {
           item.children.forEach((child) => {
             child.auditState = item.auditState;
@@ -636,12 +623,12 @@ export default {
       this.selectedRows = [];
       this.selectAllName = "全选";
     },
-    // 驳回按钮点击事件
+    pass() {
+      this.applyAudit(1);
+    },
     reject() {
-      if (this.selectedRows.length > 0) {
-        this.rejectReasonVisible = true;
-        setModalAriaHidden(this, document);
-      }
+      if (this.selectedRows.length === 0) return;
+      this.applyAudit(0);
     },
     //双击表格行 可编辑
     doubleClick(record, index) {
@@ -906,27 +893,6 @@ export default {
     },
     clearAllEntry() {
       clearAllEntryUtil(this);
-    },
-    rejectReasonOK() {
-      this.selectedRows.forEach((item) => {
-        item.auditState = 0;
-        item.auditSuggess = this.rejectReason.reason;
-        if (item.children && item.children.length > 0) {
-          item.children.forEach((child) => {
-            child.auditState = item.auditState;
-            child.auditSuggess = this.rejectReason.reason;
-          });
-        }
-      });
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      this.rejectReasonVisible = false;
-    },
-    rejectReasonClose() {
-      this.rejectReasonVisible = false;
-    },
-    rejectReasonAfterClose() {
-      this.rejectReason.reason = "";
     },
   },
 };
