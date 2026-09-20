@@ -580,16 +580,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         operateContentEntity.setEntryID(beforEntry.getId());
         String res = "";
         //操作记录写入
+        HashMap<String, String> entryName = ConstantInterface.constructEntryName();
         for (ComparisonResult comparisonResult : operateContentEntity.getResults()) {
             String name = comparisonResult.getKey();
-            if ("enTransId".equals(name) || "ruTransId".equals(name) || "fraTransId".equals(name) || "spaTransId".equals(name)) {
-                continue;
-            }
             //不写入操作内容的字段
             if ("update".equals(name) || "updateTime".equals(name) || "entryLength".equals(name) || "tableName".equals(name)) {
                 continue;
             }
-            HashMap<String, String> entryName = ConstantInterface.constructEntryName();
             String str = "";
             String r1 = comparisonResult.getPrevious();
             String r2 = comparisonResult.getLater();
@@ -598,29 +595,14 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 if ("classifyId".equals(name)) {
                     str = entryName.get(comparisonResult.getKey()) + "新增值为 ( " + entryClassifyMapper.selectClassfyById(r2).getTitle() + " )  ";
                     //翻译字段处理
-                } else if (ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.EN_TRANS) ||
-                        ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.RU_TRANS) ||
-                        ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.SPA_TRANS) ||
-                        ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.FRA_TRANS)) {
-                    // String transStr = translateMapper.selectById(r2).getTranslate();
-                    str = entryName.get(name) + " 新增值为： " + r2;
-
-                } else {
+                }  else {
                     str = entryName.get(name) + " 新增值为： " + r2;
                 }
             } else {
 
                 if ("classifyId".equals(name)) {
                     str = entryName.get(name) + " 值由 ( " + entryClassifyMapper.selectClassfyById(r1).getTitle() + " ) 改为 ( " + entryClassifyMapper.selectById(r2).getTitle() + " )  ";
-                } else if (ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.EN_TRANS) ||
-                        ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.RU_TRANS) ||
-                        ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.SPA_TRANS) ||
-                        ConstantInterface.constructEntryName().get(name).equals(ConstantInterface.FRA_TRANS)) {
-                    // String r1TransStr = translateMapper.selectById(r1).getTranslate();
-                    //  String r2TransStr = translateMapper.selectById(r2).getTranslate();
-                    str = entryName.get(name) + " 值由 ( " + r1 + " ) 改为 ( " + r2 + " )  ";
-
-                } else {
+                }  else {
                     str = entryName.get(name) + " 值由 ( " + r1 + " ) 改为 ( " + r2 + " )  ";
                 }
             }
