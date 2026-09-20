@@ -69,6 +69,7 @@ vi.mock('@/utils/tableUtils', () => ({
   handleReset: vi.fn(),
   clearFilters: vi.fn(),
   handleTableChange: vi.fn(),
+  handleResizeColumn: vi.fn(),
 }))
 
 vi.mock('@/components/ColumnFilter', () => ({
@@ -677,5 +678,257 @@ describe('ProductEntry - 模块上限挂到词条行', () => {
     expect(row.maxLength).toBe(120)
     expect(row.maxByte).toBe(50)
     expect(row.foreignMaxByte).toBe(120)
+  })
+})
+
+describe('ProductEntry - 校验规则显隐与操作区布局', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+  })
+
+  function mountWithOperateSlot() {
+    return mount(ProductEntry, {
+      props: {
+        currentProduct: testProduct,
+        boxHeight: 600,
+        productEdit: true,
+      },
+      global: {
+        mocks: createUserStoreMock(),
+        stubs: {
+          SearchBox: { template: '<div />' },
+          DataBox: {
+            template: '<div class="data-box-stub"><slot name="operate" /></div>',
+          },
+          OperationArea: true,
+          'a-table': true,
+          'a-button': { template: '<button><slot /></button>' },
+          AccurSearchButton: true,
+          EntryStateSelect: true,
+          TransStateSelect: true,
+          EditReason: true,
+          CreateVersionModal: true,
+          SecondClassify: true,
+          Dictionary: true,
+          CustomModal: true,
+          BackFillModal_v3: true,
+          GitCommitButton: true,
+          ColumnFilter: true,
+          RulesDropdown: {
+            name: 'RulesDropdown',
+            props: ['options'],
+            template: '<div class="rules-dropdown-stub" />',
+          },
+          'a-badge': true,
+          'a-select': true,
+        },
+      },
+    })
+  }
+
+  it('无编辑行时不显示校验规则；有 editableData 时显示在左栏', async () => {
+    wrapper = mountWithOperateSlot()
+    expect(wrapper.vm.hasEditingRows).toBe(false)
+    expect(wrapper.findComponent({ name: 'RulesDropdown' }).exists()).toBe(false)
+    expect(wrapper.find('.entry-toolbar-left').exists()).toBe(true)
+    expect(wrapper.find('.entry-toolbar-right').exists()).toBe(true)
+
+    wrapper.vm.editableData = { e1: { id: 'e1', entry: '断路器' } }
+    await nextTick()
+
+    expect(wrapper.vm.hasEditingRows).toBe(true)
+    const rules = wrapper.findComponent({ name: 'RulesDropdown' })
+    expect(rules.exists()).toBe(true)
+    expect(wrapper.find('.entry-toolbar-left .entry-toolbar-rules').exists()).toBe(true)
+
+    wrapper.vm.editableData = {}
+    await nextTick()
+    expect(wrapper.findComponent({ name: 'RulesDropdown' }).exists()).toBe(false)
+  })
+})
+
+describe('ProductEntry - 操作列编辑态加宽', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+  })
+
+  it('进入编辑态操作列从 80 加宽到 130；退出恢复 80', async () => {
+    wrapper = mount(ProductEntry, {
+      props: {
+        currentProduct: testProduct,
+        boxHeight: 600,
+        productEdit: true,
+      },
+      global: {
+        mocks: createUserStoreMock(),
+        stubs: {
+          SearchBox: { template: '<div />' },
+          DataBox: { template: '<div><slot name="operate" /><slot name="data" /></div>' },
+          OperationArea: true,
+          'a-table': true,
+          AccurSearchButton: true,
+          EntryStateSelect: true,
+          TransStateSelect: true,
+          EditReason: true,
+          CreateVersionModal: true,
+          SecondClassify: true,
+          Dictionary: true,
+          CustomModal: true,
+          BackFillModal_v3: true,
+          GitCommitButton: true,
+          ColumnFilter: true,
+          RulesDropdown: true,
+        },
+      },
+    })
+
+    wrapper.vm.columns = [
+      { title: '操作', dataIndex: 'operation', width: 80, align: 'center' },
+    ]
+    expect(wrapper.vm.hasEditingRows).toBe(false)
+
+    wrapper.vm.editableData = { e1: { id: 'e1', entry: '断路器' } }
+    await nextTick()
+    expect(wrapper.vm.columns.find((c) => c.dataIndex === 'operation').width).toBe(130)
+
+    wrapper.vm.editableData = {}
+    await nextTick()
+    expect(wrapper.vm.columns.find((c) => c.dataIndex === 'operation').width).toBe(80)
+  })
+})
+
+describe('ProductEntry - 修改校验规则复检编辑态', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+  })
+
+  it('rulesOptions 变更后对编辑行重跑校验写红字', async () => {
+    wrapper = mount(ProductEntry, {
+      props: {
+        currentProduct: testProduct,
+        boxHeight: 600,
+        productEdit: true,
+      },
+      global: {
+        mocks: createUserStoreMock(),
+        stubs: {
+          SearchBox: { template: '<div />' },
+          DataBox: { template: '<div><slot name="operate" /><slot name="data" /></div>' },
+          OperationArea: true,
+          'a-table': true,
+          AccurSearchButton: true,
+          EntryStateSelect: true,
+          TransStateSelect: true,
+          EditReason: true,
+          CreateVersionModal: true,
+          SecondClassify: true,
+          Dictionary: true,
+          CustomModal: true,
+          BackFillModal_v3: true,
+          GitCommitButton: true,
+          ColumnFilter: true,
+          RulesDropdown: true,
+        },
+      },
+    })
+
+    wrapper.vm.editableData = {
+      e1: { id: 'e1', entry: '断路器', english: 'x' },
+    }
+    wrapper.vm.rules = {
+      e1: {
+        english: [
+          {
+            validator: async () => {
+              throw new Error('规则变更后失败')
+            },
+          },
+        ],
+      },
+    }
+    wrapper.vm.cellErrors = {}
+
+    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((item) => ({
+      ...item,
+      checked: item.key === 'special' ? !item.checked : item.checked,
+    }))
+    await nextTick()
+    // deep watch 是 async handler，再等一轮
+    await nextTick()
+    await Promise.resolve()
+
+    expect(wrapper.vm.cellErrors.e1?.english).toBe('规则变更后失败')
+    expect(wrapper.vm.editableData.e1).toBeDefined()
+  })
+})
+
+describe('ProductEntry - 单元格校验触发时机', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+  })
+
+  it('单元格 change 与 blur 均触发 applyCell 写红字', async () => {
+    wrapper = mount(ProductEntry, {
+      props: {
+        currentProduct: testProduct,
+        boxHeight: 600,
+        productEdit: true,
+      },
+      global: {
+        mocks: createUserStoreMock(),
+        stubs: {
+          SearchBox: { template: '<div />' },
+          DataBox: { template: '<div><slot name="operate" /><slot name="data" /></div>' },
+          OperationArea: true,
+          'a-table': true,
+          AccurSearchButton: true,
+          EntryStateSelect: true,
+          TransStateSelect: true,
+          EditReason: true,
+          CreateVersionModal: true,
+          SecondClassify: true,
+          Dictionary: true,
+          CustomModal: true,
+          BackFillModal_v3: true,
+          GitCommitButton: true,
+          ColumnFilter: true,
+          RulesDropdown: true,
+        },
+      },
+    })
+
+    const record = { id: 'e1', entry: '断路器', english: '' }
+    wrapper.vm.editableData = {
+      e1: { id: 'e1', entry: '断路器', english: '' },
+    }
+    wrapper.vm.rules = {
+      e1: {
+        english: [
+          {
+            validator: async () => {
+              throw new Error('翻错了')
+            },
+          },
+        ],
+      },
+    }
+    wrapper.vm.cellErrors = {}
+
+    await wrapper.vm.onCellInput('bad', record, { dataIndex: 'english' })
+    await nextTick()
+    expect(wrapper.vm.cellErrors.e1?.english).toBe('翻错了')
+
+    wrapper.vm.cellErrors = {}
+    await wrapper.vm.onCellBlur(record, { dataIndex: 'english' })
+    await nextTick()
+    expect(wrapper.vm.cellErrors.e1?.english).toBe('翻错了')
   })
 })

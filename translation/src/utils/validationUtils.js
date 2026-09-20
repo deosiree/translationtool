@@ -3,14 +3,23 @@
  * 包含表单验证规则设置、词条校验等功能
  *
  * 规则 SSOT：RulesDropdown → vm.rulesOptions → getMethods(vm)
- * 校验只在两处触发：行内 ✓（saveEdit）与底部保存（verifyArray_workbench / classifyArr）
+ * 校验触发：行内 ✓ / 底部保存 / 单元格 change·blur / 修改规则后 revalidateEditingRows
  * 双击只 openSetEdit，不跑 applyCell（避免未勾选 special 仍调接口、或进编辑却无红字）
  */
 import { cloneDeep } from 'lodash';
-import { checkSykEntryBeforeSave } from "@/http/api/glossary";
-import { entryAllCols } from "@/constants/commonParam.js";
+import commonParam, { entryAllCols } from "@/constants/commonParam.js";
 import { mapValueToLabel } from "@/utils/dataStructureUtils";
 import { withLoading } from "@/composables/useLoading";
+import {
+  byteLen,
+  checkLen,
+  checkPlace,
+  checkTranslateSide,
+  MSG_LEN,
+  MSG_PLACE,
+  MSG_BAD_DISPLAY,
+  MSG_MULTI_SPACE,
+} from "@/utils/formRules.js";
 
 /**
  * 根据列 value 获取用户友好列名（label）
@@ -24,26 +33,12 @@ export function getColumnLabelByValue(value) {
 }
 
 /**
- * 计算字符串的字节长度，中文及部分中文符号按 2 字节计算，其他字符按 1 字节计算。
- * @param {string|null|undefined} str - 待计算字节长度的字符串，允许传入 null 或 undefined。
- * @returns {number} - 返回字符串的字节长度，若传入 null 或 undefined 则返回 0。
+ * 计算字符串字节长度（英1 / 中2 / 俄3）；委托 formRules.byteLen。
+ * @param {string|null|undefined} str
+ * @returns {number}
  */
 export function byteLength(str) {
-  if (str === null || str === undefined) {
-    return 0
-  }
-  // 去除首尾空格
-  str = ("" + str).trim()
-  let strlen = 0;
-  for (let i = 0; i < str.length; i++) {
-    if (str.charCodeAt(i) >= 0x4E00 && str.charCodeAt(i) <= 0x9FA5) {
-      // 如果是汉字，则字符串长度加2
-      strlen += 2;
-    } else {
-      strlen++;
-    }
-  }
-  return strlen
+  return byteLen(str);
 }
 
 /**
@@ -180,6 +175,24 @@ export async function applyCell(vm, recordId, columnKey) {
 }
 
 /**
+ * 修改校验规则后：清空红字并对当前所有编辑态单元格按最新 getMethods 重跑 applyCell。
+ * 不退出编辑态（与工作台 revalidateLoaded 不同）。
+ * @param {Object} vm
+ * @returns {Promise<void>}
+ */
+export async function revalidateEditingRows(vm) {
+  const ids = Object.keys(vm?.editableData || {});
+  vm.cellErrors = {};
+  if (!ids.length) return;
+  for (const recordId of ids) {
+    const cols = Object.keys(vm.rules?.[recordId] || {});
+    for (const columnKey of cols) {
+      await applyCell(vm, recordId, columnKey);
+    }
+  }
+}
+
+/**
  * 使用校验规则（命令式；保留 refName 签名以兼容既有调用）
  */
 export async function useRefRules(refs, refName, columnValue, vm) {
@@ -248,8 +261,8 @@ export function setRefRules(vm, record, cols) {
 }
 
 /**
- * 当前已勾选的校验键（toLong / special）
- * 原名 getEnabledVerifyMethods。无 rulesOptions 时与历史默认一致：两项全开
+ * 当前已勾选的校验键（toLong / special / noBadDisplay / …）
+ * 原名 getEnabledVerifyMethods。无 rulesOptions 时与历史默认一致：toLong + special
  */
 export function getMethods(vm) {
   const options = Array.isArray(vm?.rulesOptions) ? vm.rulesOptions : null;
@@ -314,11 +327,8 @@ function flattenLoaded(vm) {
 
 /** 超长红字；validateRefRules 与 openFailRows 共用，避免文案漂移 */
 function msgToLong(maxLength) {
-  return `允许最大字符数为${maxLength}(1中文=2字符)`;
+  return `${MSG_LEN}${maxLength}`;
 }
-
-/** 特殊字符红字；validateRefRules 与 openFailRows 共用 */
-const MSG_SPECIAL = "特殊字符不一致\r\n(如%1翻译成% 1)";
 
 export function validateRefRules(record, vm, colName, language,
   verifyMethods) {
@@ -327,36 +337,24 @@ export function validateRefRules(record, vm, colName, language,
     if (language && isBlankTranslation(value)) {
       return Promise.resolve();
     }
+    if (language) {
+      const entryText = vm.editableData?.[record.id]
+        ? vm.editableData[record.id].entry ?? record.entry
+        : record.entry;
+      const err = checkTranslateSide({
+        entry: entryText,
+        translate: value,
+        maxLength: getMaxLength(record, vm, colName),
+        methods,
+      });
+      if (err) return Promise.reject(err);
+      return Promise.resolve();
+    }
     if (methods.includes("toLong")) {
       const maxLength = getMaxLength(record, vm, colName);
-      let length = byteLength(value);
-      if (maxLength && length > maxLength) {
-        // 表单项内仍使用字符串以保证控件正常显示错误；外层聚合展示由 useRefRules/editSave 负责
-        return Promise.reject(msgToLong(maxLength));
-      }
+      const err = checkLen(value, maxLength);
+      if (err) return Promise.reject(err);
     }
-
-    if (language && methods.includes("special")) {// 需要拿翻译与词条进行比较，所以词条本身不需要进行特殊字符校验
-      const datas = [
-        {
-          id: record.id,
-          entry: record.entry,
-          translate: vm.editableData[record.id]
-            ? vm.editableData[record.id][language]
-            : record[language],
-        },
-      ];
-      // console.log("校验特殊字符", datas);
-      let specialCharNum = 0;
-      try {
-        const res = await checkSykEntryBeforeSave(datas);//调用后端接口
-        specialCharNum = res.data?.length ?? 0;
-      } catch (err) { }
-      if (specialCharNum > 0)
-        // 只要 res.data 非空即视为失败（后端返回 data 表示不通过）
-        return Promise.reject(MSG_SPECIAL);
-    }
-
     return Promise.resolve();
   };
 }
@@ -413,8 +411,9 @@ export async function classifyArr(vm, array, language, methods) {
     errorIds: new Set(),// 所有校验不通过
     toLongIds: new Set(),// 校验长度
     specialIds: new Set(),// 校验特殊字符
+    noBadDisplayIds: new Set(),
+    noMultiSpaceIds: new Set(),
   };
-  const datas = [];
   for (const record of array) {
     const data = {
       id: record.id,
@@ -426,28 +425,25 @@ export async function classifyArr(vm, array, language, methods) {
       arr.acceptIds.add(record.id);
       continue;
     }
-    datas.push(data);
-    if (m.includes("toLong")) {
-      if (data.maxLength && byteLength(data.translate) > data.maxLength) {
-        arr.toLongIds.add(record.id);
-      }
-    }
-  }
-
-  if (m.includes("special") && datas.length > 0) {
-    // special 未勾选时不得请求 checkSykEntryBeforeSave
-    try {
-      const res = await checkSykEntryBeforeSave(datas);
-      arr.specialIds = new Set(res.data?.map(item => item.id));
-    } catch (err) { }
-  }
-
-  for (const record of array) {
-    if (arr.acceptIds.has(record.id)) continue;
-    if (!arr.toLongIds.has(record.id) && !arr.specialIds.has(record.id)) {
+    const err = checkTranslateSide({
+      entry: data.entry,
+      translate: data.translate,
+      maxLength: data.maxLength,
+      methods: m,
+    });
+    if (!err) {
       arr.acceptIds.add(record.id);
-    } else {
-      arr.errorIds.add(record.id);
+      continue;
+    }
+    arr.errorIds.add(record.id);
+    if (m.includes("toLong") && checkLen(data.translate, data.maxLength)) {
+      arr.toLongIds.add(record.id);
+    } else if (m.includes("special") && checkPlace(data.entry, data.translate)) {
+      arr.specialIds.add(record.id);
+    } else if (err === MSG_BAD_DISPLAY) {
+      arr.noBadDisplayIds.add(record.id);
+    } else if (err === MSG_MULTI_SPACE) {
+      arr.noMultiSpaceIds.add(record.id);
     }
   }
   return arr;
@@ -465,7 +461,11 @@ export async function openFailRows(vm, array, arr, language) {
     if (arr.toLongIds.has(record.id)) {
       setCellError(vm, record.id, language, msgToLong(getMaxLength(record, vm)));
     } else if (arr.specialIds.has(record.id)) {
-      setCellError(vm, record.id, language, MSG_SPECIAL);
+      setCellError(vm, record.id, language, MSG_PLACE);
+    } else if (arr.noBadDisplayIds?.has(record.id)) {
+      setCellError(vm, record.id, language, MSG_BAD_DISPLAY);
+    } else if (arr.noMultiSpaceIds?.has(record.id)) {
+      setCellError(vm, record.id, language, MSG_MULTI_SPACE);
     }
     // 页面有同名实例方法时走页面（模板绑定）；单测 mock 也可接到这里
     if (typeof vm.showEditOperation === "function") {
@@ -542,35 +542,33 @@ export async function verifyRecord_entry(vm, record, colList,
     for (const col of colList) {
       if (col == "entry") {
         const maxLength = getMaxLength(record, vm, "maxByte");
-        if (maxLength && byteLength(record[col]) > maxLength) {
+        if (checkLen(record[col], maxLength)) {
           flag = false;// 词条长度超限
         }
       }
       else {
         const maxLength = getMaxLength(record, vm, "foreignMaxByte");
-        if (maxLength && byteLength(record[col]) > maxLength) {
+        if (checkLen(record[col], maxLength)) {
           flag = false;// xx翻译长度超限
         }
       }
     }
   }
-  if (methods.includes("special")) {// 校验特殊字符
-    const datas = [];
+  if (methods.includes("special") ||
+      methods.includes("noBadDisplay") ||
+      methods.includes("noMultiSpace")) {// 校验特殊字符等（本地）
     for (const language of colList) {
       if (language == "entry") continue;
-      const data = {
-        id: record.id,
+      const err = checkTranslateSide({
         entry: record.entry,
         translate: shownTranslate(vm, record, language),
-      };
-      datas.push(data);
+        methods: methods.filter((k) => k === "special" || k === "noBadDisplay" || k === "noMultiSpace"),
+      });
+      if (err) {
+        flag = false;
+        break;
+      }
     }
-    try {
-      const res = await checkSykEntryBeforeSave(datas);//调用后端接口
-      const specialCharNum = res.data?.length ?? 0;
-      if (specialCharNum > 0)
-        flag = false;// 存在特殊字符翻译不一致
-    } catch (err) { }
   }
 
   if (flag) {

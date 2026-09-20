@@ -483,7 +483,7 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
 
     expect(wrapper.vm.editableData['entry-1']).toBeDefined()
     expect(wrapper.vm.cellErrors['entry-1'].english).toContain('特殊字符不一致')
-    expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+    expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
   })
 })
 

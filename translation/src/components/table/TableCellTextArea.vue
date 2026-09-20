@@ -3,6 +3,7 @@
     <TextArea
       :value="value"
       @update:value="$emit('update:value', $event)"
+      @blur="$emit('blur', $event)"
       :autoSize="autoSize"
     />
     <div v-if="errorMessage" class="table-cell-editor-error">
@@ -31,6 +32,6 @@ export default {
       default: "",
     },
   },
-  emits: ["update:value"],
+  emits: ["update:value", "blur"],
 };
 </script>

@@ -318,138 +318,141 @@
       :height="dataHeight"
       :showOperate="true"
     >
-      <template
-        v-if="isProduct()"
-        v-slot:label
-      >
-        产品版本：
-        <a-select
-          v-model:value="currentVersion"
-          style="width: 150px"
-          placeholder="请选择版本"
-          :options="productVersions"
-          :fieldNames="{ label: 'name', value: 'id' }"
-          size="small"
-          @change="changeVersion"
-          allowClear
-        >
-        </a-select>
-      </template>
       <template v-slot:operate>
-        <div
-          ref="button"
-          style="margin-bottom: 8px; display: flex; gap: 10px"
-        >
-          <GitCommitButton
-            v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
-            size="small"
-            buttonTitle="git推送"
-            buttonClass="yellowBtn"
-            :treeTitle="product.title"
-          />
-          <a-button
-            type="primary"
-            size="small"
-            @click="createVersion"
-            v-if="!createVersionFlag"
-            >批量选择</a-button
-          >
-          <a-button
-            type="primary"
-            size="small"
-            @click="selectAllEntry"
-            v-if="createVersionFlag"
-            :loading="selectAllLoading"
-            >选择全部</a-button
-          >
-          <a-button
-            type="primary"
-            size="small"
-            @click="cancelCreate"
-            class="yellowBtn"
-            v-if="createVersionFlag"
-            >取消选择</a-button
-          >
-          <a-badge
-            :count="selectEntry.length"
-            :overflow-count="99"
-            v-if="createVersionFlag"
-          >
+        <div ref="button" class="entry-toolbar">
+          <div class="entry-toolbar-left">
+            <div v-if="isProduct()" class="entry-toolbar-version">
+              <span class="entry-toolbar-version-label">产品版本：</span>
+              <a-select
+                v-model:value="currentVersion"
+                class="entry-toolbar-version-select"
+                placeholder="请选择版本"
+                :options="productVersions"
+                :fieldNames="{ label: 'name', value: 'id' }"
+                size="small"
+                @change="changeVersion"
+                allowClear
+              />
+            </div>
+            <div v-if="hasEditingRows" class="entry-toolbar-rules">
+              <RulesDropdown
+                :options="rulesOptions"
+                @update:options="rulesOptions = $event"
+              />
+            </div>
+          </div>
+          <div class="entry-toolbar-right">
+            <GitCommitButton
+              v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
+              size="small"
+              buttonTitle="git推送"
+              buttonClass="yellowBtn"
+              :treeTitle="product.title"
+            />
             <a-button
               type="primary"
               size="small"
-              class="resetBtn"
-              @click="viewCreateVersionEntry"
-              >已选词条</a-button
+              @click="createVersion"
+              v-if="!createVersionFlag"
+              >批量选择</a-button
             >
-          </a-badge>
+            <a-button
+              type="primary"
+              size="small"
+              @click="selectAllEntry"
+              v-if="createVersionFlag"
+              :loading="selectAllLoading"
+              >选择全部</a-button
+            >
+            <a-button
+              type="primary"
+              size="small"
+              @click="cancelCreate"
+              class="yellowBtn"
+              v-if="createVersionFlag"
+              >取消选择</a-button
+            >
+            <a-badge
+              :count="selectEntry.length"
+              :overflow-count="99"
+              v-if="createVersionFlag"
+            >
+              <a-button
+                type="primary"
+                size="small"
+                class="resetBtn"
+                @click="viewCreateVersionEntry"
+                >已选词条</a-button
+              >
+            </a-badge>
 
-          <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
-          <a-button
-            type="primary"
-            size="small"
-            :disabled="!isProduct()"
-            @click="addEntry"
-          >
-            <template #icon> <PlusOutlined /> </template>新增
-          </a-button>
+            <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
+            <a-button
+              type="primary"
+              size="small"
+              :disabled="!isProduct()"
+              @click="addEntry"
+            >
+              <template #icon> <PlusOutlined /> </template>新增
+            </a-button>
 
-          <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
-          <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
-          <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
-          <a-button
-            type="primary"
-            size="small"
-            @click="setSecondClassify"
-            v-if="admin"
-            :disabled="!isProduct()"
-            >二级分类管理</a-button
-          >
-          <!-- <BackFillModal v-if="admin" mode="button" :translateTypes="translateTypes" :showFileTypeSelect="true"
-            :defaultAccept="'.csv'" size="small" buttonTitle="更新翻译 v1" modalTitle="更新翻译 v1" @importSuccess="refreshTable" />
-          <BackFillModal_v2 v-if="admin" mode="button" :showFileTypeSelect="true" :defaultAccept="'.csv'" size="small"
-            buttonTitle="更新翻译 v2" modalTitle="更新翻译 v2" :functionMode="'updateTranslation'"
-            @importSuccess="refreshTable" /> -->
-          <!-- 更新翻译(同步) -->
-          <!-- <BackFillModal_v2_5
-            v-if="
-              admin &&
-              $currentDepartment &&
-              $currentDepartment.ops.has('fileUpdate')
-            "
-            mode="button"
-            buttonTitle="更新翻译"
-            modalTitle="更新翻译"
-            size="small"
-            :showFileTypeSelect="true"
-            :defaultAccept="'.csv'"
-            @importSuccess="refreshTable"
-          /> -->
-          <!-- 更新翻译(异步) -->
-          <BackFillModal_v3
-            v-if="
-              admin &&
-              $currentDepartment &&
-              $currentDepartment.ops.has('fileUpdate')
-            "
-            mode="button"
-            buttonTitle="更新翻译"
-            modalTitle="更新翻译"
-            size="small"
-            :showFileTypeSelect="true"
-            :defaultAccept="'.csv'"
-            @importSuccess="refreshTable"
-          />
+            <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
+            <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
+            <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
+            <a-button
+              type="primary"
+              size="small"
+              @click="setSecondClassify"
+              v-if="admin"
+              :disabled="!isProduct()"
+              >二级分类管理</a-button
+            >
+            <!-- <BackFillModal v-if="admin" mode="button" :translateTypes="translateTypes" :showFileTypeSelect="true"
+              :defaultAccept="'.csv'" size="small" buttonTitle="更新翻译 v1" modalTitle="更新翻译 v1" @importSuccess="refreshTable" />
+            <BackFillModal_v2 v-if="admin" mode="button" :showFileTypeSelect="true" :defaultAccept="'.csv'" size="small"
+              buttonTitle="更新翻译 v2" modalTitle="更新翻译 v2" :functionMode="'updateTranslation'"
+              @importSuccess="refreshTable" /> -->
+            <!-- 更新翻译(同步) -->
+            <!-- <BackFillModal_v2_5
+              v-if="
+                admin &&
+                $currentDepartment &&
+                $currentDepartment.ops.has('fileUpdate')
+              "
+              mode="button"
+              buttonTitle="更新翻译"
+              modalTitle="更新翻译"
+              size="small"
+              :showFileTypeSelect="true"
+              :defaultAccept="'.csv'"
+              @importSuccess="refreshTable"
+            /> -->
+            <!-- 更新翻译(异步) -->
+            <BackFillModal_v3
+              v-if="
+                admin &&
+                $currentDepartment &&
+                $currentDepartment.ops.has('fileUpdate')
+              "
+              mode="button"
+              buttonTitle="更新翻译"
+              modalTitle="更新翻译"
+              size="small"
+              :showFileTypeSelect="true"
+              :defaultAccept="'.csv'"
+              @importSuccess="refreshTable"
+            />
 
-          <ColumnFilter
-            v-model="checkedColumn"
-            :columns="columnSettingsList"
-            :overlay-style="overlayStyle"
-            col-pref-name="colPref-productEntry"
-            :normal-width="200"
-            :need-filter="false"
-            @change="syncColumnsFromPref"
-          />
+            <ColumnFilter
+              v-model="checkedColumn"
+              :columns="columnSettingsList"
+              :overlay-style="overlayStyle"
+              col-pref-name="colPref-productEntry"
+              :normal-width="200"
+              :need-filter="false"
+              @change="syncColumnsFromPref"
+            />
+          </div>
         </div>
       </template>
       <template v-slot:data>
@@ -492,6 +495,7 @@
                     <TableCellTextArea
                       :value="editableData[record.id][column.dataIndex] ?? ''"
                       @update:value="(val) => onCellInput(val, record, column)"
+                      @blur="() => onCellBlur(record, column)"
                       :error-message="cellErrors[record.id]?.[column.dataIndex]"
                     />
                   </template>
@@ -508,6 +512,7 @@
                     <TableCellTextArea
                       :value="editableData[record.id][column.dataIndex] ?? ''"
                       @update:value="(val) => onCellInput(val, record, column)"
+                      @blur="() => onCellBlur(record, column)"
                       :error-message="cellErrors[record.id]?.[column.dataIndex]"
                     />
                   </template>
@@ -873,6 +878,7 @@
     :classifyLimit="classifyLimit"
     :selectedRowKeys="selectedRowKeys"
     :selectedRows="selectedRows"
+    :rulesOptions="rulesOptions"
     @update:dataSource="selectEntry = $event"
     @update:selectedRowKeys="selectedRowKeys = $event"
     @update:selectedRows="selectedRows = $event"
@@ -991,10 +997,13 @@ import {
   clearCellError,
   openSetEdit,
   onEditableCellInput,
+  applyCell,
+  revalidateEditingRows,
 } from "@/utils/validationUtils";
 import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
+import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 export default {
   components: {
     CustomModal,
@@ -1019,6 +1028,7 @@ export default {
     SecondClassify,
     Dictionary,
     ColumnFilter,
+    RulesDropdown,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
@@ -1146,6 +1156,7 @@ export default {
       createVisible: false,
       rules: {},
       cellErrors: {},
+      rulesOptions: commonParam.rulesOptions.map((item) => ({ ...item })),
       batchSelectFlag: false,
       classify1Option: [],
       secondClassifyVisible: false,
@@ -1180,6 +1191,10 @@ export default {
         ...(this.textareaInputColumn || []),
       ];
     },
+    /** 有行内编辑词条时才显示校验规则下拉 */
+    hasEditingRows() {
+      return Object.keys(this.editableData || {}).length > 0;
+    },
   },
   mounted() {
     this.$nextTick(() => {
@@ -1201,6 +1216,16 @@ export default {
     });
   },
   watch: {
+    hasEditingRows(editing) {
+      this.syncOperationColumnWidth(editing);
+    },
+    rulesOptions: {
+      deep: true,
+      async handler() {
+        // 勾选变更后按最新规则复检全部编辑行（不清空即放弃红字）
+        await revalidateEditingRows(this);
+      },
+    },
     boxHeight(newval, oldval) {
       this.box = newval;
       this.setTableHeight();
@@ -1885,8 +1910,15 @@ export default {
         this.pagination.pageSize = this.pagination.pageSize - 1;
       }
     },
-    onCellInput(value, record, column) {
+    async onCellInput(value, record, column) {
       onEditableCellInput(this, record.id, column.dataIndex, value);
+      // change 即校验，与批量编辑一致；不必等失焦或保存才发现错误
+      if (!this.editableData[record.id]) return;
+      await applyCell(this, record.id, column.dataIndex);
+    },
+    async onCellBlur(record, column) {
+      if (!this.editableData[record.id]) return;
+      await applyCell(this, record.id, column.dataIndex);
     },
     // 编辑-保存
     async editSave(id) {
@@ -2056,9 +2088,24 @@ export default {
         needFilter: false,
         lockCellSize: true,
       });
+      this.syncOperationColumnWidth();
     },
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
+      this.syncOperationColumnWidth();
+    },
+    /**
+     * 浏览态仅「详情」用 80；编辑态「保存·取消」加宽，避免 lockCellSize 裁切按钮。
+     * @param {boolean} [editing=this.hasEditingRows]
+     */
+    syncOperationColumnWidth(editing = this.hasEditingRows) {
+      const col = (this.columns || []).find((c) => c.dataIndex === "operation");
+      if (!col) return;
+      const next = editing ? 130 : 80;
+      if (col.width === next) return;
+      col.width = next;
+      // 触发 ant-table 列宽重算（lockCellSize 的 customCell 读 col.width）
+      this.columns = [...this.columns];
     },
     clickInput(event) {
       event.stopPropagation();
@@ -2582,5 +2629,68 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.editable-row-operations > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.entry-toolbar {
+  display: flex;
+  width: 100%;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.entry-toolbar-left {
+  flex: 0 0 50%;
+  max-width: 50%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+.entry-toolbar-version {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  color: black;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
+.entry-toolbar-version-label {
+  flex-shrink: 0;
+  line-height: 24px;
+}
+
+.entry-toolbar-version-select {
+  width: 150px;
+  max-width: 100%;
+  flex: 1 1 auto;
+}
+
+.entry-toolbar-rules {
+  display: flex;
+  align-items: center;
+  height: 24px;
+}
+
+.entry-toolbar-right {
+  flex: 0 0 50%;
+  max-width: 50%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  align-items: center;
 }
 </style>

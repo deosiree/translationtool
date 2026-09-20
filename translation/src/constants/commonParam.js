@@ -19,6 +19,7 @@ import {
   colsToFieldOptions,
   defaultSelectionFromCols,
 } from "@/components/ColumnFilter/colPreset.js";
+import { rulesForTarget } from "@/utils/formRules.js";
 
 // 1.commonParam如下：
 const default_languageList = [
@@ -307,10 +308,7 @@ export default {
       title: "公共库",
     },
   ], // 公司->部门的状态树分布
-  rulesOptions: [
-    { key: "toLong", label: "校验字符长度", checked: true },
-    { key: "special", label: "校验特殊字符", checked: true }, // %1翻成% 1
-  ], // 表单校验规则
+  rulesOptions: rulesForTarget("translate"), // 译文侧校验规则（含 tooltip）；原文侧见 rulesForTarget("entry")
 };
 
 // 2.tableParam如下：
@@ -408,7 +406,7 @@ export const entryPresets = {
       { value: "srcTabName", hidden: true },
       { value: "isLatestVersion", hidden: true },
       { value: "environmentRemark", hidden: true },
-      // 操作列仅「详情」/「保存·取消」，对齐 commonEntry 80px（builder 默认 130 过宽）
+      // 操作列浏览态「详情」80；编辑态「保存·取消」由 productEntry.syncOperationColumnWidth 加至 130
       { value: "operation", width: 80 },
     ],
     defaults: { hidden: false },

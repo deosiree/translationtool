@@ -18,6 +18,7 @@ import {
   classifyArr,
   openFailRows,
   revalidateLoaded,
+  revalidateEditingRows,
   saveEdit,
   cancelEdit,
   showEditOperation,
@@ -63,6 +64,11 @@ describe('validationUtils - 表单校验工具函数', () => {
     it('应该处理混合字符', () => {
       // test = 4, 123 = 3, 测试 = 4 (每个中文2字节)
       expect(byteLength('test123测试')).toBe(11) // 4 + 3 + 4 = 11
+    })
+
+    it('俄文按 3 字节计', () => {
+      expect(byteLength('П')).toBe(3)
+      expect(byteLength('Привет')).toBe(18)
     })
   })
 
@@ -400,6 +406,50 @@ describe('validationUtils - 表单校验工具函数', () => {
     })
   })
 
+  describe('revalidateEditingRows', () => {
+    it('无编辑行时只清空 cellErrors', async () => {
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: { r1: { english: '旧' } },
+      }
+      await revalidateEditingRows(vm)
+      expect(vm.cellErrors).toEqual({})
+    })
+
+    it('对全部编辑行按当前 rules 重跑，失败写红字、通过不留旧错', async () => {
+      const vm = {
+        editableData: {
+          r1: { id: 'r1', english: 'bad' },
+          r2: { id: 'r2', english: 'ok' },
+        },
+        rules: {
+          r1: {
+            english: [
+              {
+                validator: async () => {
+                  throw new Error('翻错了')
+                },
+              },
+            ],
+          },
+          r2: {
+            english: [{ validator: async () => {} }],
+          },
+        },
+        cellErrors: {
+          r1: { english: '旧错' },
+          r2: { english: '也应清掉' },
+        },
+      }
+      await revalidateEditingRows(vm)
+      expect(vm.cellErrors.r1?.english).toBe('翻错了')
+      expect(vm.cellErrors.r2).toBeUndefined()
+      expect(vm.editableData.r1).toBeDefined()
+      expect(vm.editableData.r2).toBeDefined()
+    })
+  })
+
   describe('verifyArray_workbench', () => {
     it('长度失败行应 openSetEdit 并写入 cellErrors', async () => {
       const record = {
@@ -479,9 +529,8 @@ describe('validationUtils - 表单校验工具函数', () => {
       expect(vm.showEditOperation).not.toHaveBeenCalled()
     })
 
-    it('未传 methods 且 special 勾选时才调 API', async () => {
+    it('未传 methods 且 special 勾选时本地判定特殊字符（不调 API）', async () => {
       const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
-      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'r-special' }] })
 
       const record = {
         id: 'r-special',
@@ -502,7 +551,7 @@ describe('validationUtils - 表单校验工具函数', () => {
         showEditOperation: vi.fn(),
       }
       const arr = await verifyArray_workbench(vm, [record], 'english')
-      expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
       expect(arr.specialIds.has('r-special')).toBe(true)
       expect(arr.errorIds.has('r-special')).toBe(true)
       expect(vm.cellErrors['r-special']?.english).toContain('特殊字符不一致')
@@ -533,9 +582,8 @@ describe('validationUtils - 表单校验工具函数', () => {
       expect(vm.editableData['1']).toBeUndefined()
     })
 
-    it('未传 methods 且 special 勾选时才调 API', async () => {
+    it('未传 methods 且 special 勾选时本地判定（不调 API）', async () => {
       const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
-      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: '1' }] })
 
       const vm = {
         editableData: {},
@@ -553,7 +601,7 @@ describe('validationUtils - 表单校验工具函数', () => {
         showEditOperation: vi.fn(),
       }
       await verifyArray_workbench_page({ current: 1, pageSize: 10 }, 'english', vm)
-      expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
       expect(vm.cellErrors['1']?.english).toContain('特殊字符不一致')
       expect(vm.editableData['2']).toBeUndefined()
     })
@@ -765,6 +813,32 @@ describe('validationUtils - 表单校验工具函数', () => {
       expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
       expect(vm.cellErrors.fail.english).toContain('允许最大字符数为20')
     })
+
+    it('classifyArr 勾选 noBadDisplay 时拦截孤立 &', async () => {
+      const record = {
+        id: 'r-amp',
+        entry: 'Verify&Loader',
+        english: 'Verify&Loader',
+        maxLength: 200,
+      }
+      const vm = { editableData: {}, rules: {}, cellErrors: {}, dataSource: [record] }
+      const arr = await classifyArr(vm, [record], 'english', ['noBadDisplay'])
+      expect(arr.errorIds.has('r-amp')).toBe(true)
+      expect(arr.noBadDisplayIds.has('r-amp')).toBe(true)
+      expect(arr.acceptIds.has('r-amp')).toBe(false)
+    })
+
+    it('classifyArr 默认未勾选新规则时 && 与连续空格通过', async () => {
+      const record = {
+        id: 'r-ok',
+        entry: 'a  b',
+        english: 'Verify&&Loader  spaced',
+        maxLength: 200,
+      }
+      const vm = { editableData: {}, rules: {}, cellErrors: {}, dataSource: [record] }
+      const arr = await classifyArr(vm, [record], 'english', ['toLong', 'special'])
+      expect(arr.acceptIds.has('r-ok')).toBe(true)
+    })
   })
 
   describe('勾选快照 vs 运行时 getMethods', () => {
@@ -799,7 +873,7 @@ describe('validationUtils - 表单校验工具函数', () => {
   })
 
   describe('revalidateLoaded', () => {
-    it('全关后退出编辑无红字；再勾 special 进编辑打红字且 API 一次', async () => {
+    it('全关后退出编辑无红字；再勾 special 本地打红字且不调 API', async () => {
       const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
       const record = { id: 'fail', entry: '%1', english: '% 1', maxLength: 200 }
       const vm = {
@@ -823,16 +897,14 @@ describe('validationUtils - 表单校验工具函数', () => {
         { key: 'special', checked: true },
         { key: 'toLong', checked: true },
       ]
-      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'fail' }] })
       await revalidateLoaded(vm, 'english')
-      expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
       expect(vm.cellErrors.fail.english).toContain('特殊字符不一致')
       expect(vm.editableData.fail).toBeDefined()
     })
 
-    it('同一 id 只按编辑展示值校验，special 请求该 id 只出现一次', async () => {
+    it('同一 id 只按编辑展示值校验，本地 special 不调 API', async () => {
       const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
-      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: 'r1' }] })
       const record = { id: 'r1', entry: '%1', english: 'Press %1 to continue', maxLength: 200 }
       const vm = {
         editableData: { r1: { ...record, english: 'Press % 1 to continue' } },
@@ -847,10 +919,7 @@ describe('validationUtils - 表单校验工具函数', () => {
         ],
       }
       await revalidateLoaded(vm, 'english')
-      expect(checkSykEntryBeforeSave).toHaveBeenCalledTimes(1)
-      expect(checkSykEntryBeforeSave.mock.calls[0][0]).toEqual([
-        { id: 'r1', entry: '%1', translate: 'Press % 1 to continue', maxLength: 200 },
-      ])
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
       expect(vm.editableData.r1).toBeDefined()
       expect(vm.cellErrors.r1.english).toContain('特殊字符不一致')
       expect(record.english).toBe('Press %1 to continue')

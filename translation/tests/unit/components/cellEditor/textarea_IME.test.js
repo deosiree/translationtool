@@ -91,6 +91,24 @@ describe("TextAreaIME", () => {
     expect(wrapper.emitted("update:value")).toBeUndefined();
   });
 
+  it("组字期间已写入终值时 compositionend 仍强制 emit（含多空格）", async () => {
+    wrapper = mount(TextAreaIME, {
+      props: { value: "" },
+      global: {
+        stubs: { "a-textarea": TextareaStub },
+      },
+    });
+    const full = "而愤然    愤愤然";
+    wrapper.vm.onCompositionStart();
+    wrapper.vm.innerValue = full; // 组字中 v-model 已更新，但不 emit
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted("update:value")).toBeUndefined();
+
+    wrapper.vm.onCompositionEnd({ target: { value: full } });
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted("update:value")?.slice(-1)[0]).toEqual([full]);
+  });
+
   it("不再提供 onBlur 同步", () => {
     wrapper = mount(TextAreaIME, {
       props: { value: "a" },

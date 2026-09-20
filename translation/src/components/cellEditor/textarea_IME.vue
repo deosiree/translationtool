@@ -4,6 +4,7 @@
     :style="textareaStyle"
     :auto-size="autoSize"
     @click.stop
+    @blur="$emit('blur', $event)"
     @compositionstart="onCompositionStart"
     @compositionend="onCompositionEnd"
   />
@@ -22,7 +23,7 @@ export default {
       default: () => ({ minRows: 1 }),
     },
   },
-  emits: ["update:value"],
+  emits: ["update:value", "blur"],
   data() {
     return {
       innerValue: this.value ?? "",
@@ -56,8 +57,11 @@ export default {
     },
     onCompositionEnd(event) {
       this.isComposing = false;
-      this.innerValue =
+      const next =
         (event && event.target && event.target.value) ?? this.innerValue ?? "";
+      this.innerValue = next;
+      // 组字期间 v-model 可能已把终值写进 innerValue；赋值相同不会触发 watch，必须强制回写父级
+      this.$emit("update:value", next);
     },
   },
 };

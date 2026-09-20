@@ -1,10 +1,6 @@
 /**
- * 词条管理-已选词条-预翻译 v2 壳组件测试
- * 架构：PreTranslateForm（配置弹窗）+ usePreTranslateEdit（编排器）+ 壳 index.vue（编辑态渲染/底部模式切换）
- * 覆盖：
- * 1. API 契约：preTranslateEntry（POST /entryInfo/preTranslate，params: translateType+priority）
- * 2. 壳行为：预翻译按钮打开配置弹窗；配置提交进入编辑模式（底部切换 取消/保存）
- * 3. 编辑模式：取消恢复快照（弹窗不关）；保存走编排器
+ * 词条管理-已选词条 / 批量编辑拆分测试
+ * 架构：已选（CreateVersionModal）只做选择；BatchEditModal 负责编辑/预翻译/保存
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
@@ -18,26 +14,27 @@ vi.mock('@/http/request', () => ({
 
 vi.mock('@/utils/domUtils', () => ({
   setModalAriaHidden: vi.fn(),
-  createDragModalDirective: vi.fn(() => ({}))
+  createDragModalDirective: vi.fn(() => ({})),
 }))
 
 vi.mock('ant-design-vue', () => ({
   default: {
-    install: vi.fn()
+    install: vi.fn(),
   },
   message: {
     success: vi.fn(),
     error: vi.fn(),
     warning: vi.fn(),
     warn: vi.fn(),
-    info: vi.fn()
+    info: vi.fn(),
   },
   notification: {
-    success: vi.fn()
+    success: vi.fn(),
+    error: vi.fn(),
   },
   Modal: {
-    confirm: vi.fn()
-  }
+    confirm: vi.fn(),
+  },
 }))
 
 import request from '@/http/request'
@@ -45,7 +42,7 @@ import { preTranslateEntry } from '@/http/api/entryManage'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
 import { resetLoading } from '@/composables/useLoading'
 import CreateVersionModal from '@/views/entry/createVersionModal/index.vue'
-import PreTranslateForm from '@/views/entry/createVersionModal/PreTranslateForm.vue'
+import BatchEditModal from '@/views/entry/createVersionModal/BatchEditModal.vue'
 import CellOverflowTooltip from '@/components/table/CellOverflowTooltip.vue'
 import EntryStateBadge from '@/components/stateBadge/entryStateBadge.vue'
 import TransStateBadge from '@/components/stateBadge/transStateBadge.vue'
@@ -67,35 +64,33 @@ describe('entryManage API - preTranslateEntry（/entryInfo/preTranslate）', () 
       url: '/entryInfo/preTranslate',
       method: 'POST',
       params: { translateType: '英文', priority: 'shuyuku' },
-      data: [{ id: '1', entry: '断路器' }]
+      data: [{ id: '1', entry: '断路器' }],
     })
   })
 })
 
-// 壳测试：Modal stub 渲染插槽（默认 stub 不渲染插槽会导致表单 ref 挂不上）
 const ModalStub = {
   name: 'ModalStub',
   props: {
-    okLoading: {
-      type: Boolean,
-      default: false
-    }
+    okLoading: { type: Boolean, default: false },
+    modalTitle: { type: String, default: '' },
+    modalVisible: { type: Boolean, default: false },
   },
-  template: '<div><slot name="leftBottomBtn" /><slot /></div>'
+  template:
+    '<div class="modal-stub" :data-title="modalTitle"><slot name="leftBottomBtn" /><slot /></div>',
 }
+
 const SpinStub = { template: '<div><slot /></div>' }
 const TooltipStub = { template: '<div><slot /></div>' }
 const RulesDropdownStub = {
   name: 'RulesDropdownStub',
   props: {
-    options: {
-      type: Array,
-      default: () => []
-    }
+    options: { type: Array, default: () => [] },
   },
   emits: ['update:options'],
-  template: '<div class="rules-dropdown-stub"></div>'
+  template: '<div class="rules-dropdown-stub"></div>',
 }
+
 const OperationTableStub = {
   name: 'OperationTableStub',
   props: ['columns', 'dataSource'],
@@ -105,50 +100,46 @@ const OperationTableStub = {
         <slot name="bodyCell" :column="{ dataIndex: 'operation' }" :record="record" :text="''" />
       </div>
     </div>
-  `
+  `,
 }
+
 const OverflowTableStub = {
   name: 'OverflowTableStub',
   props: {
-    columns: {
-      type: Array,
-      default: () => []
-    },
-    dataSource: {
-      type: Array,
-      default: () => []
-    }
+    columns: { type: Array, default: () => [] },
+    dataSource: { type: Array, default: () => [] },
   },
   setup(props, { slots }) {
-    return () => h('div', { class: 'table-stub' }, [
-      h(
-        'div',
-        { class: 'header-row' },
-        props.columns.map((column) =>
-          slots.headerCell?.({ title: column.title, column })
-        )
-      ),
-      ...props.dataSource.map((record) =>
+    return () =>
+      h('div', { class: 'table-stub table-cell-overflow' }, [
         h(
           'div',
-          { class: 'body-row', key: record.id },
+          { class: 'header-row' },
           props.columns.map((column) =>
-            slots.bodyCell?.({
-              column,
-              record,
-              text: record[column.dataIndex]
-            })
+            slots.headerCell?.({ title: column.title, column })
           )
-        )
-      )
-    ])
-  }
+        ),
+        ...props.dataSource.map((record) =>
+          h(
+            'div',
+            { class: 'body-row', key: record.id },
+            props.columns.map((column) =>
+              slots.bodyCell?.({
+                column,
+                record,
+                text: record[column.dataIndex],
+              })
+            )
+          )
+        ),
+      ])
+  },
 }
 
 function mountShell(
   dataSource,
   tableStub = true,
-  { realCellOverflowTooltip = false, realBadges = false } = {}
+  { realCellOverflowTooltip = false, realBadges = false, stubBatchEdit = true } = {}
 ) {
   const cellOverflowStub = realCellOverflowTooltip ? {} : { CellOverflowTooltip: true }
   const badgeStubs = realBadges ? {} : { EntryStateBadge: true, TransStateBadge: true }
@@ -158,16 +149,16 @@ function mountShell(
       currentProduct: { key: 'p1', type: 'module', parentId: 'root' },
       classifyLimit: {},
       dataSource,
-      selectedRowKeys: [],
-      selectedRows: [],
-      selectedProducts: { products: new Map(), totalNum: 0 }
+      selectedRowKeys: dataSource.map((r) => r.id),
+      selectedRows: [...dataSource],
+      selectedProducts: { products: new Map(), totalNum: 0 },
     },
     global: {
       mocks: createUserStoreMock(),
       stubs: {
-        'CustomModal': ModalStub,
+        CustomModal: ModalStub,
         'a-button': {
-          template: '<button @click="$emit(\'click\', $event)"><slot /></button>'
+          template: '<button @click="$emit(\'click\', $event)"><slot /></button>',
         },
         'a-form': true,
         'a-form-item': true,
@@ -176,21 +167,76 @@ function mountShell(
         'a-tooltip': TooltipStub,
         'a-table': tableStub,
         'a-config-provider': SpinStub,
-        'TableCellTextArea': true,
-        'RulesDropdown': RulesDropdownStub,
-        'ExportButton': true,
-        'CreateVersionForm': true,
-        'ExamineTaskForm': true,
-        'WriteBackForm': true,
-        'PreTranslateForm': true,
+        TableCellTextArea: true,
+        RulesDropdown: RulesDropdownStub,
+        ExportButton: true,
+        CreateVersionForm: true,
+        ExamineTaskForm: true,
+        WriteBackForm: true,
+        PreTranslateForm: true,
+        ...(stubBatchEdit ? { BatchEditModal: true } : {}),
         ...cellOverflowStub,
-        ...badgeStubs
-      }
-    }
+        ...badgeStubs,
+      },
+    },
   })
 }
 
-describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
+const ColumnFilterStub = {
+  name: 'ColumnFilter',
+  props: {
+    modelValue: { type: Array, default: () => [] },
+    columns: { type: Array, default: () => [] },
+    colPrefName: { type: String, default: '' },
+  },
+  emits: ['update:modelValue', 'change'],
+  template: '<div class="column-filter-stub" :data-pref="colPrefName"></div>',
+}
+
+function mountBatchEdit(entries) {
+  return mount(BatchEditModal, {
+    props: {
+      visible: true,
+      entries,
+      classifyLimit: {},
+    },
+    global: {
+      mocks: createUserStoreMock(),
+      stubs: {
+        CustomModal: ModalStub,
+        'a-button': {
+          template: '<button @click="$emit(\'click\', $event)"><slot /></button>',
+        },
+        'a-input-search': {
+          props: ['value', 'placeholder'],
+          emits: ['update:value'],
+          template:
+            '<input class="keyword-search-stub" :value="value" :placeholder="placeholder" @input="$emit(\'update:value\', $event.target.value)" />',
+        },
+        'a-form': true,
+        'a-form-item': true,
+        'a-select': true,
+        'a-spin': SpinStub,
+        'a-tooltip': TooltipStub,
+        'a-table': OperationTableStub,
+        'a-config-provider': SpinStub,
+        TableCellTextArea: true,
+        RulesDropdown: RulesDropdownStub,
+        ColumnFilter: ColumnFilterStub,
+        PreTranslateForm: {
+          name: 'PreTranslateForm',
+          props: {
+            visible: { type: Boolean, default: false },
+            loading: { type: Boolean, default: false },
+          },
+          template: '<div class="pre-translate-form-stub" />',
+        },
+      },
+    },
+  })
+}
+
+describe('CreateVersionModal - 已选词条（无行编辑）', () => {
   let wrapper
 
   beforeEach(() => {
@@ -210,333 +256,64 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     expect(wrapper.findComponent(ModalStub).props('okLoading')).toBe(false)
   })
 
-  it('点击预翻译按钮应打开配置弹窗', async () => {
+  it('底部有「编辑」、无「预翻译」；点击编辑打开批量编辑', async () => {
     wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
-    expect(wrapper.vm.preTranslateFormVisible).toBe(false)
 
-    const preTranslateButton = wrapper.findAll('button').find((button) => button.text() === '预翻译')
-    expect(preTranslateButton).toBeDefined()
-    await preTranslateButton.trigger('click')
+    const buttons = wrapper.findAll('button').map((b) => b.text())
+    expect(buttons).toContain('编辑')
+    expect(buttons).not.toContain('预翻译')
 
-    // 配置弹窗由真实按钮入口打开，并保持 visible 受壳控制
-    const form = wrapper.findComponent(PreTranslateForm)
-    expect(form.exists()).toBe(true)
-    expect(wrapper.vm.preTranslateFormVisible).toBe(true)
-    expect(form.props('visible')).toBe(true)
+    expect(wrapper.vm.batchEditOpen).toBe(false)
+    const editBtn = wrapper.findAll('button').find((b) => b.text() === '编辑')
+    await editBtn.trigger('click')
+    expect(wrapper.vm.batchEditOpen).toBe(true)
   })
 
-  it('配置提交后进入编辑模式：接口按语种并行、译文写入列、快照保存', async () => {
-    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
-    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((item) => ({
-      ...item,
-      checked: false
-    }))
-
-    request.mockResolvedValue({
-      code: 200,
-      data: { list: [{ id: 'e1', english: 'circuit breaker' }] }
-    })
-
-    // 直接调用壳的提交流程（配置弹窗的 submit 事件）
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
-    })
-    await nextTick()
-
-    // 接口契约
-    expect(request).toHaveBeenCalledTimes(1)
-    const call = request.mock.calls[0][0]
-    expect(call.url).toBe('/entryInfo/preTranslate')
-    expect(call.params).toEqual({ translateType: '英文', priority: 'shuyuku' })
-    // 译文写入语种列（浏览态）
-    expect(wrapper.vm.dataSource[0].english).toBe('circuit breaker')
-    // 编辑模式激活：底部按钮语义切换 + 快照保存
-    expect(wrapper.vm.preTranslateActive).toBe(true)
-    expect(wrapper.vm.preTranslateSnapshot[0].english).toBe('')
-    // 配置弹窗关闭
-    expect(wrapper.vm.preTranslateFormVisible).toBe(false)
+  it('空已选点击编辑：提示且不打开批量编辑', async () => {
+    wrapper = mountShell([])
+    wrapper.vm.openBatchEdit()
+    expect(wrapper.vm.batchEditOpen).toBe(false)
   })
 
-  it('编辑模式取消：dataSource 恢复快照原值、退出编辑模式（模态框不关）', async () => {
-    const entries = [{ id: 'e1', entry: '断路器', english: 'origin value' }]
-    wrapper = mountShell(entries)
+  it('操作列仅取消选择，无编辑图标；无双击编辑', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }], OperationTableStub)
 
-    request.mockResolvedValue({
-      code: 200,
-      data: { list: [{ id: 'e1', english: 'translated' }] }
-    })
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
-    })
-    expect(wrapper.vm.dataSource[0].english).toBe('translated')
-
-    // 取消
-    wrapper.vm.preTranslateCancel()
-    await nextTick()
-
-    expect(wrapper.vm.preTranslateActive).toBe(false)
-    expect(wrapper.vm.preTranslateSnapshot).toBeNull()
-    // 壳 emit update:dataSource（父组件用快照替换）
-    const emitted = wrapper.emitted('update:dataSource')
-    expect(emitted).toBeTruthy()
-    expect(emitted.at(-1)[0][0].english).toBe('origin value')
-    // 模态框未关闭（无 createClose 事件）
-    expect(wrapper.emitted('createClose')).toBeFalsy()
+    expect(wrapper.find('.row-delete-icon').exists()).toBe(true)
+    expect(wrapper.find('.row-edit-icon').exists()).toBe(false)
+    expect(wrapper.vm.customRow).toBeUndefined()
+    expect(wrapper.vm.startEditRow).toBeUndefined()
   })
 
-  it('编辑模式保存：全部通过且全部移除 → 关壳+清空+refresh', async () => {
-    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
-    wrapper = mountShell(entries)
-
-    request.mockResolvedValue({
-      code: 200,
-      data: { list: [{ id: 'e1', english: 'final value' }] }
-    })
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
-    })
-
-    // 保存接口（批量 per-row）
-    request.mockResolvedValue({
-      code: 200,
-      data: {
-        list: [{ id: 'e1', success: true, message: 'OK' }],
-        totalNum: 1,
-      },
-      message: '更新完成',
-    })
-    await wrapper.vm.preTranslateSave()
-    await nextTick()
-
-    // 批量 updateEntryInfoList 被调用
-    const updateCall = request.mock.calls.map(c => c[0]).find(c => c.url === '/entryInfo/updateEntryInfoList')
-    expect(updateCall).toBeTruthy()
-    expect(Array.isArray(updateCall.data)).toBe(true)
-    expect(updateCall.data[0].english).toBe('final value')
-    expect(updateCall.params).toEqual({ notes: '预翻译' })
-
-    // 全部移除 → 关壳三件套 + refresh
-    expect(wrapper.emitted('update:dataSource').at(-1)[0]).toEqual([])
-    expect(wrapper.emitted('createClose')).toBeTruthy()
-    expect(wrapper.emitted('cancelCreate')).toBeTruthy()
-    expect(wrapper.emitted('refresh')).toBeTruthy()
-    expect(wrapper.vm.preTranslateActive).toBe(false)
-  })
-
-  it('编辑态保存中连点：写接口只触发一次', async () => {
-    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
-    wrapper = mountShell(entries)
-    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((item) => ({
-      ...item,
-      checked: false
-    }))
-
-    request.mockResolvedValue({
-      code: 200,
-      data: { list: [{ id: 'e1', english: 'final value' }] }
-    })
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
-    })
-
-    let resolveUpdate
-    const updateGate = new Promise((resolve) => {
-      resolveUpdate = resolve
-    })
-    request.mockImplementation((config) => {
-      if (config.url === '/entryInfo/updateEntryInfoList') {
-        return updateGate.then(() => ({
-          code: 200,
-          data: {
-            list: [{ id: 'e1', success: true, message: 'OK' }],
-            totalNum: 1,
-          },
-        }))
-      }
-      return Promise.resolve({ code: 200 })
-    })
-
-    const first = wrapper.vm.preTranslateSave()
-    await nextTick()
-    expect(wrapper.vm.loading).toBe(true)
-
-    const second = wrapper.vm.preTranslateSave()
-    const viaHandleOK = wrapper.vm.handleOK()
-
-    resolveUpdate()
-    await Promise.all([first, second, viaHandleOK])
-    await nextTick()
-
-    const updateCalls = request.mock.calls
-      .map((c) => c[0])
-      .filter((c) => c.url === '/entryInfo/updateEntryInfoList')
-    expect(updateCalls).toHaveLength(1)
-    expect(wrapper.vm.loading).toBe(false)
-  })
-
-  it('预翻译部分保存成功：仅移除成功行的 dataSource 与已选状态', async () => {
+  it('批量编辑保存：合并成功行到已选，不剔除 keys', async () => {
     const entries = [
-      { id: 'e1', entry: '断路器', english: '' },
-      { id: 'e2', entry: '隔离开关', english: '' }
+      { id: 'e1', entry: '断路器', english: 'a' },
+      { id: 'e2', entry: '隔离开关', english: 'b' },
     ]
     wrapper = mountShell(entries)
-    await wrapper.setProps({
-      selectedRows: entries,
-      selectedRowKeys: ['e1', 'e2']
-    })
-    wrapper.vm.rulesOptions = wrapper.vm.rulesOptions.map((item) => ({
-      ...item,
-      checked: false
-    }))
 
-    request.mockImplementation((config) => {
-      if (config.url === '/entryInfo/preTranslate') {
-        return Promise.resolve({
-          code: 200,
-          data: {
-            list: [
-              { id: 'e1', english: 'breaker' },
-              { id: 'e2', english: 'disconnector' }
-            ]
-          }
-        })
-      }
-      if (config.url === '/entryInfo/updateEntryInfoList') {
-        return Promise.resolve({
-          code: 203,
-          data: {
-            list: [
-              { id: 'e1', success: true, message: 'OK' },
-              { id: 'e2', success: false, message: '落库失败' },
-            ],
-            totalNum: 2,
-          },
-        })
-      }
-      return Promise.resolve({ code: 200 })
+    wrapper.vm.onBatchEditSaved({
+      savedRecords: [{ id: 'e1', entry: '断路器', english: 'breaker' }],
+      remainingIds: ['e2'],
+      allDone: false,
     })
-
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku'
-    })
-    await wrapper.vm.preTranslateSave()
     await nextTick()
 
-    expect(wrapper.emitted('update:dataSource').at(-1)[0].map((item) => item.id)).toEqual(['e2'])
-    expect(wrapper.emitted('update:selectedRows').at(-1)[0].map((item) => item.id)).toEqual(['e2'])
-    expect(wrapper.emitted('update:selectedRowKeys').at(-1)[0]).toEqual(['e2'])
-    expect(wrapper.emitted('createClose')).toBeFalsy()
+    const ds = wrapper.emitted('update:dataSource').at(-1)[0]
+    expect(ds.map((r) => r.id)).toEqual(['e1', 'e2'])
+    expect(ds.find((r) => r.id === 'e1').english).toBe('breaker')
+    expect(wrapper.emitted('update:selectedRowKeys')).toBeUndefined()
+    expect(wrapper.vm.batchEditOpen).toBe(false)
   })
 
-  it('空已选词条提交：直接提示不调接口', async () => {
-    wrapper = mountShell([])
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
+  it('批量编辑全部保存成功：关闭批量编辑', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: 'a' }])
+    wrapper.vm.batchEditOpen = true
+    wrapper.vm.onBatchEditSaved({
+      savedRecords: [{ id: 'e1', entry: '断路器', english: 'breaker' }],
+      remainingIds: [],
+      allDone: true,
     })
-    expect(request).not.toHaveBeenCalled()
-    expect(wrapper.vm.preTranslateActive).toBe(false)
-  })
-
-  it('startEditRow：浏览态行生成独立编辑副本并配置语种校验规则', async () => {
-    const entries = [{ id: 'e1', entry: '断路器', english: 'origin' }]
-    wrapper = mountShell(entries)
-    request.mockResolvedValue({
-      code: 200,
-      data: { list: [{ id: 'e1', english: 'translated' }] }
-    })
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
-    })
-
-    const record = wrapper.vm.dataSource[0]
-    await wrapper.vm.startEditRow(record)
-
-    expect(wrapper.vm.editableData.e1).toBeDefined()
-    expect(wrapper.vm.editableData.e1).not.toBe(record)
-    expect(wrapper.vm.editableData.e1.english).toBe('translated')
-    expect(wrapper.vm.rules.e1.english).toBeTruthy()
-  })
-
-  it('customRow 双击与编辑按钮共用同一进入编辑态方法', async () => {
-    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
-    wrapper = mountShell(entries)
-    request.mockResolvedValue({
-      code: 200,
-      data: { list: [{ id: 'e1', english: 'translated' }] }
-    })
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
-    })
-
-    const startEditSpy = vi.spyOn(wrapper.vm, 'startEditRow')
-    const record = wrapper.vm.dataSource[0]
-    await wrapper.vm.customRow(record).onDblclick({ target: { closest: () => null } })
-
-    expect(startEditSpy).toHaveBeenCalledWith(record)
-    expect(wrapper.vm.editableData.e1).toBeDefined()
-  })
-
-  it('双击交互控件不触发行编辑，重复双击不覆盖未确认输入', async () => {
-    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
-    wrapper = mountShell(entries)
-    request.mockResolvedValue({
-      code: 200,
-      data: { list: [{ id: 'e1', english: 'translated' }] }
-    })
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
-    })
-
-    const record = wrapper.vm.dataSource[0]
-    await wrapper.vm.customRow(record).onDblclick({
-      target: { closest: () => ({ className: 'ant-input' }) }
-    })
-    expect(wrapper.vm.editableData.e1).toBeUndefined()
-
-    await wrapper.vm.startEditRow(record)
-    wrapper.vm.editableData.e1.english = '未确认输入'
-    await wrapper.vm.customRow(record).onDblclick({ target: { closest: () => null } })
-
-    expect(wrapper.vm.editableData.e1.english).toBe('未确认输入')
-  })
-
-  it('浏览态操作列显示编辑图标，进入编辑态后隐藏', async () => {
-    const entries = [{ id: 'e1', entry: '断路器', english: '' }]
-    wrapper = mountShell(entries, OperationTableStub)
-    request.mockResolvedValue({
-      code: 200,
-      data: { list: [{ id: 'e1', english: 'translated' }] }
-    })
-    await wrapper.vm.onPreTranslateSubmit({
-      language: ['英文'],
-      priority: 'shuyuku',
-      verifyMethods: []
-    })
-
-    const editIcon = wrapper.find('.row-edit-icon')
-    expect(editIcon.exists()).toBe(true)
-    await editIcon.trigger('click')
-    await nextTick()
-
-    expect(wrapper.vm.editableData.e1).toBeDefined()
-    expect(wrapper.find('.row-edit-icon').exists()).toBe(false)
+    expect(wrapper.vm.batchEditOpen).toBe(false)
   })
 
   it('已选词条表格业务列按 200px 锁定，序号与操作列保持既有宽度', async () => {
@@ -552,7 +329,7 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     expect(entryCol.width).toBe(200)
     expect(entryCol.ellipsis).toEqual({ showTitle: false })
     expect(entryCol.customCell()).toEqual({
-      style: { width: '200px', minWidth: '200px', maxWidth: '200px' }
+      style: { width: '200px', minWidth: '200px', maxWidth: '200px' },
     })
     expect(indexCol.width).toBe(50)
     expect(operationCol.width).toBe(200)
@@ -572,7 +349,9 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     const tooltips = wrapper.findAllComponents(CellOverflowTooltip)
     expect(tooltips.some((tooltip) => tooltip.props('content') === '词条')).toBe(true)
     expect(
-      tooltips.some((tooltip) => tooltip.props('content') === '超长词条内容用于验证省略和悬浮提示')
+      tooltips.some(
+        (tooltip) => tooltip.props('content') === '超长词条内容用于验证省略和悬浮提示'
+      )
     ).toBe(true)
   })
 
@@ -592,8 +371,8 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
         title: '英文翻译状态',
         dataIndex: 'englishTranslateState',
         colValue: 'englishTranslateState',
-        index: 2
-      }
+        index: 2,
+      },
     ]
     await nextTick()
 
@@ -602,43 +381,91 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
     expect(wrapper.findAllComponents(CellOverflowTooltip).length).toBeGreaterThan(0)
   })
 
-  it('批量选择顶部始终渲染工作台同款校验规则控件', () => {
+  it('批量选择顶部仅展示「已选词条」文案，无校验规则控件', () => {
     wrapper = mountShell([{ id: 'e1', entry: '断路器' }])
+    expect(wrapper.text()).toContain('已选词条')
+    expect(wrapper.findComponent(RulesDropdownStub).exists()).toBe(false)
+  })
+})
 
-    const rulesDropdown = wrapper.findComponent(RulesDropdownStub)
-    expect(rulesDropdown.exists()).toBe(true)
-    expect(rulesDropdown.props('options').length).toBeGreaterThan(0)
+describe('BatchEditModal - 批量编辑', () => {
+  let wrapper
+
+  beforeEach(() => {
+    vi.clearAllMocks()
+    localStorage.clear()
   })
 
-  it('未预翻译时点击编辑图标可进入编辑态，底部切换为取消/保存', async () => {
-    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }], OperationTableStub)
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    resetLoading()
+  })
 
-    const editIcon = wrapper.find('.row-edit-icon')
-    expect(editIcon.exists()).toBe(true)
+  it('标题为「批量编辑」，无预翻译结果子标题', () => {
+    wrapper = mountBatchEdit([{ id: 'e1', entry: '断路器', english: '' }])
+    expect(wrapper.findComponent(ModalStub).props('modalTitle')).toBe('批量编辑')
+    expect(wrapper.text()).not.toContain('预翻译结果')
+  })
+
+  it('底部有预翻译；点击打开配置弹窗', async () => {
+    wrapper = mountBatchEdit([{ id: 'e1', entry: '断路器', english: '' }])
+    const preBtn = wrapper.findAll('button').find((b) => b.text() === '预翻译')
+    expect(preBtn).toBeDefined()
+    await preBtn.trigger('click')
+    expect(wrapper.vm.preTranslateFormVisible).toBe(true)
+    const form = wrapper.findComponent({ name: 'PreTranslateForm' })
+    expect(form.exists()).toBe(true)
+    expect(form.props('visible')).toBe(true)
+  })
+
+  it('操作列浏览态有编辑与删除；删除只移出工作表', async () => {
+    const entries = [
+      { id: 'e1', entry: '断路器', english: 'a' },
+      { id: 'e2', entry: '隔离开关', english: 'b' },
+    ]
+    wrapper = mountBatchEdit(entries)
+    expect(wrapper.find('.row-edit-icon').exists()).toBe(true)
     expect(wrapper.find('.row-delete-icon').exists()).toBe(true)
 
-    await editIcon.trigger('click')
+    await wrapper.vm.removeFromEdit(entries[0])
+    expect(wrapper.vm.dataSource.map((r) => r.id)).toEqual(['e2'])
+    expect(wrapper.emitted('update:dataSource')).toBeUndefined()
+  })
+
+  it('startEditRow：生成独立编辑副本', async () => {
+    const entries = [{ id: 'e1', entry: '断路器', english: 'translated' }]
+    wrapper = mountBatchEdit(entries)
+    const record = wrapper.vm.dataSource[0]
+    await wrapper.vm.startEditRow(record)
+
+    expect(wrapper.vm.editableData.e1).toBeDefined()
+    expect(wrapper.vm.editableData.e1).not.toBe(record)
+    expect(wrapper.vm.editableData.e1.english).toBe('translated')
+  })
+
+  it('预翻译配置提交：写回同表（调用 preTranslate API）', async () => {
+    request.mockResolvedValue({
+      code: 200,
+      data: { list: [{ id: 'e1', english: 'circuit breaker' }] },
+    })
+    wrapper = mountBatchEdit([{ id: 'e1', entry: '断路器', english: '' }])
+    await wrapper.vm.onPreTranslateSubmit({
+      language: ['英文'],
+      priority: 'shuyuku',
+    })
     await nextTick()
 
-    expect(wrapper.vm.editableData.e1).toBeDefined()
-    expect(wrapper.vm.manualEditActive).toBe(true)
-    expect(wrapper.vm.isEditMode).toBe(true)
-    expect(wrapper.find('.row-confirm-icon').exists()).toBe(true)
-    expect(wrapper.find('.row-edit-icon').exists()).toBe(false)
+    expect(wrapper.vm.preTranslateFormVisible).toBe(false)
+    expect(request).toHaveBeenCalled()
+    const call = request.mock.calls.map((c) => c[0]).find((c) => c.url === '/entryInfo/preTranslate')
+    expect(call).toBeTruthy()
   })
 
-  it('未预翻译时双击行可进入编辑态', async () => {
-    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
-    const record = wrapper.vm.dataSource[0]
-
-    await wrapper.vm.customRow(record).onDblclick({ target: { closest: () => null } })
-
-    expect(wrapper.vm.editableData.e1).toBeDefined()
-    expect(wrapper.vm.manualEditActive).toBe(true)
-  })
-
-  it('普通编辑保存立即落库但保留已选词条', async () => {
-    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: 'origin' }])
+  it('保存成功：notes 为批量编辑；成功行移出工作表并 emit saved（已选由父合并）', async () => {
+    wrapper = mountBatchEdit([
+      { id: 'e1', entry: '断路器', english: 'origin' },
+      { id: 'e2', entry: '隔离开关', english: 'origin2' },
+    ])
     const record = wrapper.vm.dataSource[0]
     await wrapper.vm.startEditRow(record)
     wrapper.vm.editableData.e1.english = 'manual value'
@@ -651,48 +478,94 @@ describe('CreateVersionModal - 预翻译 v2（编辑态模式）', () => {
       },
       message: '更新完成',
     })
-    await wrapper.vm.handleOK()
+    await wrapper.vm.onSave()
+    await nextTick()
 
-    const updateCall = request.mock.calls.map((c) => c[0]).find((c) => c.url === '/entryInfo/updateEntryInfoList')
+    const updateCall = request.mock.calls
+      .map((c) => c[0])
+      .find((c) => c.url === '/entryInfo/updateEntryInfoList')
     expect(updateCall).toBeTruthy()
-    expect(Array.isArray(updateCall.data)).toBe(true)
-    expect(updateCall.data[0].english).toBe('manual value')
-    expect(updateCall.params).toEqual({ notes: '编辑词条' })
-    expect(wrapper.vm.dataSource.map((item) => item.id)).toEqual(['e1'])
-    expect(wrapper.vm.manualEditActive).toBe(false)
-    expect(wrapper.vm.createVersionFormVisible).toBe(false)
+    expect(updateCall.params).toEqual({ notes: '批量编辑' })
+    expect(wrapper.vm.dataSource.map((r) => r.id)).toEqual(['e2'])
+    expect(wrapper.emitted('saved')).toBeTruthy()
+    expect(wrapper.emitted('saved')[0][0].savedRecords[0].id).toBe('e1')
+    expect(wrapper.emitted('refresh')).toBeTruthy()
   })
 
-  it('普通编辑取消恢复快照并退出编辑态', async () => {
-    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: 'origin' }])
+  it('customRow 双击进入编辑态；交互控件不触发', async () => {
+    wrapper = mountBatchEdit([{ id: 'e1', entry: '断路器', english: 'translated' }])
+    const startEditSpy = vi.spyOn(wrapper.vm, 'startEditRow')
+    const record = wrapper.vm.dataSource[0]
+
+    await wrapper.vm.customRow(record).onDblclick({
+      target: { closest: () => ({ className: 'ant-input' }) },
+    })
+    expect(startEditSpy).not.toHaveBeenCalled()
+
+    await wrapper.vm.customRow(record).onDblclick({
+      target: { closest: () => null },
+    })
+    expect(startEditSpy).toHaveBeenCalledWith(record)
+    expect(wrapper.vm.editableData.e1).toBeDefined()
+  })
+
+  it('工具栏有 ColumnFilter（独立 colPref）、校验规则与 handleResizeColumn', () => {
+    wrapper = mountBatchEdit([{ id: 'e1', entry: '断路器', english: '' }])
+    const colFilter = wrapper.findComponent({ name: 'ColumnFilter' })
+    expect(colFilter.exists()).toBe(true)
+    expect(colFilter.props('colPrefName')).toBe('colPref-batchEditModal')
+    expect(wrapper.findComponent(RulesDropdownStub).exists()).toBe(true)
+    expect(typeof wrapper.vm.handleResizeColumn).toBe('function')
+    expect(typeof wrapper.vm.syncColumnsFromPref).toBe('function')
+    expect(Array.isArray(wrapper.vm.columnSettingsList)).toBe(true)
+  })
+
+  it('单元格 change 即校验（不必等失焦或 √）', async () => {
+    wrapper = mountBatchEdit([{ id: 'e1', entry: '断路器', english: '' }])
     const record = wrapper.vm.dataSource[0]
     await wrapper.vm.startEditRow(record)
-    wrapper.vm.editableData.e1.english = 'changed'
-    await wrapper.vm.rowConfirm(record)
+    wrapper.vm.rules.e1.english = [
+      {
+        validator: async () => {
+          throw new Error('翻错了')
+        },
+      },
+    ]
 
-    expect(record.english).toBe('changed')
-    expect(wrapper.vm.manualEditActive).toBe(true)
-
-    wrapper.vm.cancelManualEdits()
+    await wrapper.vm.onCellInput('bad', record, { dataIndex: 'english' })
     await nextTick()
 
-    const emitted = wrapper.emitted('update:dataSource')
-    expect(emitted.at(-1)[0][0].english).toBe('origin')
-    expect(wrapper.vm.manualEditActive).toBe(false)
-    expect(wrapper.vm.editableData).toEqual({})
+    expect(wrapper.vm.cellErrors.e1?.english).toBe('翻错了')
   })
 
-  it('切换校验规则会清空当前编辑行红字', async () => {
-    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: '' }])
-    wrapper.vm.cellErrors = { e1: { english: '旧错误' } }
+  it('关键字全字段过滤展示行；清空恢复；删除仍改完整 dataSource', async () => {
+    wrapper = mountBatchEdit([
+      { id: 'e1', entry: '断路器', english: 'breaker', remark: '高压' },
+      { id: 'e2', entry: '隔离开关', english: 'disconnector', remark: '中压' },
+    ])
 
-    const nextRules = wrapper.vm.rulesOptions.map((item) => ({
-      ...item,
-      checked: false
-    }))
-    wrapper.findComponent(RulesDropdownStub).vm.$emit('update:options', nextRules)
+    expect(wrapper.vm.filteredDataSource.map((r) => r.id)).toEqual(['e1', 'e2'])
+
+    wrapper.vm.keyword = 'breaker'
     await nextTick()
+    expect(wrapper.vm.filteredDataSource.map((r) => r.id)).toEqual(['e1'])
 
-    expect(wrapper.vm.cellErrors).toEqual({})
+    wrapper.vm.keyword = '中压'
+    await nextTick()
+    expect(wrapper.vm.filteredDataSource.map((r) => r.id)).toEqual(['e2'])
+
+    await wrapper.vm.startEditRow(wrapper.vm.dataSource[0])
+    wrapper.vm.editableData.e1.english = 'unique-draft-xyz'
+    wrapper.vm.keyword = 'unique-draft'
+    await nextTick()
+    expect(wrapper.vm.filteredDataSource.map((r) => r.id)).toEqual(['e1'])
+
+    wrapper.vm.keyword = ''
+    await nextTick()
+    expect(wrapper.vm.filteredDataSource.map((r) => r.id)).toEqual(['e1', 'e2'])
+
+    await wrapper.vm.removeFromEdit(wrapper.vm.dataSource[0])
+    expect(wrapper.vm.dataSource.map((r) => r.id)).toEqual(['e2'])
+    expect(wrapper.vm.filteredDataSource.map((r) => r.id)).toEqual(['e2'])
   })
 })

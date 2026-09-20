@@ -77,23 +77,29 @@ export default {
         display: flex;
         padding: 16px;
         flex-direction: column;
-        // gap: 8px;
+        gap: 12px;
         position: relative;
 
         .operateBox{
             display: flex;
-            align-items: center;
+            width: 100%;
+            align-items: flex-start;
 
             .label{
                 display: flex;
                 color: black;
                 gap: 8px;
                 align-items: center;
+                flex-shrink: 0;
             }
 
             .operate{
                 display: flex;
-                margin-left: auto;
+                flex: 1;
+                min-width: 0;
+                margin-left: 0;
+                justify-content: flex-end;
+                flex-wrap: wrap;
                 gap: 8px;
             }
         }

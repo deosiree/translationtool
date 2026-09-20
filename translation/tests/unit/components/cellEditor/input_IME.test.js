@@ -41,6 +41,24 @@ describe("InputIME", () => {
     expect(wrapper.emitted("update:value")?.slice(-1)[0]).toEqual(["中文"]);
   });
 
+  it("组字期间已写入终值时 compositionend 仍强制 emit", async () => {
+    wrapper = mount(InputIME, {
+      props: { value: "" },
+      global: {
+        stubs: { "a-input": InputStub },
+      },
+    });
+    const full = "而愤然    愤愤然";
+    wrapper.vm.onCompositionStart();
+    wrapper.vm.innerValue = full;
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted("update:value")).toBeUndefined();
+
+    wrapper.vm.onCompositionEnd({ target: { value: full } });
+    await wrapper.vm.$nextTick();
+    expect(wrapper.emitted("update:value")?.slice(-1)[0]).toEqual([full]);
+  });
+
   it("不再提供 onBlur 同步", () => {
     wrapper = mount(InputIME, {
       props: { value: "a" },

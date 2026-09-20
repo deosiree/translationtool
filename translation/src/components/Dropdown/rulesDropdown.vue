@@ -1,9 +1,9 @@
 <template>
   <div class="validation-rules-dropdown">
     <!-- 下拉框触发按钮 -->
-    <a-dropdown :trigger="['click']" :overlay-style="{ minWidth: '180px' }">
+    <a-dropdown :trigger="['click']" :overlay-style="{ minWidth: '220px' }">
       <!-- 触发按钮内容（可自定义） -->
-      <a-button type="text" class="dropdown-trigger">
+      <a-button type="text" size="small" class="dropdown-trigger">
         {{ title }}
         <DownOutlined />
       </a-button>
@@ -13,7 +13,17 @@
           <!-- 动态渲染校验规则选项 -->
           <a-menu-item v-for="option in options" :key="option.key" class="menu-item">
             <a-checkbox v-model:checked="option.checked">
-              {{ option.label }}
+              <a-tooltip
+                v-if="option.tooltip"
+                placement="right"
+                :overlay-style="{ maxWidth: '320px', whiteSpace: 'pre-line' }"
+              >
+                <template #title>
+                  <span class="rule-tooltip-text">{{ option.tooltip }}</span>
+                </template>
+                <span class="rule-label">{{ option.label }}</span>
+              </a-tooltip>
+              <span v-else class="rule-label">{{ option.label }}</span>
             </a-checkbox>
           </a-menu-item>
         </a-menu>
@@ -59,17 +69,21 @@ export default {
 
 <style scoped>
 .validation-rules-dropdown {
-  display: inline-block;
-  margin: 8px 0;
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  margin: 0;
 }
 
 .dropdown-trigger {
-  padding: 4px 8px;
+  height: 24px;
+  padding: 0 7px;
   font-size: 14px;
+  line-height: 22px;
   color: rgba(0, 0, 0, 0.85);
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 4px; /* 图标与文字间距 */
+  gap: 4px;
 }
 
 .validation-menu {
@@ -84,5 +98,13 @@ export default {
 
 .menu-item .ant-checkbox {
   margin-right: 8px;
+}
+
+.rule-label {
+  cursor: help;
+}
+
+.rule-tooltip-text {
+  white-space: pre-line;
 }
 </style>

@@ -109,26 +109,29 @@ describe('validationUtils - 高级校验功能', () => {
   describe('verifyArray_workbench_page', () => {
     it('应该只校验当前页的数据', async () => {
       mockVm.dataSource = [
-        { id: '1', entry: 'test1', english: 'test1', classfy1: 'category1' },
-        { id: '2', entry: 'test2', english: 'test2', classfy1: 'category1' },
-        { id: '3', entry: 'test3', english: 'test3', classfy1: 'category1' },
-        { id: '4', entry: 'test4', english: 'test4', classfy1: 'category1' }
+        { id: '1', entry: 'test1%1', english: 'test1 % 1', classfy1: 'category1' },
+        { id: '2', entry: 'test2%1', english: 'test2 % 1', classfy1: 'category1' },
+        { id: '3', entry: 'test3%1', english: 'test3 % 1', classfy1: 'category1' },
+        { id: '4', entry: 'test4%1', english: 'test4 % 1', classfy1: 'category1' }
+      ]
+      mockVm.rulesOptions = [
+        { key: 'special', checked: true },
+        { key: 'toLong', checked: false },
       ]
       const pagination = { current: 1, pageSize: 2 }
       mockVm.$refs = {
         'form1english': { validate: vi.fn().mockResolvedValue(undefined) },
         'form2english': { validate: vi.fn().mockResolvedValue(undefined) }
       }
-      checkSykEntryBeforeSave.mockResolvedValue({ data: [] })
 
-      // 直接验证函数行为：应该只处理前2条数据
       await verifyArray_workbench_page(pagination, 'english', mockVm)
 
-      // 验证 verifyArray_workbench 被调用，并且传入的数组长度为2
-      // 由于无法直接 spy，我们通过检查 mockVm 的状态来验证
-      expect(checkSykEntryBeforeSave).toHaveBeenCalled()
-      const callArgs = checkSykEntryBeforeSave.mock.calls[0][0]
-      expect(callArgs.length).toBeLessThanOrEqual(2) // 最多2条数据
+      // 本地 special：仅当前页 1、2 进编辑；3、4 不动
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
+      expect(mockVm.editableData['1']).toBeDefined()
+      expect(mockVm.editableData['2']).toBeDefined()
+      expect(mockVm.editableData['3']).toBeUndefined()
+      expect(mockVm.editableData['4']).toBeUndefined()
     })
 
     it('rulesOptions 关闭 special 时不应调用 checkSykEntryBeforeSave', async () => {
@@ -218,22 +221,18 @@ describe('validationUtils - 高级校验功能', () => {
     it('应该在特殊字符不一致时 reject', async () => {
       const record = { id: '1', entry: 'test%1', classfy1: 'category1' }
       const validator = validateRefRules(record, mockVm, 'foreignMaxByte', 'english')
-      checkSykEntryBeforeSave.mockResolvedValue({ data: [{ id: '1' }] })
 
       await expect(validator({}, 'test% 1')).rejects.toContain('特殊字符不一致')
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
     })
 
-    it('应该使用 editableData 中的值进行校验', async () => {
+    it('应该使用 editableData 中的 entry 进行占位校验', async () => {
       const record = { id: '1', entry: 'test', english: 'old', classfy1: 'category1' }
-      mockVm.editableData['1'] = { english: 'new' }
+      mockVm.editableData['1'] = { entry: 'test%1', english: 'new' }
       const validator = validateRefRules(record, mockVm, 'foreignMaxByte', 'english')
-      checkSykEntryBeforeSave.mockResolvedValue({ data: [] })
 
-      await validator({}, 'new')
-
-      expect(checkSykEntryBeforeSave).toHaveBeenCalledWith([
-        { id: '1', entry: 'test', translate: 'new' }
-      ])
+      await expect(validator({}, 'new')).rejects.toContain('特殊字符不一致')
+      expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
     })
   })
 })

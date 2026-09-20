@@ -44,8 +44,11 @@ export default {
     },
     onCompositionEnd(event) {
       this.isComposing = false;
-      this.innerValue =
+      const next =
         (event && event.target && event.target.value) ?? this.innerValue ?? "";
+      this.innerValue = next;
+      // 组字期间 v-model 可能已把终值写进 innerValue；赋值相同不会触发 watch，必须强制回写父级
+      this.$emit("update:value", next);
     },
     onPressEnter(event) {
       this.$emit("pressEnter", event);
