@@ -1,9 +1,10 @@
 <template>
   <Modal
-    :visible="visible"
+    :modalVisible="visible"
     modalTitle="批量预翻译"
     modalWidth="80%"
     :fullFlag="false"
+    :okLoading="submitting"
     @handleClose="handleClose"
     @handleOK="handleExecute"
     @afterClose="afterClose"
@@ -50,32 +51,132 @@
         </div>
       </div>
 
-      <!-- 配置区域 -->
+      <!-- 配置区域（含归档补充项） -->
       <div class="section config-section">
         <div class="section-title">执行配置</div>
-        <a-row :gutter="16" align="middle">
-          <a-col :span="8">
-            <div class="config-item">
-              <label>翻译方式</label>
-              <a-select v-model:value="model.translatePriority" :options="priorityOptions" allowClear style="width: 100%" placeholder="请选择">
-              </a-select>
-            </div>
-          </a-col>
-          <a-col :span="8">
-            <div class="config-item">
-              <label>并发数</label>
-              <a-tooltip title="同时执行的任务数（1~100）；每个任务内的阶段仍按顺序串行执行">
-                <a-input-number v-model:value="model.concurrency" :min="1" :max="100" :style="{ width: '100%' }" />
+        <a-form ref="execForm" :model="model" class="exec-form">
+          <a-row v-if="model.stages.archive" :gutter="16" align="top">
+            <a-col :span="8">
+              <a-form-item
+                label="IP"
+                name="archiveIp"
+                :rules="[{ required: true, message: '请选择IP!' }]"
+              >
+                <a-select
+                  v-model:value="model.archiveIp"
+                  :options="ipOptions"
+                  placeholder="请选择IP"
+                  allowClear
+                  style="width: 100%"
+                />
+              </a-form-item>
+            </a-col>
+            <a-col :span="8">
+              <a-form-item
+                label="归档方式"
+                name="archiveMode"
+                :rules="[{ required: true, message: '请选择归档方式!' }]"
+              >
+                <a-select
+                  v-model:value="model.archiveMode"
+                  :options="archiveModes"
+                  placeholder="请选择"
+                  style="width: 100%"
+                />
+              </a-form-item>
+            </a-col>
+          </a-row>
+
+          <a-row :gutter="16" align="top">
+            <a-col :span="8">
+              <a-form-item
+                label="翻译方式"
+                name="translatePriority"
+                :rules="[{ required: true, message: '请选择翻译方式!' }]"
+              >
+                <a-select
+                  v-model:value="model.translatePriority"
+                  :options="priorityOptions"
+                  style="width: 100%"
+                  placeholder="请选择"
+                />
+              </a-form-item>
+            </a-col>
+            <a-col :span="8">
+              <a-form-item
+                label="并发数"
+                name="concurrency"
+                :rules="[
+                  { required: true, message: '请输入并发数!' },
+                  { type: 'number', min: 1, max: 100, message: '并发数须在 1~100!' }
+                ]"
+              >
+                <a-tooltip title="全局同时执行的工作单元数（1~100）；含主任务阶段与拆分子块；每个任务内阶段仍按顺序串行">
+                  <a-input-number
+                    v-model:value="model.concurrency"
+                    :min="1"
+                    :max="100"
+                    :style="{ width: '100%' }"
+                  />
+                </a-tooltip>
+              </a-form-item>
+            </a-col>
+            <a-col :span="8">
+              <a-form-item
+                label="重试次数"
+                name="maxRetries"
+                :rules="[
+                  { required: true, message: '请输入重试次数!' },
+                  { type: 'number', min: 1, max: 100, message: '重试次数须在 1~100!' }
+                ]"
+              >
+                <a-input-number
+                  v-model:value="model.maxRetries"
+                  :min="1"
+                  :max="100"
+                  :style="{ width: '100%' }"
+                />
+              </a-form-item>
+            </a-col>
+          </a-row>
+
+          <div class="split-enhance-block">
+            <div class="split-pill-row">
+              <a-tooltip title="某阶段词条超过拆分上限时，拆成多个子任务块并发执行，降低单次接口压力">
+                <button
+                  type="button"
+                  class="split-pill"
+                  :class="{ active: model.enhancedSplit }"
+                  @click="toggleEnhancedSplit"
+                >
+                  {{ model.enhancedSplit ? '已启用 · 拆分增强' : '拆分增强' }}
+                </button>
               </a-tooltip>
+              <span v-if="!model.enhancedSplit" class="split-pill-hint">
+                大数据量任务建议开启，降低单次接口压力
+              </span>
             </div>
-          </a-col>
-          <a-col :span="8">
-            <div class="config-item">
-              <label>重试次数</label>
-              <a-input-number v-model:value="model.maxRetries" :min="1" :max="100" :style="{ width: '100%' }" />
-            </div>
-          </a-col>
-        </a-row>
+            <a-row v-if="model.enhancedSplit" :gutter="16" align="top" class="split-limit-row">
+              <a-col :span="8">
+                <a-form-item
+                  label="拆分上限（条）"
+                  name="splitLimit"
+                  :rules="[
+                    { required: true, message: '请输入拆分上限!' },
+                    { type: 'number', min: 20, max: 2000, message: '拆分上限须在 20~2000!' }
+                  ]"
+                >
+                  <a-input-number
+                    v-model:value="model.splitLimit"
+                    :min="20"
+                    :max="2000"
+                    :style="{ width: '100%' }"
+                  />
+                </a-form-item>
+              </a-col>
+            </a-row>
+          </div>
+        </a-form>
 
         <!-- 校验规则 -->
         <div class="config-item rules-item">
@@ -84,15 +185,6 @@
         </div>
       </div>
     </div>
-
-    <template #footer>
-      <div class="modal-footer" style="display: flex; justify-content: flex-end; gap: 8px; width: 100%;">
-        <a-button @click="handleClose">取消</a-button>
-        <a-button type="primary" @click="handleExecute" :disabled="!canExecute" :loading="submitting">
-          开始执行
-        </a-button>
-      </div>
-    </template>
   </Modal>
 </template>
 
@@ -102,12 +194,14 @@ import RulesDropdown from '@/components/Dropdown/rulesDropdown.vue'
 import { message } from 'ant-design-vue'
 import commonParam from '@/constants/commonParam.js'
 import { TRANSLATE_PRIORITY_OPTIONS } from '@/constants/translatePriority'
+import { ARCHIVE_MODE, ARCHIVE_MODES } from '@/constants/batchPreTranslateSteps'
 import { setModalAriaHidden } from '@/utils/domUtils'
 import { useBatchPreTranslate } from '@/composables/workbench/useBatchPreTranslate'
+import { getI18nAdress } from '@/http/api/workbench'
 
 export default {
   components: { Modal, RulesDropdown },
-  emits: ['update:visible', 'close', 'update:tasks'],
+  emits: ['update:visible', 'close', 'update:tasks', 'complete'],
   props: {
     visible: { type: Boolean, default: false },
     tasks: { type: Array, default: () => [] }
@@ -118,18 +212,26 @@ export default {
         stages: {
           entryExamine: true,
           preTranslate: true,
-          translateExamine: true
+          translateExamine: true,
+          archive: false
         },
         translatePriority: 'shuyuku',
         concurrency: 1,
-        maxRetries: 3
+        maxRetries: 3,
+        enhancedSplit: false,
+        splitLimit: 1000,
+        archiveIp: null,
+        archiveMode: ARCHIVE_MODE.WRITE
       },
-      rulesOptions: commonParam.rulesOptions,
+      rulesOptions: commonParam.rulesOptions.map((item) => ({ ...item })),
       priorityOptions: TRANSLATE_PRIORITY_OPTIONS,
+      archiveModes: ARCHIVE_MODES,
+      ipOptions: [],
       stageConfigs: [
         { key: 'entryExamine', label: '词条审核' },
         { key: 'preTranslate', label: '翻译' },
-        { key: 'translateExamine', label: '翻译审核' }
+        { key: 'translateExamine', label: '翻译审核' },
+        { key: 'archive', label: '归档' }
       ],
       submitting: false
     }
@@ -147,6 +249,14 @@ export default {
       if (val) {
         setModalAriaHidden(this, document)
         this.resetState()
+      }
+    },
+    'model.stages.archive'(val) {
+      if (val) {
+        this.loadIps()
+      } else {
+        this.model.archiveIp = null
+        this.$nextTick(() => this.$refs.execForm?.clearValidate?.(['archiveIp', 'archiveMode']))
       }
     }
   },
@@ -204,8 +314,37 @@ export default {
       this.$emit('update:tasks', this.tasks.filter(t => t.id !== task.id))
     },
 
+    toggleEnhancedSplit() {
+      this.model.enhancedSplit = !this.model.enhancedSplit
+    },
+
+    loadIps() {
+      this.ipOptions = []
+      getI18nAdress().then((res) => {
+        const list = res?.data?.list || []
+        this.ipOptions = list.map(item => ({
+          label: item.ip,
+          value: item.ip
+        }))
+      }).catch((err) => {
+        message.error('获取IP失败: ' + (err?.message || err))
+      })
+    },
+
     async handleExecute() {
-      if (!this.canExecute) return
+      if (!this.canExecute) {
+        if (this.filteredTasks.length === 0) {
+          message.warning('请先选择任务')
+        } else if (!this.isContinuous(this.model.stages)) {
+          message.warning('阶段选择必须连续，不能有空洞')
+        }
+        return
+      }
+      try {
+        await this.$refs.execForm.validate()
+      } catch {
+        return
+      }
 
       this.submitting = true
 
@@ -215,7 +354,11 @@ export default {
         translatePriority: this.model.translatePriority,
         concurrency: this.model.concurrency,
         maxRetries: this.model.maxRetries,
-        rules: this.rulesOptions
+        enhancedSplit: this.model.enhancedSplit,
+        splitLimit: this.model.splitLimit,
+        rules: this.rulesOptions,
+        archiveIp: this.model.archiveIp,
+        archiveMode: this.model.archiveMode
       }
 
       try {
@@ -256,11 +399,17 @@ export default {
       this.model.stages = {
         entryExamine: true,
         preTranslate: true,
-        translateExamine: true
+        translateExamine: true,
+        archive: false
       }
       this.model.translatePriority = 'shuyuku'
       this.model.concurrency = 1
       this.model.maxRetries = 3
+      this.model.enhancedSplit = false
+      this.model.splitLimit = 1000
+      this.model.archiveIp = null
+      this.model.archiveMode = ARCHIVE_MODE.WRITE
+      this.ipOptions = []
     }
   }
 }
@@ -352,6 +501,12 @@ export default {
 
   /* 配置区域 */
   .config-section {
+    .exec-form {
+      :deep(.ant-form-item) {
+        margin-bottom: 12px;
+      }
+    }
+
     .config-item {
       margin-bottom: 12px;
 
@@ -365,6 +520,53 @@ export default {
       &.rules-item {
         margin-top: 8px;
       }
+    }
+
+    .split-enhance-block {
+      margin-top: 4px;
+    }
+
+    .split-pill-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .split-pill {
+      height: 32px;
+      padding: 0 14px;
+      border-radius: 16px;
+      border: 1px solid #d9d9d9;
+      background: #fff;
+      color: #666;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      line-height: 30px;
+
+      &:hover {
+        border-color: #1677ff;
+        color: #1677ff;
+      }
+
+      &.active {
+        border-color: #1677ff;
+        background: #e6f4ff;
+        color: #1677ff;
+        font-weight: 500;
+      }
+    }
+
+    .split-pill-hint {
+      font-size: 12px;
+      color: #999;
+      line-height: 32px;
+    }
+
+    .split-limit-row {
+      margin-top: 8px;
     }
   }
 

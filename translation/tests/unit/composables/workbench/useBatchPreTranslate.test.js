@@ -1,12 +1,27 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useBatchPreTranslate } from '@/composables/workbench/useBatchPreTranslate'
-import { STAGE_ORDER, STAGE_STEPS } from '@/constants/batchPreTranslateSteps'
+import { STAGE_ORDER, STAGE_STEPS, ARCHIVE_MODE } from '@/constants/batchPreTranslateSteps'
+import batchProgressModule from '@/store/modules/batchProgress'
 import * as workbenchApi from '@/http/api/workbench'
+import * as i18ServerApi from '@/http/api/i18Server'
+import * as taskApi from '@/http/api/task'
 
 vi.mock('@/http/api/workbench', () => ({
   getEntryInfoList: vi.fn(),
   updateEntryList: vi.fn(),
   preTranslate: vi.fn()
+}))
+
+vi.mock('@/http/api/i18Server', () => ({
+  setInfo: vi.fn()
+}))
+
+vi.mock('@/http/api/task', () => ({
+  updateTaskInfo: vi.fn()
+}))
+
+vi.mock('@/utils/dateUtils', () => ({
+  getCurrentFormattedTime: () => '2026-09-20 12:00:00'
 }))
 
 /** 测试用当前用户 userName，任务指派人员默认与其一致（表示有权限）。 */
@@ -34,23 +49,45 @@ function buildInitialStepState() {
  * 构造一个模拟的任务进度对象（模拟 store START 后的初始形态）。
  * @returns {Object}
  */
-function buildMockProgress() {
+function buildMockProgress(overrides = {}) {
   const { steps, stepCounts } = buildInitialStepState()
+  const stages = Object.fromEntries(STAGE_ORDER.map(sk => [sk, 'pending']))
+  const stageCounts = Object.fromEntries(STAGE_ORDER.map(sk => [sk, { current: 0, total: 0 }]))
   return {
     taskId: 'task-1',
     taskName: 'Task 1',
-    stages: { entryExamine: 'pending', preTranslate: 'pending', translateExamine: 'pending' },
-    stageCounts: {
-      entryExamine: { current: 0, total: 0 },
-      preTranslate: { current: 0, total: 0 },
-      translateExamine: { current: 0, total: 0 }
-    },
+    parentTaskId: null,
+    splitMeta: null,
+    isSplitParent: false,
+    activeSubTaskIds: [],
+    stages,
+    stageCounts,
     steps,
     stepCounts,
     currentStage: null,
     currentStep: null,
     error: null,
-    retryCount: 0
+    retryCount: 0,
+    ...overrides
+  }
+}
+
+/** 模拟 batchProgress store mutations（含 addSubTasks / removeSubTasks） */
+function createMockBatchProgressState(initialProgresses) {
+  const state = { phase: 'running', config: null, progresses: initialProgresses.map(p => ({ ...p })) }
+  return state
+}
+
+function dispatchBatchProgress(state, action, payload) {
+  const { mutations } = batchProgressModule
+  if (action === 'batchProgress/updateProgress') {
+    mutations.UPDATE_PROGRESS(state, payload)
+  } else if (action === 'batchProgress/addSubTasks') {
+    mutations.ADD_SUB_TASKS(state, payload)
+  } else if (action === 'batchProgress/removeSubTasks') {
+    mutations.REMOVE_SUB_TASKS(state, payload)
+  } else if (action === 'batchProgress/complete') {
+    mutations.COMPLETE(state)
   }
 }
 
@@ -67,6 +104,7 @@ function buildTask(overrides = {}) {
     entryAuditor: CURRENT_USER,
     translator: CURRENT_USER,
     translationAuditor: CURRENT_USER,
+    creator: CURRENT_USER,
     ...overrides
   }
 }
@@ -76,20 +114,14 @@ describe('useBatchPreTranslate', () => {
 
   beforeEach(() => {
     vi.clearAllMocks()
+    const batchState = createMockBatchProgressState([buildMockProgress()])
     mockStore = {
       state: {
         user: { userName: CURRENT_USER, roleName: '翻译员' },
-        batchProgress: {
-          progresses: [buildMockProgress()]
-        }
+        batchProgress: batchState
       },
       dispatch: vi.fn((action, payload) => {
-        if (action === 'batchProgress/updateProgress') {
-          const index = mockStore.state.batchProgress.progresses.findIndex(p => p.taskId === payload.taskId)
-          if (index !== -1) {
-            mockStore.state.batchProgress.progresses[index] = { ...payload }
-          }
-        }
+        dispatchBatchProgress(batchState, action, payload)
       })
     }
   })
@@ -118,8 +150,9 @@ describe('useBatchPreTranslate', () => {
     expect(progress.error).toBeNull()
     expect(progress.stageCounts.preTranslate).toEqual({ current: 0, total: 0 })
 
-    // 每个阶段：query 子步骤 success，其余子步骤 skipped
-    for (const stage of STAGE_ORDER) {
+    // 每个启用阶段：query 子步骤 success，其余子步骤 skipped
+    const enabled = ['entryExamine', 'preTranslate', 'translateExamine']
+    for (const stage of enabled) {
       expect(progress.steps[stage].query).toBe('success')
       for (const step of STAGE_STEPS[stage]) {
         if (step.key === 'query') continue
@@ -127,7 +160,7 @@ describe('useBatchPreTranslate', () => {
       }
     }
 
-    // 每个阶段都独立查询了一次
+    // 每个启用阶段都独立查询了一次
     expect(workbenchApi.getEntryInfoList).toHaveBeenCalledTimes(3)
   })
 
@@ -684,5 +717,447 @@ describe('useBatchPreTranslate', () => {
     expect(workbenchApi.getEntryInfoList).not.toHaveBeenCalled()
     expect(workbenchApi.preTranslate).not.toHaveBeenCalled()
     expect(workbenchApi.updateEntryList).not.toHaveBeenCalled()
+  })
+
+  it('未启用 enhancedSplit：preTranslate 只调用一次', async () => {
+    const { execute } = useBatchPreTranslate()
+    const entries = Array.from({ length: 1500 }, (_, i) => ({
+      id: `e${i}`, entry: `词条${i}`, english: ''
+    }))
+    const translated = entries.map(e => ({ ...e, english: 'Test' }))
+
+    workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: entries } })
+    workbenchApi.preTranslate.mockResolvedValue({ code: 200, data: { list: translated } })
+    workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
+
+    await execute({
+      tasks: [buildTask()],
+      stages: { preTranslate: true },
+      translatePriority: 'shuyuku',
+      enhancedSplit: false,
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }, mockStore)
+
+    expect(workbenchApi.preTranslate).toHaveBeenCalledTimes(1)
+    expect(workbenchApi.preTranslate.mock.calls[0][1]).toHaveLength(1500)
+  })
+
+  it('启用 enhancedSplit + 1600 条 + limit 1000：preTranslate 调用 2 次，body 1000+600', async () => {
+    const { execute } = useBatchPreTranslate()
+    const entries = Array.from({ length: 1600 }, (_, i) => ({
+      id: `e${i}`, entry: `词条${i}`, english: ''
+    }))
+
+    workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: entries } })
+    workbenchApi.preTranslate.mockImplementation((_params, body) => {
+      const list = body.map(e => ({ ...e, english: 'Test' }))
+      return Promise.resolve({ code: 200, data: { list } })
+    })
+    workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
+
+    await execute({
+      tasks: [buildTask()],
+      stages: { preTranslate: true },
+      translatePriority: 'shuyuku',
+      enhancedSplit: true,
+      splitLimit: 1000,
+      concurrency: 2,
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }, mockStore)
+
+    expect(workbenchApi.preTranslate).toHaveBeenCalledTimes(2)
+    expect(workbenchApi.preTranslate.mock.calls[0][1]).toHaveLength(1000)
+    expect(workbenchApi.preTranslate.mock.calls[1][1]).toHaveLength(600)
+
+    const progress = mockStore.state.batchProgress.progresses.find(p => p.taskId === 'task-1')
+    expect(progress.stages.preTranslate).toBe('success')
+    expect(progress.stageCounts.preTranslate).toEqual({ current: 1600, total: 1600 })
+    expect(progress.stepCounts.preTranslate.preTranslate).toBe(1600)
+    // 子块执行完毕后应清理
+    expect(mockStore.state.batchProgress.progresses.some(p => p.parentTaskId === 'task-1')).toBe(false)
+  })
+
+  it('拆分增强 0 条：不创建子块', async () => {
+    const { execute } = useBatchPreTranslate()
+    workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: [] } })
+
+    await execute({
+      tasks: [buildTask()],
+      stages: { preTranslate: true },
+      translatePriority: 'shuyuku',
+      enhancedSplit: true,
+      splitLimit: 1000,
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }, mockStore)
+
+    expect(mockStore.state.batchProgress.progresses.filter(p => p.parentTaskId).length).toBe(0)
+  })
+
+  it('拆分子块失败重试耗尽：主任务 preTranslate stage = failed', async () => {
+    const { execute } = useBatchPreTranslate()
+    const entries = Array.from({ length: 1200 }, (_, i) => ({
+      id: `e${i}`, entry: `词条${i}`, english: ''
+    }))
+
+    workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: entries } })
+    workbenchApi.preTranslate.mockImplementation((_params, body) => {
+      if (body[0].id === 'e0') return Promise.reject(new Error('chunk fail'))
+      const list = body.map(e => ({ ...e, english: 'Test' }))
+      return Promise.resolve({ code: 200, data: { list } })
+    })
+
+    await execute({
+      tasks: [buildTask()],
+      stages: { preTranslate: true },
+      translatePriority: 'shuyuku',
+      enhancedSplit: true,
+      splitLimit: 1000,
+      concurrency: 2,
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }, mockStore)
+
+    const progress = mockStore.state.batchProgress.progresses.find(p => p.taskId === 'task-1')
+    expect(progress.stages.preTranslate).toBe('failed')
+    expect(progress.error).toContain('翻译阶段失败')
+  })
+
+  it('全局并发：A 拆 4 块 + B 未拆，concurrency=2 时 in-flight 不超过 2', async () => {
+    const { execute } = useBatchPreTranslate()
+    let inFlight = 0
+    let maxInFlight = 0
+
+    const makeEntries = (n, prefix) => Array.from({ length: n }, (_, i) => ({
+      id: `${prefix}${i}`, entry: `词条${i}`, english: ''
+    }))
+
+    workbenchApi.getEntryInfoList.mockImplementation((params) => {
+      if (params.taskID === 'task-1') {
+        return Promise.resolve({ data: { list: makeEntries(800, 'a') } })
+      }
+      return Promise.resolve({ data: { list: makeEntries(1, 'b') } })
+    })
+
+    workbenchApi.preTranslate.mockImplementation(async (_params, body) => {
+      inFlight++
+      maxInFlight = Math.max(maxInFlight, inFlight)
+      await new Promise(r => setTimeout(r, 20))
+      inFlight--
+      const list = body.map(e => ({ ...e, english: 'Test' }))
+      return { code: 200, data: { list } }
+    })
+    workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
+
+    mockStore.state.batchProgress.progresses = [
+      buildMockProgress(),
+      buildMockProgress({ taskId: 'task-2', taskName: 'Task 2' })
+    ]
+
+    await execute({
+      tasks: [
+        buildTask(),
+        buildTask({ id: 'task-2', name: 'Task 2' })
+      ],
+      stages: { preTranslate: true },
+      translatePriority: 'shuyuku',
+      enhancedSplit: true,
+      splitLimit: 200,
+      concurrency: 2,
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }, mockStore)
+
+    expect(maxInFlight).toBeLessThanOrEqual(2)
+    expect(workbenchApi.preTranslate.mock.calls.length).toBeGreaterThan(1)
+  })
+
+  it('拆分贯通：翻译+翻译审核，每块译完即审，主任务再独立 query 审核', async () => {
+    const { execute } = useBatchPreTranslate()
+    const translateEntries = Array.from({ length: 1200 }, (_, i) => ({
+      id: `e${i}`, entry: `词条${i}`, english: ''
+    }))
+
+    workbenchApi.getEntryInfoList.mockImplementation((_params, transStates) => {
+      // 翻译阶段 transStates=['0','2']；翻译审核 ['1']
+      if (Array.isArray(transStates) && transStates.includes('0')) {
+        return Promise.resolve({ data: { list: translateEntries } })
+      }
+      // 主任务二次审核：贯通已审完，剩余 0
+      return Promise.resolve({ data: { list: [] } })
+    })
+    workbenchApi.preTranslate.mockImplementation((_params, body) => {
+      const list = body.map(e => ({ ...e, english: 'Test' }))
+      return Promise.resolve({ code: 200, data: { list } })
+    })
+    workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
+
+    await execute({
+      tasks: [buildTask()],
+      stages: { preTranslate: true, translateExamine: true },
+      translatePriority: 'shuyuku',
+      enhancedSplit: true,
+      splitLimit: 1000,
+      concurrency: 2,
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }, mockStore)
+
+    // 2 块 preTranslate
+    expect(workbenchApi.preTranslate).toHaveBeenCalledTimes(2)
+    // 每块：翻译保存 + 贯通审核保存 = 4；主任务二次审核 0 条不保存
+    expect(workbenchApi.updateEntryList).toHaveBeenCalledTimes(4)
+    // 翻译 query + 主任务审核 query
+    expect(workbenchApi.getEntryInfoList).toHaveBeenCalledTimes(2)
+
+    const progress = mockStore.state.batchProgress.progresses.find(p => p.taskId === 'task-1')
+    expect(progress.stages.preTranslate).toBe('success')
+    // 二次审核 query 0 条 → success（跳过剩余步骤）
+    expect(progress.stages.translateExamine).toBe('success')
+    expect(progress.steps.translateExamine.query).toBe('success')
+  })
+
+  it('拆分贯通后主任务二次审核再拆分：翻译 1200 + 审核残留 2000', async () => {
+    const { execute } = useBatchPreTranslate()
+    const translateEntries = Array.from({ length: 1200 }, (_, i) => ({
+      id: `t${i}`, entry: `译${i}`, english: ''
+    }))
+    const examineLeft = Array.from({ length: 2000 }, (_, i) => ({
+      id: `r${i}`, entry: `审${i}`, english: 'Pending'
+    }))
+
+    workbenchApi.getEntryInfoList.mockImplementation((_params, transStates) => {
+      if (Array.isArray(transStates) && transStates.includes('0')) {
+        return Promise.resolve({ data: { list: translateEntries } })
+      }
+      return Promise.resolve({ data: { list: examineLeft } })
+    })
+    workbenchApi.preTranslate.mockImplementation((_params, body) => {
+      const list = body.map(e => ({ ...e, english: 'Test' }))
+      return Promise.resolve({ code: 200, data: { list } })
+    })
+    workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
+
+    await execute({
+      tasks: [buildTask()],
+      stages: { preTranslate: true, translateExamine: true },
+      translatePriority: 'shuyuku',
+      enhancedSplit: true,
+      splitLimit: 1000,
+      concurrency: 2,
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }, mockStore)
+
+    expect(workbenchApi.preTranslate).toHaveBeenCalledTimes(2)
+    // 贯通：2 翻译保存 + 2 审核保存；二次审核拆 2 块：2 审核保存 = 6
+    expect(workbenchApi.updateEntryList).toHaveBeenCalledTimes(6)
+    expect(workbenchApi.getEntryInfoList).toHaveBeenCalledTimes(2)
+
+    const progress = mockStore.state.batchProgress.progresses.find(p => p.taskId === 'task-1')
+    expect(progress.stages.preTranslate).toBe('success')
+    expect(progress.stages.translateExamine).toBe('success')
+    expect(progress.stageCounts.translateExamine).toEqual({ current: 2000, total: 2000 })
+  })
+
+  it('翻译部分 warning：贯通审核只处理已保存子集', async () => {
+    const { execute } = useBatchPreTranslate()
+    const entries = Array.from({ length: 1200 }, (_, i) => ({
+      id: `e${i}`, entry: `词条${i}`, english: ''
+    }))
+
+    workbenchApi.getEntryInfoList.mockImplementation((_params, transStates) => {
+      if (Array.isArray(transStates) && transStates.includes('0')) {
+        return Promise.resolve({ data: { list: entries } })
+      }
+      return Promise.resolve({ data: { list: [] } })
+    })
+    workbenchApi.preTranslate.mockImplementation((_params, body) => {
+      // 第一块：一半无译文
+      const list = body.map((e, i) => ({
+        ...e,
+        english: i < body.length / 2 ? 'Test' : ''
+      }))
+      return Promise.resolve({ code: 200, data: { list } })
+    })
+    workbenchApi.updateEntryList.mockResolvedValue({ code: 200 })
+
+    await execute({
+      tasks: [buildTask()],
+      stages: { preTranslate: true, translateExamine: true },
+      translatePriority: 'shuyuku',
+      enhancedSplit: true,
+      splitLimit: 1000,
+      concurrency: 1,
+      maxRetries: 1,
+      rules: [],
+      stepDelayMs: 0
+    }, mockStore)
+
+    // 翻译保存次数：有译文的块仍会 save；贯通审核只对 savedEntries
+    const saveCalls = workbenchApi.updateEntryList.mock.calls
+    // 至少有翻译保存与审核保存；审核保存条数应小于等于翻译保存条数
+    const examineSaves = saveCalls.filter(c =>
+      Array.isArray(c[1]) && c[1].some(e => e.englishTranslateState === '3')
+    )
+    const translateSaves = saveCalls.filter(c =>
+      Array.isArray(c[1]) && c[1].some(e => e.englishTranslateState === '1')
+    )
+    expect(translateSaves.length).toBeGreaterThan(0)
+    expect(examineSaves.length).toBeGreaterThan(0)
+    const examineCount = examineSaves.reduce((n, c) => n + c[1].length, 0)
+    const translateCount = translateSaves.reduce((n, c) => n + c[1].length, 0)
+    expect(examineCount).toBe(translateCount)
+
+    const progress = mockStore.state.batchProgress.progresses.find(p => p.taskId === 'task-1')
+    expect(progress.stages.preTranslate).toBe('warning')
+  })
+
+  describe('archive 阶段', () => {
+    function archiveProgress() {
+      return buildMockProgress({
+        stages: {
+          entryExamine: 'skipped',
+          preTranslate: 'skipped',
+          translateExamine: 'skipped',
+          archive: 'pending'
+        }
+      })
+    }
+
+    beforeEach(() => {
+      const batchState = createMockBatchProgressState([archiveProgress()])
+      mockStore.state.batchProgress = batchState
+      mockStore.dispatch = vi.fn((action, payload) => {
+        dispatchBatchProgress(batchState, action, payload)
+      })
+      i18ServerApi.setInfo.mockResolvedValue({ code: 200 })
+      taskApi.updateTaskInfo.mockResolvedValue({ code: 200 })
+    })
+
+    it('entriesDone：全部完成返回 true，否则 false', () => {
+      const { entriesDone } = useBatchPreTranslate()
+      expect(entriesDone([], 'englishTranslateState')).toBe(true)
+      expect(entriesDone([
+        { entryState: 3, englishTranslateState: 3 }
+      ], 'englishTranslateState')).toBe(true)
+      expect(entriesDone([
+        { entryState: 3, englishTranslateState: 1 }
+      ], 'englishTranslateState')).toBe(false)
+    })
+
+    it('write：全量 setInfo，不调用 updateTaskInfo', async () => {
+      const { execute } = useBatchPreTranslate()
+      const entries = [
+        { id: 'e1', entryState: 3, englishTranslateState: 3 },
+        { id: 'e2', entryState: 3, englishTranslateState: 3 }
+      ]
+      workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: entries } })
+
+      await execute({
+        tasks: [buildTask()],
+        stages: { archive: true },
+        archiveIp: '10.0.0.1',
+        archiveMode: ARCHIVE_MODE.WRITE,
+        maxRetries: 1,
+        stepDelayMs: 0
+      }, mockStore)
+
+      expect(i18ServerApi.setInfo).toHaveBeenCalledTimes(1)
+      expect(i18ServerApi.setInfo.mock.calls[0][0]).toMatchObject({
+        taskID: 'task-1',
+        i18nUrl: '10.0.0.1'
+      })
+      expect(i18ServerApi.setInfo.mock.calls[0][1]).toHaveLength(2)
+      expect(taskApi.updateTaskInfo).not.toHaveBeenCalled()
+
+      const progress = mockStore.state.batchProgress.progresses[0]
+      expect(progress.stages.archive).toBe('success')
+      expect(progress.steps.archive.writeBack).toBe('success')
+      expect(progress.steps.archive.endTask).toBe('skipped')
+      expect(workbenchApi.getEntryInfoList.mock.calls[0][0]).toEqual({ taskID: 'task-1', entry: '' })
+    })
+
+    it('writeEnd + 未完成词条：跳过，不回写不结束', async () => {
+      const { execute } = useBatchPreTranslate()
+      workbenchApi.getEntryInfoList.mockResolvedValue({
+        data: { list: [{ id: 'e1', entryState: 3, englishTranslateState: 1 }] }
+      })
+
+      await execute({
+        tasks: [buildTask()],
+        stages: { archive: true },
+        archiveIp: '10.0.0.1',
+        archiveMode: ARCHIVE_MODE.WRITE_END,
+        maxRetries: 1,
+        stepDelayMs: 0
+      }, mockStore)
+
+      expect(i18ServerApi.setInfo).not.toHaveBeenCalled()
+      expect(taskApi.updateTaskInfo).not.toHaveBeenCalled()
+      const progress = mockStore.state.batchProgress.progresses[0]
+      expect(progress.stages.archive).toBe('skipped')
+      expect(progress.stageMessages.archive).toContain('未处理完')
+    })
+
+    it('writeEnd + 全部完成：setInfo 后 updateTaskInfo(state=6)', async () => {
+      const { execute } = useBatchPreTranslate()
+      const task = buildTask({ state: '5' })
+      workbenchApi.getEntryInfoList.mockResolvedValue({
+        data: { list: [{ id: 'e1', entryState: 3, englishTranslateState: 3 }] }
+      })
+
+      await execute({
+        tasks: [task],
+        stages: { archive: true },
+        archiveIp: '10.0.0.1',
+        archiveMode: ARCHIVE_MODE.WRITE_END,
+        maxRetries: 1,
+        stepDelayMs: 0
+      }, mockStore)
+
+      expect(i18ServerApi.setInfo).toHaveBeenCalledTimes(1)
+      expect(taskApi.updateTaskInfo).toHaveBeenCalledTimes(1)
+      expect(taskApi.updateTaskInfo.mock.calls[0][0].state).toBe('6')
+      expect(task.state).toBe('6')
+
+      const progress = mockStore.state.batchProgress.progresses[0]
+      expect(progress.stages.archive).toBe('success')
+      expect(progress.steps.archive.endTask).toBe('success')
+    })
+
+    it('非 creator：权限跳过归档', async () => {
+      const { execute } = useBatchPreTranslate()
+      workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: [{ id: 'e1' }] } })
+
+      await execute({
+        tasks: [buildTask({ creator: 'otherAdmin' })],
+        stages: { archive: true },
+        archiveIp: '10.0.0.1',
+        archiveMode: ARCHIVE_MODE.WRITE,
+        maxRetries: 1,
+        stepDelayMs: 0
+      }, mockStore)
+
+      expect(i18ServerApi.setInfo).not.toHaveBeenCalled()
+      expect(workbenchApi.getEntryInfoList).not.toHaveBeenCalled()
+      const progress = mockStore.state.batchProgress.progresses[0]
+      expect(progress.stages.archive).toBe('skipped')
+      expect(progress.stageMessages.archive).toContain('任务管理员')
+    })
+
+    it('只勾归档：isContinuous 为 true', () => {
+      const { isContinuous } = useBatchPreTranslate()
+      expect(isContinuous({ archive: true })).toBe(true)
+    })
   })
 })

@@ -9,14 +9,15 @@
 
       <div class="progress-list" ref="progressList">
         <div
-          v-for="p in progresses"
+          v-for="p in displayProgresses"
           :key="p.taskId"
           class="progress-item"
-          :class="{ current: p.currentStep }"
+          :class="{ current: p.currentStep, 'sub-task': p.parentTaskId, 'split-parent': p.isSplitParent }"
         >
           <div class="task-info">
             <span class="task-name">{{ p.taskName }}</span>
             <span v-if="p.currentStep" class="running-badge">执行中: {{ currentStepLabel(p) }}</span>
+            <span v-else-if="p.isSplitParent" class="running-badge">等待子任务: {{ splitAggregateLabel(p) }}</span>
           </div>
           <div class="stages">
             <div v-for="stage in stageOrder" :key="stage" class="stage-block">
@@ -72,8 +73,12 @@ export default {
   name: 'BatchProgressOverlay',
   components: { StageIcon },
   computed: {
-    ...mapState('batchProgress', ['phase', 'progresses']),
-    ...mapGetters('batchProgress', ['visible']),
+    ...mapState('batchProgress', ['phase']),
+    ...mapGetters('batchProgress', ['visible', 'displayProgresses']),
+    /** 仅主任务，用于汇总统计 */
+    mainProgresses() {
+      return this.displayProgresses.filter(p => !p.parentTaskId)
+    },
     stageOrder() {
       return STAGE_ORDER
     },
@@ -88,13 +93,14 @@ export default {
      * @returns {{success: number, warningCount: number, warningNames: string[], failedCount: number, failedNames: string[]}}
      */
     completionSummary() {
-      const success = this.progresses.filter(p =>
+      const mains = this.mainProgresses
+      const success = mains.filter(p =>
         Object.values(p.stages).every(s => s === 'success' || s === 'skipped')
       ).length
-      const warning = this.progresses.filter(p =>
+      const warning = mains.filter(p =>
         !Object.values(p.stages).includes('failed') && Object.values(p.stages).includes('warning')
       )
-      const failed = this.progresses.filter(p =>
+      const failed = mains.filter(p =>
         Object.values(p.stages).includes('failed')
       )
       return {
@@ -139,6 +145,19 @@ export default {
       const stageName = getStageLabel(p.currentStep.stage)
       const stepLabel = getStepLabel(p.currentStep.stage, p.currentStep.step)
       return `${stageName} · ${stepLabel}`
+    },
+    /**
+     * 主任务拆分等待时的聚合进度文案。
+     * @param {Object} p 主任务 progress
+     * @returns {string}
+     */
+    splitAggregateLabel(p) {
+      if (!p.currentStage) return '子任务执行中'
+      const counts = p.stageCounts?.[p.currentStage]
+      if (counts && counts.total > 0) {
+        return `${getStageLabel(p.currentStage)} 已聚合 ${counts.current}/${counts.total} 条`
+      }
+      return '子任务执行中'
     },
     /**
      * 判断任务是否已结束，warning 视为已结束但不等同于全量成功。
@@ -261,6 +280,20 @@ export default {
 
         &.current {
           background: #fffbe6;
+        }
+
+        &.sub-task {
+          padding-left: 20px;
+          background: #fafafa;
+
+          .task-name {
+            font-size: 12px;
+            color: #666;
+          }
+        }
+
+        &.split-parent {
+          border-left: 3px solid #1890ff;
         }
 
         .task-info {

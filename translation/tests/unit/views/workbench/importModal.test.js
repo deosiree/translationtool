@@ -41,7 +41,8 @@ vi.mock('ant-design-vue', () => ({
   message: {
     success: vi.fn(),
     error: vi.fn(),
-    warning: vi.fn()
+    warning: vi.fn(),
+    info: vi.fn()
   },
   TreeSelect: {
     name: 'TreeSelect',
@@ -100,7 +101,11 @@ function importModalTableStubs() {
     ColumnActions: true,
     LanguageFilter: true,
     FileSelectWithEncoding: true,
-    Dict: true,
+    Dict: {
+      name: 'Dict',
+      props: ['visible', 'currentIP'],
+      template: '<div class="dict-stub" />',
+    },
     RulesDropdown: true,
     IsExistBadge: true,
     EntryStateBadge: true,
@@ -213,6 +218,41 @@ describe('ImportModal - user 属性重构测试', () => {
       // 验证 user 为 null 时不会报错
       expect(wrapper.vm.$store.state.user).toBeNull()
     })
+  })
+})
+
+describe('ImportModal - 新增辞典 currentIP', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) {
+      wrapper.unmount()
+    }
+    vi.clearAllMocks()
+  })
+
+  it('应向 Dict 传入 currentIP=ip', async () => {
+    wrapper = mount(ImportModal, {
+      props: {
+        visible: true,
+        currentTask: {},
+      },
+      global: {
+        mocks: {
+          ...createUserStoreMock(),
+          $currentDepartment: null,
+        },
+        stubs: importModalTableStubs(),
+      },
+    })
+
+    const testIp = 'http://10.0.0.1:18099/'
+    wrapper.vm.ip = testIp
+    await nextTick()
+
+    const dict = wrapper.findComponent({ name: 'Dict' })
+    expect(dict.exists()).toBe(true)
+    expect(dict.props('currentIP')).toBe(testIp)
   })
 })
 

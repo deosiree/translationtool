@@ -8,17 +8,33 @@
  * 每个阶段内部统一为 4 个子步骤（按执行顺序）：
  *   1. query      查询词条（后端 getEntryInfoList）
  *   2. selectAll  词条全选（前端，无后端调用）
- *   3. <动作>     批量通过（前端，无后端调用）或 预翻译（后端 preTranslate）
- *   4. save       保存（后端 updateEntryList）
+ *   3. <动作>     批量通过 / 预翻译 / 归档回写
+ *   4. save|endTask  保存或结束任务
  *
  * 接口名仅作为开发元数据用于保证映射正确，不在 UI 上展示；UI 只展示中文文案。
  */
 
 /**
- * 阶段执行顺序（与后端流程一致：词条审核 → 翻译 → 翻译审核）。
+ * 阶段执行顺序（词条审核 → 翻译 → 翻译审核 → 归档）。
  * @type {string[]}
  */
-export const STAGE_ORDER = ['entryExamine', 'preTranslate', 'translateExamine']
+export const STAGE_ORDER = ['entryExamine', 'preTranslate', 'translateExamine', 'archive']
+
+/**
+ * 归档方式枚举（UI 文案见 ARCHIVE_MODES）。
+ * - write: 全量回写
+ * - writeEnd: 全量回写并结束任务
+ */
+export const ARCHIVE_MODE = {
+  WRITE: 'write',
+  WRITE_END: 'writeEnd'
+}
+
+/** 归档方式下拉选项 */
+export const ARCHIVE_MODES = [
+  { label: '归档', value: ARCHIVE_MODE.WRITE },
+  { label: '归档并结束任务', value: ARCHIVE_MODE.WRITE_END }
+]
 
 /**
  * 阶段 key → 中文名称映射。
@@ -28,7 +44,8 @@ export const STAGE_ORDER = ['entryExamine', 'preTranslate', 'translateExamine']
 export const STAGE_NAME_MAP = {
   entryExamine: '词条审核',
   preTranslate: '翻译',
-  translateExamine: '翻译审核'
+  translateExamine: '翻译审核',
+  archive: '归档'
 }
 
 /**
@@ -37,12 +54,14 @@ export const STAGE_NAME_MAP = {
  *   - entryExamine     → task.entryAuditor（词条审核员）
  *   - preTranslate     → task.translator（翻译员）
  *   - translateExamine → task.translationAuditor（翻译审核员）
+ *   - archive          → task.creator（任务管理员）
  * @type {Object<string, string>}
  */
 export const STAGE_ASSIGNEE_FIELD = {
   entryExamine: 'entryAuditor',
   preTranslate: 'translator',
-  translateExamine: 'translationAuditor'
+  translateExamine: 'translationAuditor',
+  archive: 'creator'
 }
 
 /**
@@ -52,7 +71,8 @@ export const STAGE_ASSIGNEE_FIELD = {
 export const STAGE_ASSIGNEE_LABEL = {
   entryExamine: '词条审核员',
   preTranslate: '翻译员',
-  translateExamine: '翻译审核员'
+  translateExamine: '翻译审核员',
+  archive: '任务管理员'
 }
 
 /**
@@ -95,6 +115,12 @@ export const STAGE_STEPS = {
     { key: 'selectAll', label: '词条全选', api: null, kind: STEP_KIND.FRONTEND },
     { key: 'batchApprove', label: '批量通过', api: null, kind: STEP_KIND.FRONTEND },
     { key: 'save', label: '保存', api: 'updateEntryList', kind: STEP_KIND.BACKEND }
+  ],
+  archive: [
+    { key: 'query', label: '查询词条', api: 'getEntryInfoList', kind: STEP_KIND.BACKEND },
+    { key: 'selectAll', label: '词条全选', api: null, kind: STEP_KIND.FRONTEND },
+    { key: 'writeBack', label: '归档', api: 'setInfo', kind: STEP_KIND.BACKEND },
+    { key: 'endTask', label: '结束任务', api: 'updateTaskInfo', kind: STEP_KIND.BACKEND }
   ]
 }
 
@@ -118,7 +144,12 @@ export const STAGE_QUERY_PARAMS = {
   /** 未翻译(0) + 翻译被驳回需重译(2) */
   preTranslate: { entryState: '3', transStates: ['0', '2'] },
   /** 已翻译待审核(1) */
-  translateExamine: { entryState: '3', transStates: ['1'] }
+  translateExamine: { entryState: '3', transStates: ['1'] },
+  /**
+   * 归档全量列表：不传 entryState（与 archiveModal handleOK 一致）。
+   * runQueryStep 见 fullList=true 时省略 entryState。
+   */
+  archive: { fullList: true, transStates: [] }
 }
 
 /**

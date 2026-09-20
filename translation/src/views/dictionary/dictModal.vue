@@ -96,6 +96,11 @@ export default {
         handleOK(){
             this.okLoading = true
             this.$refs.dictRef.validate().then(() => {
+                if (this.currentIP === null || this.currentIP === undefined || this.currentIP === "") {
+                    message.info("请选择IP！")
+                    this.okLoading = false
+                    return
+                }
 
                 let params = {
                     dicName: this.dict.type === 'other' ? this.dict.name : this.dict.type + '/' + this.dict.name,

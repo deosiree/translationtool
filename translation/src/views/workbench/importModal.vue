@@ -830,6 +830,7 @@
   </CustomModal>
   <Dict
     :visible="createDictVisible"
+    :currentIP="ip"
     @modalClose="createDictClose"
     @modalOK="createDictOk"
   />

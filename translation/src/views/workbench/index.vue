@@ -1,20 +1,48 @@
 <template>
-  <div ref="box" class="box">
-    <a-row type="flex">
-      <a-col flex="296px" class="cardBox">
-        <a-card hoverable :class="activeCard === 1 ? 'handleCard activeHandleCard' : 'handleCard'" @click="clickCard(1)">
+  <div
+    ref="box"
+    class="box"
+  >
+    <a-row
+      type="flex"
+      class="workbench-row"
+    >
+      <a-col
+        v-show="!leftPanelCollapsed"
+        flex="280px"
+        class="cardBox"
+      >
+        <a-card
+          hoverable
+          :class="
+            activeCard === 1 ? 'handleCard activeHandleCard' : 'handleCard'
+          "
+          @click="clickCard(1)"
+        >
           <div class="title">待办事项</div>
           <div class="logo"><img src="../../assets/workIcon/handle.png" /></div>
           <div class="data">
-            <span>{{toDoNum}}</span><span>条</span>
+            <span>{{ toDoNum }}</span
+            ><span>条</span>
             <!-- <a-button type="primary" ghost size="small" @click="clickCard(1)">查看</a-button> -->
           </div>
         </a-card>
-        <a-card hoverable :class="activeCard === 2 ? 'processedCard activeProcessedCard' : 'processedCard'" @click="clickCard(2)">
+        <a-card
+          hoverable
+          :class="
+            activeCard === 2
+              ? 'processedCard activeProcessedCard'
+              : 'processedCard'
+          "
+          @click="clickCard(2)"
+        >
           <div class="title">已办事项</div>
-          <div class="logo"><img src="../../assets/workIcon/processed.png" /></div>
+          <div class="logo">
+            <img src="../../assets/workIcon/processed.png" />
+          </div>
           <div class="data">
-            <span>{{finishNum}}</span><span>条</span>
+            <span>{{ finishNum }}</span
+            ><span>条</span>
             <!-- <a-button type="primary" ghost size="small" @click="clickCard(2)">查看</a-button> -->
           </div>
         </a-card>
@@ -27,27 +55,85 @@
           </div>
         </a-card> -->
       </a-col>
-      <a-col flex="auto">
+      <a-col
+        flex="16px"
+        class="left-panel-rail"
+      >
+        <button
+          type="button"
+          class="left-panel-toggle"
+          :title="leftPanelCollapsed ? '展开待办/已办' : '收起待办/已办'"
+          @click.stop="toggleLeftPanel"
+        >
+          <DoubleRightOutlined v-if="leftPanelCollapsed" />
+          <DoubleLeftOutlined v-else />
+        </button>
+      </a-col>
+      <a-col
+        flex="auto"
+        class="workbench-main"
+      >
         <div class="dataBox">
-          <SearchBox ref="search" @change="setTableHeight">
+          <SearchBox
+            ref="search"
+            @change="setTableHeight"
+          >
             <template v-slot:form>
-              <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
-                <a-form-item label="任务名称" name="name">
-                  <a-input v-model:value="search.name" placeholder="请输入任务名称"></a-input>
+              <a-form
+                :model="search"
+                name="horizontal_login"
+                layout="inline"
+                autocomplete="off"
+                :label-col="labelCol"
+              >
+                <a-form-item
+                  label="任务名称"
+                  name="name"
+                >
+                  <a-input
+                    v-model:value="search.name"
+                    placeholder="请输入任务名称"
+                  ></a-input>
                 </a-form-item>
-                <a-form-item label="产品名称" name="productName">
-                  <a-input v-model:value="search.productName" placeholder="请输入产品名称"></a-input>
+                <a-form-item
+                  label="产品名称"
+                  name="productName"
+                >
+                  <a-input
+                    v-model:value="search.productName"
+                    placeholder="请输入产品名称"
+                  ></a-input>
                 </a-form-item>
-                <a-form-item label="翻译语种" name="translateType">
-                  <a-select v-model:value="search.translateType" placeholder="请选择翻译语种" :fieldNames="{label:'name',value:'name'}"
-                    :options='translateTypes' allowClear>
+                <a-form-item
+                  label="翻译语种"
+                  name="translateType"
+                >
+                  <a-select
+                    v-model:value="search.translateType"
+                    placeholder="请选择翻译语种"
+                    :fieldNames="{ label: 'name', value: 'name' }"
+                    :options="translateTypes"
+                    allowClear
+                  >
                   </a-select>
                 </a-form-item>
-                <a-form-item label="执行部门" name="department">
-                  <a-input v-model:value="search.department" placeholder="请输入执行部门"></a-input>
+                <a-form-item
+                  label="执行部门"
+                  name="department"
+                >
+                  <a-input
+                    v-model:value="search.department"
+                    placeholder="请输入执行部门"
+                  ></a-input>
                 </a-form-item>
-                <a-form-item label="创建人" name="creator">
-                  <a-input v-model:value="search.creator" placeholder="请输入创建人"></a-input>
+                <a-form-item
+                  label="创建人"
+                  name="creator"
+                >
+                  <a-input
+                    v-model:value="search.creator"
+                    placeholder="请输入创建人"
+                  ></a-input>
                 </a-form-item>
                 <!-- <a-form-item label="词条审核员" name="auditor">
                   <a-input v-model:value="search.auditor" placeholder="请输入词条审核员" </a-input>
@@ -55,30 +141,99 @@
               </a-form>
             </template>
             <template v-slot:operate>
-              <a-button type="primary" size="middle" class="resetBtn" @click="reset">重置</a-button>
-              <a-button type="primary" size="middle" @click="query">查询</a-button>
+              <a-button
+                type="primary"
+                size="middle"
+                class="resetBtn"
+                @click="reset"
+                >重置</a-button
+              >
+              <a-button
+                type="primary"
+                size="middle"
+                @click="query"
+                >查询</a-button
+              >
             </template>
           </SearchBox>
-          <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
+          <DataBox
+            :title="tableTitle"
+            :height="dataHeight"
+            :showOperate="true"
+          >
             <template v-slot:operate>
-              <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-                <BatchSelectButton v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" :size="'middle'" :getSearch="query"
-                  v-model:batchSelectFlag="batchSelectFlag" v-model:selectEntry="selectEntry" v-model:selectedRows="selectedRows"
-                  v-model:selectedRowKeys="selectedRowKeys" />
-                <a-button v-if="$currentDepartment && $currentDepartment.ops.has('needBranch')" type="primary" size="middle"
-                  @click="isTreeOr2D=='tree'?isTreeOr2D='2D':isTreeOr2D='tree'">
-                  {{isTreeOr2D=='tree'?'平铺':'层级'}}展示</a-button>
-                <a-button type="primary" size="middle" @click="SelectTranslateType" :disabled="selectedRows.length === 0">更改翻译语种</a-button>
-                <a-button type="primary" size="middle" @click="openBatchPreTranslate" :disabled="selectedRows.length === 0">批量预翻译</a-button>
-                <a-modal style="width: 320px;" class="choiceLang" centered title="选择语种" :visible="translateTypeVisible" @ok="confirmTranslateType"
-                  @cancel="cancelTranslateType">
-                  <a-select v-model:value="selectedLanguage" style="width: 100%;" placeholder="请选择内容" :options='translateTypes'
-                    :fieldNames="{label:'name',value:'name'}" allowClear>
+              <div
+                ref="button"
+                v-if="true"
+                class="workbench-operate-btns"
+              >
+                <BatchSelectButton
+                  v-if="
+                    $currentDepartment &&
+                    $currentDepartment.ops.has('needBranch')
+                  "
+                  :size="'middle'"
+                  :getSearch="query"
+                  v-model:batchSelectFlag="batchSelectFlag"
+                  v-model:selectEntry="selectEntry"
+                  v-model:selectedRows="selectedRows"
+                  v-model:selectedRowKeys="selectedRowKeys"
+                />
+                <a-button
+                  v-if="
+                    $currentDepartment &&
+                    $currentDepartment.ops.has('needBranch')
+                  "
+                  type="primary"
+                  size="middle"
+                  @click="
+                    isTreeOr2D == 'tree'
+                      ? (isTreeOr2D = '2D')
+                      : (isTreeOr2D = 'tree')
+                  "
+                >
+                  {{ isTreeOr2D == "tree" ? "平铺" : "层级" }}展示</a-button
+                >
+                <a-button
+                  type="primary"
+                  size="middle"
+                  @click="SelectTranslateType"
+                  :disabled="selectedRows.length === 0"
+                  >更改翻译语种</a-button
+                >
+                <a-button
+                  type="primary"
+                  size="middle"
+                  @click="openBatchPreTranslate"
+                  :disabled="selectedRows.length === 0"
+                  >批量预翻译</a-button
+                >
+                <a-modal
+                  style="width: 320px"
+                  class="choiceLang"
+                  centered
+                  title="选择语种"
+                  :visible="translateTypeVisible"
+                  @ok="confirmTranslateType"
+                  @cancel="cancelTranslateType"
+                >
+                  <a-select
+                    v-model:value="selectedLanguage"
+                    style="width: 100%"
+                    placeholder="请选择内容"
+                    :options="translateTypes"
+                    :fieldNames="{ label: 'name', value: 'name' }"
+                    allowClear
+                  >
                   </a-select>
                   <template #footer>
-                    <div style="text-align: center;">
+                    <div style="text-align: center">
                       <a-button @click="cancelTranslateType">取消</a-button>
-                      <a-button type="primary" @click="confirmTranslateType">确定</a-button>
+                      <a-button
+                        type="primary"
+                        @click="confirmTranslateType"
+                        >确定</a-button
+                      >
                     </div>
                   </template>
                 </a-modal>
@@ -86,74 +241,196 @@
             </template>
             <template v-slot:data>
               <!-- , onChange: onSelectChange -->
-              <div style="width:100%;position: absolute;">
-                <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
-                  :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child"
-                  ref="workTable" @resizeColumn="handleResizeColumn" :row-selection="{ selectedRowKeys: selectedRowKeys,onSelect:onSelect,onSelectAll:onSelectAll, onChange: onSelectChange,
-                    selections:isTreeOr2D=='tree'?null:[
-                        {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
-                        {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                    ]}" :customRow="customRow">
+              <div style="width: 100%; position: absolute">
+                <a-table
+                  bordered
+                  class="ant-table-striped"
+                  :columns="columns"
+                  :data-source="dataSource"
+                  :row-key="(record) => record.id"
+                  :scroll="tableHeight"
+                  :pagination="pagination"
+                  :loading="loading"
+                  :rowClassName="getRowClassName"
+                  childrenColumnName="child"
+                  ref="workTable"
+                  @resizeColumn="handleResizeColumn"
+                  :row-selection="{
+                    selectedRowKeys: selectedRowKeys,
+                    onSelect: onSelect,
+                    onSelectAll: onSelectAll,
+                    onChange: onSelectChange,
+                    selections:
+                      isTreeOr2D == 'tree'
+                        ? null
+                        : [
+                            {
+                              key: 'selectAll',
+                              text: '全部选择',
+                              onSelect: selectAllEntry,
+                            },
+                            {
+                              key: 'clearAll',
+                              text: '取消选择',
+                              onSelect: clearAllEntry,
+                            },
+                          ],
+                  }"
+                  :customRow="customRow"
+                >
                   <template #bodyCell="{ column, record, text }">
-                    <template v-if="column.dataIndex === 'index'&&isTreeOr2D=='tree'&&record.isBranch">
-                      <span style="color:blue;">
+                    <template
+                      v-if="
+                        column.dataIndex === 'index' &&
+                        isTreeOr2D == 'tree' &&
+                        record.isBranch
+                      "
+                    >
+                      <span style="color: blue">
                         {{ text }}
                       </span>
                     </template>
                     <template v-if="column.dataIndex === 'state'">
-                      <TaskStateBadge type="normal" :taskState="text" />
+                      <TaskStateBadge
+                        type="normal"
+                        :taskState="text"
+                      />
                     </template>
                     <template v-if="column.dataIndex === 'name'">
                       <!-- <span style="position: relative; display: inline-block;">
                         {{ text }}
                         <a-badge color="#ff0000" v-if="record.isHighlighted" style="position: absolute;top: -9px;right: -9px;z-index: 1;" />
                       </span> -->
-                      <div style="display: flex; gap: 5px;">
+                      <div style="display: flex; gap: 5px">
                         <span>{{ text }}</span>
-                        <a-badge :count="record.num__total" :overflow-count="99" v-if="record.num__total>0" />
+                        <a-badge
+                          :count="record.num__total"
+                          :overflow-count="99"
+                          v-if="record.num__total > 0"
+                        />
                       </div>
                     </template>
                   </template>
                   <template #expandIcon="props">
-                    <span v-if="props.record.child != null && props.record.child.length > 0">
-                      <div v-if="props.expanded" style="display: inline-block; margin-right: 10px"
-                        @click="(e) => {handleBranchExpand(props.record, props.expanded, e, props.onExpand, props);}">
-                        <CaretDownOutlined /> <!-- 展开状态的向下三角形图标 -->
+                    <span
+                      v-if="
+                        props.record.child != null &&
+                        props.record.child.length > 0
+                      "
+                    >
+                      <div
+                        v-if="props.expanded"
+                        style="display: inline-block; margin-right: 10px"
+                        @click="
+                          (e) => {
+                            handleBranchExpand(
+                              props.record,
+                              props.expanded,
+                              e,
+                              props.onExpand,
+                              props
+                            );
+                          }
+                        "
+                      >
+                        <CaretDownOutlined />
+                        <!-- 展开状态的向下三角形图标 -->
                       </div>
-                      <div v-else style="display: inline-block; margin-right: 10px"
-                        @click="(e) => {handleBranchExpand(props.record, props.expanded, e, props.onExpand, props);}">
-                        <CaretRightOutlined /> <!-- 收起状态的向右三角形图标 -->
+                      <div
+                        v-else
+                        style="display: inline-block; margin-right: 10px"
+                        @click="
+                          (e) => {
+                            handleBranchExpand(
+                              props.record,
+                              props.expanded,
+                              e,
+                              props.onExpand,
+                              props
+                            );
+                          }
+                        "
+                      >
+                        <CaretRightOutlined />
+                        <!-- 收起状态的向右三角形图标 -->
                       </div>
                     </span>
-                    <span v-else style="margin-right:23px"></span> <!-- 无子记录时的占位 -->
+                    <span
+                      v-else
+                      style="margin-right: 23px"
+                    ></span>
+                    <!-- 无子记录时的占位 -->
                   </template>
                 </a-table>
               </div>
             </template>
           </DataBox>
-          <OperationArea ref="operationArea" :title="operationAreaTitle" :height="operationAreaHeight" v-if="showOperationArea"
-            @close="closeOperationArea">
+          <OperationArea
+            ref="operationArea"
+            :title="operationAreaTitle"
+            :height="operationAreaHeight"
+            v-if="showOperationArea"
+            @close="closeOperationArea"
+          >
             <template v-slot:content>
-              <TimeLine ref="timeLineRef" :currentTask="currentTask" :showButton="timeLineBtn" @importEntry="importEntry" @examineEntry="examineEntry"
-                @translateEntry="translateEntry" @examineTranslate="examineTranslate" @refresh="getTask" @archiveEntry="archiveEntry">
-
+              <TimeLine
+                ref="timeLineRef"
+                :currentTask="currentTask"
+                :showButton="timeLineBtn"
+                @importEntry="importEntry"
+                @examineEntry="examineEntry"
+                @translateEntry="translateEntry"
+                @examineTranslate="examineTranslate"
+                @refresh="getTask"
+                @archiveEntry="archiveEntry"
+              >
               </TimeLine>
             </template>
           </OperationArea>
         </div>
       </a-col>
     </a-row>
-
   </div>
-  <ImportModal ref="import" :visible="importVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" @handleClose="importClose"
-    @afterSave="refreshTaskBadges" />
-  <ExamineModal ref="examine" :visible="examineVisible" :currentTask="currentTask" :classifyLimit="classifyLimit" :modalTitle="examineTitle"
-    @handleClose="examineClose" @afterSave="refreshTaskBadges" />
-  <TranslateModal ref="translate" :visible="translateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
-    @handleClose="translateClose" @afterSave="refreshTaskBadges" />
-  <ExamineTranslateModal ref="examineTranslate" :visible="examineTranslateVisible" :currentTask="currentTask" :classifyLimit="classifyLimit"
-    @handleClose="examineTranslateClose" @afterSave="refreshTaskBadges" />
-  <ArchiveModal ref="archiveModalRef" :visible="archiveVisible" :currentTask="currentTask" @handleClose="archiveClose" @refresh="refreshTask" />
+  <ImportModal
+    ref="import"
+    :visible="importVisible"
+    :currentTask="currentTask"
+    :classifyLimit="classifyLimit"
+    @handleClose="importClose"
+    @afterSave="refreshTaskBadges"
+  />
+  <ExamineModal
+    ref="examine"
+    :visible="examineVisible"
+    :currentTask="currentTask"
+    :classifyLimit="classifyLimit"
+    :modalTitle="examineTitle"
+    @handleClose="examineClose"
+    @afterSave="refreshTaskBadges"
+  />
+  <TranslateModal
+    ref="translate"
+    :visible="translateVisible"
+    :currentTask="currentTask"
+    :classifyLimit="classifyLimit"
+    @handleClose="translateClose"
+    @afterSave="refreshTaskBadges"
+  />
+  <ExamineTranslateModal
+    ref="examineTranslate"
+    :visible="examineTranslateVisible"
+    :currentTask="currentTask"
+    :classifyLimit="classifyLimit"
+    @handleClose="examineTranslateClose"
+    @afterSave="refreshTaskBadges"
+  />
+  <ArchiveModal
+    ref="archiveModalRef"
+    :visible="archiveVisible"
+    :currentTask="currentTask"
+    @handleClose="archiveClose"
+    @refresh="refreshTask"
+  />
   <BatchPreTranslateModal
     :visible="batchPreTranslateVisible"
     :tasks="selectedRows"
@@ -185,6 +462,8 @@ import {
   SendOutlined,
   CaretDownOutlined,
   CaretRightOutlined,
+  DoubleLeftOutlined,
+  DoubleRightOutlined,
 } from "@ant-design/icons-vue";
 import { getToDoTaskInfo, getFinishTaskInfo } from "@/http/api/task";
 import { getClassfy } from "@/http/api/entryManage";
@@ -201,7 +480,12 @@ import {
   pageChange,
 } from "@/utils/selectionUtils";
 import commonParam from "@/constants/commonParam";
-import { loading, startLoading, endLoading, withLoading } from "@/composables/useLoading";
+import {
+  loading,
+  startLoading,
+  endLoading,
+  withLoading,
+} from "@/composables/useLoading";
 export default {
   setup() {
     return { loading };
@@ -224,10 +508,13 @@ export default {
     SendOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
+    DoubleLeftOutlined,
+    DoubleRightOutlined,
   },
   data() {
     return {
       name: "workbench",
+      leftPanelCollapsed: false,
       // 汉化包
       locale: locale,
       toDoNum: 0,
@@ -371,7 +658,10 @@ export default {
     let _this = this;
     this.$nextTick(() => {
       this.user = this.$store.state.user;
-      if (!this.$currentDepartment || !this.$currentDepartment.ops.has("needBranch")) {
+      if (
+        !this.$currentDepartment ||
+        !this.$currentDepartment.ops.has("needBranch")
+      ) {
         this.isTreeOr2D = "2D";
       } else {
         // 增加分支列
@@ -432,7 +722,8 @@ export default {
     isTreeOr2D: {
       handler(newVal, oldVal) {
         if (
-          this.$currentDepartment && this.$currentDepartment.ops.has("needBranch") &&
+          this.$currentDepartment &&
+          this.$currentDepartment.ops.has("needBranch") &&
           newVal != null &&
           oldVal != null && // 初始化（null→值）不触发：mounted 已做首次查询，避免重复
           newVal !== oldVal
@@ -806,6 +1097,12 @@ export default {
         setTableHeight(this, 8, 174, 32);
       });
     },
+    toggleLeftPanel() {
+      this.leftPanelCollapsed = !this.leftPanelCollapsed;
+      this.$nextTick(() => {
+        this.setTableHeight();
+      });
+    },
     // 获取待办事项和已办事项数量
     getTaskTotal() {
       // 待办事项（全量：toDoTasks 供"全部选择"缓存使用）
@@ -832,42 +1129,35 @@ export default {
     },
     // 获取任务
     getTask() {
-      this.getTaskByCondition(this.search);
+      return this.getTaskByCondition(this.search);
     },
     // 根据条件获取任务
     async getTaskByCondition(data) {
       startLoading();
-      // console.log("根据条件获取任务");
       this.checkSearchChange();
       let params = {
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
       };
       const api = this.activeCard === 1 ? getToDoTaskInfo : getFinishTaskInfo;
-      api(params, data)
-        .then(async (res) => {
-          const taskList = res.data.list;
-          this.pagination.total = res.data.totalNum;
+      try {
+        const res = await api(params, data);
+        const taskList = res.data.list;
+        this.pagination.total = res.data.totalNum;
 
-          if (this.isTreeOr2D == "tree") {
-            // 层级展示
-            this.dataSource = this.buildTreeData(taskList);
-            // Vue3: $nextTick 支持直接 await（避免 valid-next-tick 报错）
-            await this.$nextTick();
-            await this.getBranchPending();// 只获得展开分支的任务执行状态
-            // await this.getAllBranchPending(); // 获得所有分支的任务执行状态
-          } else {
-            // 平铺展示
-            const { tasks, _ } = await this.getTaskPending(taskList);
-            this.dataSource = tasks;
-          }
-        })
-        .catch((err) => {
-          message.error("数据获取失败！", err.message);
-        })
-        .finally(() => {
-          endLoading();
-        });
+        if (this.isTreeOr2D == "tree") {
+          this.dataSource = this.buildTreeData(taskList);
+          await this.$nextTick();
+          await this.getBranchPending();
+        } else {
+          const { tasks } = await this.getTaskPending(taskList);
+          this.dataSource = tasks;
+        }
+      } catch (err) {
+        message.error("数据获取失败！", err.message);
+      } finally {
+        endLoading();
+      }
     },
     // 把 getTaskPending 结果写回当前表格（平铺行 / 层级子任务与分支合计）
     mergePendingTasks(updatedTasks) {
@@ -1070,24 +1360,37 @@ export default {
     // 批量预翻译
     openBatchPreTranslate() {
       if (this.selectedRows.length === 0) {
-        message.warning('请先选择任务');
+        message.warning("请先选择任务");
         return;
       }
       this.batchPreTranslateVisible = true;
       setModalAriaHidden(this, document);
     },
-    onBatchPreTranslateComplete(progresses) {
+    async onBatchPreTranslateComplete() {
+      const id = this.currentTask?.id;
       this.batchPreTranslateVisible = false;
-      this.getTask();
+      await this.getTask();
       this.getTaskTotal();
+      this.rebindTask(id);
+      this.$refs.timeLineRef?.initEntryCount?.();
+    },
+    /** 按 id 从当前列表重绑打开中的流水线任务（getTask 换新对象后保持红点同源） */
+    rebindTask(id) {
+      if (!id) return;
+      const flat =
+        this.isTreeOr2D === "tree"
+          ? (this.dataSource || []).flatMap((b) => b.child || [])
+          : this.dataSource || [];
+      const hit = flat.find((t) => t.id === id);
+      if (hit) this.currentTask = hit;
     },
     // 同步批量预翻译任务列表（用于模态框删除任务后同步父组件）
     syncBatchTasks(newTasks) {
-      this.selectedRows = newTasks
-      this.selectedRowKeys = newTasks.map(t => t.id)
-      this.selectEntry.clear()
-      newTasks.forEach(t => this.selectEntry.set(t.id, t))
-      this.syncSelection()
+      this.selectedRows = newTasks;
+      this.selectedRowKeys = newTasks.map((t) => t.id);
+      this.selectEntry.clear();
+      newTasks.forEach((t) => this.selectEntry.set(t.id, t));
+      this.syncSelection();
     },
     // 重置
     reset() {
@@ -1125,9 +1428,52 @@ export default {
 .ant-row {
   height: 100%;
 }
+.workbench-row {
+  height: 100%;
+}
+.workbench-main {
+  min-width: 0;
+}
+.workbench-operate-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+  justify-content: flex-end;
+  min-width: 0;
+
+  :deep(.ant-btn) {
+    flex-shrink: 0;
+  }
+}
+.left-panel-rail {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  border: 1px solid #e8eaf2;
+}
+.left-panel-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #647aff;
+  cursor: pointer;
+
+  &:hover {
+    color: #4b5fd9;
+    background: #f7f8fc;
+  }
+}
 .cardBox {
   display: flex;
-  padding: 0px 8px;
+  padding: 0;
   flex-direction: column;
   align-items: flex-start;
   gap: 32px;
@@ -1188,7 +1534,7 @@ export default {
   }
 }
 .dataBox {
-  padding-left: 16px;
+  padding-left: 0px;
   position: absolute;
   height: 100%;
   width: 100%;
@@ -1214,11 +1560,13 @@ export default {
   }
 }
 .activeHandleCard {
-  box-shadow: 1px 6px 12px 0px rgba(100, 122, 255, 0.2),
+  box-shadow:
+    1px 6px 12px 0px rgba(100, 122, 255, 0.2),
     -1px 0px 8px 0px rgba(100, 122, 255, 0.2);
 }
 .handleCard:hover {
-  box-shadow: 1px 6px 12px 0px rgba(100, 122, 255, 0.2),
+  box-shadow:
+    1px 6px 12px 0px rgba(100, 122, 255, 0.2),
     -1px 0px 8px 0px rgba(100, 122, 255, 0.2);
 }
 .processedCard {
@@ -1229,11 +1577,13 @@ export default {
   }
 }
 .activeProcessedCard {
-  box-shadow: 1px 6px 12px 0px rgba(54, 191, 125, 0.2),
+  box-shadow:
+    1px 6px 12px 0px rgba(54, 191, 125, 0.2),
     -1px 0px 8px 0px rgba(54, 191, 125, 0.2);
 }
 .processedCard:hover {
-  box-shadow: 1px 6px 12px 0px rgba(54, 191, 125, 0.2),
+  box-shadow:
+    1px 6px 12px 0px rgba(54, 191, 125, 0.2),
     -1px 0px 8px 0px rgba(54, 191, 125, 0.2);
 }
 .exportCard {
@@ -1244,11 +1594,13 @@ export default {
   }
 }
 .activeExportCard {
-  box-shadow: 1px 6px 12px 0px rgba(241, 189, 46, 0.2),
+  box-shadow:
+    1px 6px 12px 0px rgba(241, 189, 46, 0.2),
     -1px 0px 8px 0px rgba(241, 189, 46, 0.2);
 }
 .exportCard:hover {
-  box-shadow: 1px 6px 12px 0px rgba(241, 189, 46, 0.2),
+  box-shadow:
+    1px 6px 12px 0px rgba(241, 189, 46, 0.2),
     -1px 0px 8px 0px rgba(241, 189, 46, 0.2);
 }
 .red-text {

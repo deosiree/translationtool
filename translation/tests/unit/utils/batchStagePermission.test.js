@@ -10,6 +10,7 @@ function buildTask(overrides = {}) {
     entryAuditor: 'currentUser',
     translator: 'currentUser',
     translationAuditor: 'currentUser',
+    creator: 'currentUser',
     ...overrides
   }
 }
@@ -19,10 +20,12 @@ describe('canRunStage', () => {
     expect(canRunStage(user, buildTask(), 'entryExamine')).toBe(true)
     expect(canRunStage(user, buildTask(), 'preTranslate')).toBe(true)
     expect(canRunStage(user, buildTask(), 'translateExamine')).toBe(true)
+    expect(canRunStage(user, buildTask(), 'archive')).toBe(true)
   })
 
   it('指派非本人返回 false', () => {
     expect(canRunStage(user, buildTask({ translator: 'otherUser' }), 'preTranslate')).toBe(false)
+    expect(canRunStage(user, buildTask({ creator: 'otherAdmin' }), 'archive')).toBe(false)
   })
 
   it('指派为空/缺失返回 false', () => {
@@ -58,6 +61,7 @@ describe('getSkipReason', () => {
   it('各阶段角色文案映射正确', () => {
     expect(getSkipReason(user, buildTask({ entryAuditor: 'X' }), 'entryExamine')).toContain('词条审核员')
     expect(getSkipReason(user, buildTask({ translationAuditor: 'X' }), 'translateExamine')).toContain('翻译审核员')
+    expect(getSkipReason(user, buildTask({ creator: 'X' }), 'archive')).toContain('任务管理员')
   })
 
   it('未知阶段返回通用文案', () => {
