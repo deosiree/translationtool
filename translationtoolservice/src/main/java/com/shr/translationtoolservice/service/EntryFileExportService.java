@@ -30,7 +30,7 @@ public interface EntryFileExportService {
      * @param taskID
      * @return excelExportVO 和 buffer 为null时为false，如果成功完成所有接口的调用，则返回true，导出存在异常场景时会抛出异常
      */
-    boolean entryExportByCondition(ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,String taskID);
+    boolean entryExportByCondition(ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO,String taskID, String charset);
 
 
 

@@ -669,6 +669,10 @@ public class EntryInfoController extends BaseController {
             if(exportFileType == null){
                 exportFileType = "excel";
             }
+            String charset = request.getParameter("charset");
+            if(charset == null){
+                charset = charsetName;
+            }
             Date date = new Date(); 
             String excelName = excelNamePrefix + "_" + LocalTimeUtils.formatForExportFile.format(date);
             /* 设定导出的文件类型 */
@@ -686,8 +690,8 @@ public class EntryInfoController extends BaseController {
             entryInfoService.postProcessEntryInfoForExport(excelExportVO);   
             /* 导出词条 */
             buffer = new ByteArrayOutputStream();
-            entryInfoService.entryExportByCondition(buffer,excelExportVO,taskID); 
-            response.setContentType("application/octet-stream;charset=UTF-8");
+            entryInfoService.entryExportByCondition(buffer,excelExportVO,taskID, charset); 
+            response.setContentType(String.format("application/octet-stream;charset=%s", charset));
             response.addHeader("Pargam", "no-cache");
             response.addHeader("Cache-Control", "no-cache");
             response.setHeader("Access-Control-Expose-Headers", "Content-Disposition");  

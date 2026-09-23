@@ -1355,7 +1355,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
     }
 
     @Override
-    public boolean entryExportByCondition(ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, String taskID) {
+    public boolean entryExportByCondition(ByteArrayOutputStream buffer,ExcelExportVO<EntryInfoEntityForExcel> excelExportVO, String taskID, String charset) {
 
         if(excelExportVO == null || buffer == null){
             return false;
@@ -1374,11 +1374,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         // processEntryInfo(entryInfoEntities, columnNames, excelName, taskEntity);
         processEntryInfo(entryInfoEntities, columnNames, taskEntity);
 
-        buildExportedFiles(buffer,entryInfoEntities,excelExportVO.getExportFileType(), columnNames, excelName);
+        buildExportedFiles(buffer,entryInfoEntities,excelExportVO.getExportFileType(), columnNames, excelName, charset);
         return true;
     }
 
-    private void buildExportedFiles(ByteArrayOutputStream buffer,List<EntryInfoEntityForExcel> entities,String exportFileType,List<String> columnNames,String excelName){
+    private void buildExportedFiles(ByteArrayOutputStream buffer,List<EntryInfoEntityForExcel> entities,String exportFileType,List<String> columnNames,String excelName, String charset){
         if(buffer == null){
             throw new NullPointerException("buffer == null");
         }
@@ -1397,7 +1397,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if(exportFileType.equals("excel")){
             excelUtils.getWorkBook(buffer,entities,exportFields, columnNames, excelName);
         }else if(exportFileType.equals("csv")){
-            String charsetName = "GBK";
+            String charsetName = StringUtils.isBlank(charset) ? "UTF-8" : charset;
             try {
                 if(!columnNames.contains("id")){
                     columnNames.add("id");
