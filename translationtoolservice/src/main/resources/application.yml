@@ -18,7 +18,7 @@ spring:
     name: translationTool
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://10.17.196.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&socketTimeout=600000&allowMultiQueries=true
+    url: jdbc:mysql://10.17.196.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&socketTimeout=30000&allowMultiQueries=true
     #
     #url: jdbc:mysql://10.17.14.125:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&allowMultiQueries=true
 
@@ -28,20 +28,24 @@ spring:
       # 连接池配置
       initial-size: 10                # 初始化连接数
       min-idle: 10                    # 最小空闲连接数（建议不要设为0）
-      max-active: 40                 # 最大活跃连接数
-      max-wait: 60000                # 获取连接的最大等待时间
-      
+      max-active: 35                 # 最大活跃连接数
+      max-wait: 60000                # 获取连接的最大等待时间(60s)
+      connect-timeout: 60000         # socket连接超时时间（60s）
+      socket-timeout: 60000          # socket超时时间
       # 关键：连接有效性检测（解决通信失败的核心）
       test-while-idle: true          # 空闲时检测连接有效性
-      test-on-borrow: false          # 获取连接时检测有效性（关键）
+      test-on-borrow: true          # 获取连接时检测有效性（关键）
       test-on-return: false          # 归还连接时不检测（性能考虑）
       validation-query: SELECT 1     # 检测连接的SQL（MySQL专用）
-      validation-query-timeout: 3    # 检测超时时间（秒）
+      validation-query-timeout: 10    # 检测超时时间（秒）
       time-between-eviction-runs-millis: 60000  # 空闲连接回收检测周期
-      min-evictable-idle-time-millis: 3300000   # 连接最小空闲时间（30分钟）
-      remove-abandoned: true         # 移除泄露的连接
-      remove-abandoned-timeout: 2400  # 泄露连接超时时间（秒）
-      log-abandoned: true            # 记录泄露连接日志
+
+      # (比connect-timeout长会出现空闲时间超过连接的收发缓冲区的timeout时间，连接实际上已经失效，必须加keepalive)
+      # 但是只要test-on-borrow设定了，理论上校验会校验发现连接失效，应当会重新选择可用连接
+      min-evictable-idle-time-millis: 120000   # 连接最小空闲时间（1分钟）
+
+      remove-abandoned: false         # 移除泄露的连接
+      log-abandoned: false            # 记录泄露连接日志
   mvc:
     pathmatch:
       matching-strategy: ANT_PATH_MATCHER
