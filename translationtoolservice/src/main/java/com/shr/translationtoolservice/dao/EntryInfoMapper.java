@@ -52,7 +52,10 @@ public interface EntryInfoMapper extends BaseMapper<EntryInfoEntity> {
 
     List<EntryInfoEntity> getExistEntryList(@Param("productTableName")String productTableName, @Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,@Param("productID")String productID);
 
-    List<EntryInfoEntity> getExistEntryListForEquipment(@Param("productTableName")String productTableName, @Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,@Param("productID")String productID);
+    /*
+        20260923: 该逻辑作废，判重逻辑均采用getExistEntryListForXM
+    */
+    // List<EntryInfoEntity> getExistEntryListForEquipment(@Param("productTableName")String productTableName, @Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,@Param("productID")String productID);
 
     List<EntryInfoEntity> getExistEntryListForXML(@Param("productTableName")String productTableName, @Param("entryInfoEntity")EntryInfoEntity entryInfoEntity,@Param("productID")String productID);
 

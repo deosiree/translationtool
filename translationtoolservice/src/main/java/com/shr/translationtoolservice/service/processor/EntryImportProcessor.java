@@ -228,8 +228,11 @@ public class EntryImportProcessor {
 
 
     private void caseExisttry(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, String productTableName) {
-        // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
-        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForEquipment(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+
+        /*
+            20260923: 装置部词条导入判重逻辑：XML和CSV统一用一套逻辑
+        */
+        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForXML(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
         if (CollectionUtils.isEmpty(entryEntities)) {
             //创建新翻译
             entryInfoEntity.setIsExist(0);
@@ -245,8 +248,11 @@ public class EntryImportProcessor {
     }
 
     private void caseExisttry(EntryInfoEntity entryInfoEntity, TaskInfoEntity taskInfoEntity, ImportExcleEntry importExcleEntry, String productTableName) {
-        // entryTempEntityQueryWrapper.eq("entry_version",entryTempEntity.getEntryVersion());
-        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForEquipment(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
+
+        /*
+            20260923: 装置部词条导入判重逻辑：XML和CSV统一用一套逻辑
+        */
+        List<EntryInfoEntity> entryEntities = entryInfoMapper.getExistEntryListForXML(productTableName, entryInfoEntity, taskInfoEntity.getProductId());
         if (CollectionUtils.isEmpty(entryEntities)) {
             //创建新翻译
             entryInfoEntity.setIsExist(0);
