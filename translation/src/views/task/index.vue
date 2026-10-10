@@ -12,19 +12,22 @@
             </a-select>
           </a-form-item>
           <a-form-item label="产品名称" name="productName">
-            <a-input v-model:value="search.productId" placeholder="请输入产品名称" size="small"></a-input>
+            <a-input v-model:value="search.productName" placeholder="请输入产品名称" size="small"></a-input>
           </a-form-item>
           <a-form-item label="开发员" name="developer">
             <a-input v-model:value="search.developer" placeholder="请输入开发员" size="small"></a-input>
           </a-form-item>
-          <a-form-item label="词条审核员" name="auditor">
-            <a-input v-model:value="search.auditor" placeholder="请输入词条审核员" size="small"></a-input>
+          <a-form-item label="词条审核员" name="entryAuditor">
+            <a-input v-model:value="search.entryAuditor" placeholder="请输入词条审核员" size="small"></a-input>
           </a-form-item>
           <a-form-item label="翻译员" name="translator">
             <a-input v-model:value="search.translator" placeholder="请输入翻译员" size="small"></a-input>
           </a-form-item>
           <a-form-item label="翻译审核员" name="translationAuditor">
             <a-input v-model:value="search.translationAuditor" placeholder="请输入翻译审核员" size="small"></a-input>
+          </a-form-item>
+          <a-form-item label="任务管理员" name="creator">
+            <a-input v-model:value="search.creator" placeholder="请输入任务管理员(归档)" size="small"></a-input>
           </a-form-item>
           <a-form-item label="翻译语种" name="language">
             <a-select v-model:value="search.translateType" style="width: 186px" placeholder="请选择翻译语种" :options='translateTypes'
@@ -45,6 +48,9 @@
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
         <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:8px">
+          <a-button type="primary" size="small" @click="deleteTaskByAdmin" danger v-if="isAdmin"><template #icon>
+              <DeleteOutlined />
+            </template>无限制删除</a-button>
           <a-button type="primary" size="small" @click="handleAdd"><template #icon>
               <PlusOutlined />
             </template>新增</a-button>
@@ -68,78 +74,65 @@
           <a-button type="primary" size="small" class="resetBtn" @click="submitTask"><template #icon>
               <SendOutlined />
             </template>下发任务</a-button>
+          <span class="task-required-hint">开发与审核、翻译与审核须成对，至少选择一组</span>
         </div>
       </template>
       <template v-slot:data>
         <div style="width:100%;position: absolute;">
-          <a-form ref="tableFormRef" :model="dataSource" :label-col="{ style: { width: '10px' } }" :wrapper-col="{ span: 0 }" :rules="rules">
-
+          <a-form ref="tableFormRef" :model="editableData" :required-mark="false">
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource"
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}" :row-key="record => record.id" :scroll="tableHeight"
               :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn"
               :customRow="customRow">
-              <template #bodyCell="{ column, text,index, record }">
+              <template #bodyCell="{ column, text, record }">
                 <template v-if="['name'].includes(column.dataIndex)">
                   <template v-if="editableData[record.id]">
-                    <a-form-item label=" " :name="[index, column.dataIndex]" :rules="rules[column.dataIndex]">
+                    <a-form-item class="task-required-cell" :name="[record.id, 'name']" :rules="getTaskRules(editableData[record.id], 'name')">
                       <a-input @click="clickInput" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" />
                     </a-form-item>
-
+                  </template>
+                  <template v-else>
+                    {{ text }}
+                  </template>
+                </template>
+                <template v-else-if="['description'].includes(column.dataIndex)">
+                  <template v-if="editableData[record.id]">
+                    <a-input @click="clickInput" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" />
                   </template>
                   <template v-else>
                     {{ text }}
                   </template>
                 </template>
                 <!-- <template v-if="'department' === column.dataIndex">
-                                    <template v-if="editableData[record.id]">
-                                        <a-select
-                                        v-model:value="editableData[record.id][column.dataIndex]"
-                                        style="width: 100%"
-                                        placeholder="请选择"
-                                        :options='departments'
-                                        @click="clickInput"
-                                        @change="changeDepartment(record)"
-                                        >
-                                        </a-select>
-                                    </template>
-                                    <template v-else>
-                                        {{ text }}
-                                    </template>
-                                </template> -->
-                <template v-if="'productName' === column.dataIndex">
                   <template v-if="editableData[record.id]">
-                    <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
-                      <!-- <a-select
-                                            v-model:value="editableData[record.id]['productId']"
-                                            style="width: 85%"
-                                            placeholder="请选择"
-                                            :options='options[record.id]["products"]'
-                                            :fieldNames='{label:"name",value:"id"}'
-                                            @click="clickInput"
-                                            @change="changeProduct(record)"
-                                            >
-                                            </a-select> -->
+                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择" :options='departments'
+                      @click="clickInput" @change="changeDepartment(record)">
+                    </a-select>
+                  </template>
+                  <template v-else>
+                    {{ text }}
+                  </template>
+                </template> -->
+                <template v-else-if="'productName' === column.dataIndex">
+                  <template v-if="editableData[record.id]&&!editableData[record.id].isSubmit">
+                    <a-form-item class="task-required-cell" :name="[record.id, 'productId']" :rules="getTaskRules(editableData[record.id], 'productId')">
+                      <!-- <a-select v-model:value="editableData[record.id]['productId']" style="width: 85%" placeholder="请选择"
+                        :options='options[record.id]["products"]' :fieldNames='{label:"name",value:"id"}' @click="clickInput"
+                        @change="changeProduct(record)">
+                      </a-select> -->
                       <a-tree-select v-model:value="editableData[record.id]['productId']" v-model:searchValue="searchValue" show-search
                         style="width: 85%" :dropdown-style="{ maxHeight: '400px', overflow: 'auto',minWidth: '400px' }" placeholder="请选择" allow-clear
                         tree-default-expand-all :tree-data="options[record.id]['products']" tree-node-filter-prop="title"
                         :fieldNames="{children:'children', label:'title', value: 'key'}" :treeDefaultExpandAll="false" @click="clickInput"
                         @change="changeProduct(record)">
                         <!-- <template #title="{ title }">
-                                                    <template
-                                                        v-for="(fragment, i) in title
-                                                            .toString()
-                                                            .split(new RegExp(`(?<=${searchValue})|(?=${searchValue})`, 'i'))"
-                                                        >
-                                                        <span
-                                                            v-if="fragment.toLowerCase() === searchValue.toLowerCase()"
-                                                            :key="i"
-                                                            style="color: #08c"
-                                                        >
-                                                            {{ fragment }}
-                                                        </span>
-                                                        <template v-else>{{ fragment }}</template>
-                                                        </template>
-                                                </template> -->
+                          <template v-for="(fragment, i) in title.toString().split(new RegExp(`(?<=${searchValue})|(?=${searchValue})`, 'i'))">
+                            <span v-if="fragment.toLowerCase() === searchValue.toLowerCase()" :key="i" style="color: #08c">
+                              {{ fragment }}
+                            </span>
+                            <template v-else>{{ fragment }}</template>
+                          </template>
+                        </template> -->
                       </a-tree-select>
                       <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)" />
                     </a-form-item>
@@ -148,107 +141,66 @@
                     {{ text }}
                   </template>
                 </template>
-                <template v-if="'versionName' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
-                    <!-- <a-form-item label=" " :name="[index, 'productId']" :rules="rules[column.dataIndex]">
-                                            <a-select
-                                            v-model:value="editableData[record.id]['versionId']"
-                                            style="width: 85%"
-                                            placeholder="请选择"
-                                            :options='options[record.id]["versions"]'
-                                            @click="clickInput"
-                                            >
-                                            </a-select>
-                                            <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)"/>
-                                        </a-form-item> -->
-                    <a-select v-model:value="editableData[record.id]['versionId']" allowClear style="width: 85%" placeholder="请选择"
-                      :options='options[record.id]["versions"]' @click="clickInput">
-                    </a-select>
-                    <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)" />
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-                <template v-if="'developer' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
-                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                      :options='options[record.id]["developers"]' @click="clickInput" allowClear>
-                    </a-select>
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-                <template v-if="'entryAuditor' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
-                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                      :options='options[record.id]["entryAuditors"]' @click="clickInput" allowClear>
-                    </a-select>
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-                <template v-if="'translator' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
-                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                      :options='options[record.id]["translators"]' @click="clickInput" allowClear>
-                    </a-select>
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-                <template v-if="'translationAuditor' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
-                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                      :options='options[record.id]["translatorAuditors"]' @click="clickInput" allowClear>
-                    </a-select>
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </template>
-                <template v-if="'translateType' === column.dataIndex">
-                  <template v-if="editableData[record.id]">
-                    <a-form-item label=" " :name="[index, 'translateType']" :rules="rules[column.dataIndex]">
-                      <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
-                        :options='translateTypes' :fieldNames="{label:'name',value:'name'}" @click="clickInput" allowClear>
+                <template v-else-if="'versionName' === column.dataIndex">
+                  <template v-if="editableData[record.id]&&!editableData[record.id].isSubmit">
+                    <a-form-item :name="[record.id, 'versionId']">
+                      <a-select v-model:value="editableData[record.id]['versionId']" allowClear style="width: 85%" placeholder="请选择"
+                        :options='options[record.id]["versions"]' @click="clickInput">
                       </a-select>
+                      <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addVersion(record)" />
                     </a-form-item>
-
                   </template>
                   <template v-else>
                     {{ text }}
                   </template>
                 </template>
-                <template v-if="column.dataIndex === 'state'">
-                  <template v-if="record.state === '0'">
-                    <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-                  </template>
-                  <template v-if="record.state > '0' && record.state < '6'">
-                    <a-badge color="#FBB31F" /><span style="color:#FBB31F">流程中</span>
-                  </template>
-                  <template v-if="record.state === '6'">
-                    <a-badge color="#36BF7D" /><span style="color:#36BF7D">已归档</span>
-                  </template>
-                </template>
-                <template v-if="['description'].includes(column.dataIndex)">
-                  <template v-if="editableData[record.id]">
-                    <a-input @click="clickInput" v-model:value="editableData[record.id][column.dataIndex]" style="margin: -5px 0" />
+                <template v-else-if="column.dataIndex === 'translateType'">
+                  <template v-if="editableData[record.id]&&!editableData[record.id].isSubmit">
+                    <a-form-item class="task-required-cell" :name="[record.id, 'translateType']" :rules="getTaskRules(editableData[record.id], 'translateType')">
+                      <a-select v-model:value="editableData[record.id].translateType" style="width: 100%" placeholder="请选择翻译语种"
+                        :options="translateTypes" :field-names="{ label: 'name', value: 'name' }" @click="clickInput" allowClear />
+                    </a-form-item>
                   </template>
                   <template v-else>
                     {{ text }}
                   </template>
+                </template>
+                <template v-else-if="['developer','entryAuditor','translator','translationAuditor'].includes(column.dataIndex)">
+                  <template v-if="editableData[record.id]&&!editableData[record.id].isSubmit">
+                    <a-form-item :name="[record.id, column.dataIndex]" :rules="getTaskRules(editableData[record.id], column.dataIndex)">
+                      <div class="task-role-editor">
+                        <span v-if="isTaskFieldRequired(editableData[record.id], column.dataIndex)"
+                          class="task-required-mark" aria-label="条件必填">*</span>
+                        <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
+                          :options='options[record.id][column.dataIndex]' @click="clickInput" @change="validateTaskRoles(record.id)" allowClear />
+                      </div>
+                    </a-form-item>
+                  </template>
+                  <template v-else>
+                    {{ text }}
+                  </template>
+                </template>
+                <!-- 创建人不可编辑，在复制和创建时会填写当前用户，只有超管可以编辑 -->
+                <template v-else-if="['creator'].includes(column.dataIndex)">
+                  <template v-if="editableData[record.id]&&isAdmin">
+                    <a-select v-model:value="editableData[record.id][column.dataIndex]" style="width: 100%" placeholder="请选择"
+                      :options='options[record.id][column.dataIndex]' @click="clickInput" allowClear>
+                    </a-select>
+                  </template>
+                  <template v-else>
+                    {{ text }}
+                  </template>
+                </template>
+                <template v-else-if="column.dataIndex === 'state'">
+                  <TaskStateBadge type="sum" :taskState="text" />
                 </template>
                 <template v-else-if="column.dataIndex === 'operation'">
                   <div class="editable-row-operations">
                     <span v-if="editableData[record.id]">
                       <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
                       <!-- <a-popconfirm title="是否取消?" ok-text='是' cancel-text='否' @confirm="cancel">
-                                                <a-button type="primary" ghost size="small" danger>取消</a-button>
-                                            </a-popconfirm> -->
+                        <a-button type="primary" ghost size="small" danger>取消</a-button>
+                      </a-popconfirm> -->
                       <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
                     </span>
                     <span v-else>
@@ -279,9 +231,11 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import OperationArea from "@/components/operationArea/index.vue";
 import TimeLine from "@/components/timeLine/index.vue";
+import TaskStateBadge from "@/components/stateBadge/taskStateBadge.vue";
 import ProductModal from "@/views/task/productModal.vue";
 import VersionModal from "@/views/task/versionModal.vue";
-import commen from "@/views/entry/common.js";
+// import commen from "@/views/entry/common.js";
+import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import { cloneDeep, flatMap } from "lodash-es";
 import {
   PlusOutlined,
@@ -305,14 +259,30 @@ import { getVersion } from "@/http/api/productVersion";
 import { getRoleUserByDepartment, getDepartments } from "@/http/api/user";
 import { getLanguage } from "@/http/api/translate";
 import { getClassTree } from "@/http/api/entryManage";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setTableHeight } from "@/utils/tableUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import { defineComponent, ref, createVNode } from "vue";
+
+const taskRolePairs = {
+  developer: "entryAuditor",
+  entryAuditor: "developer",
+  translator: "translationAuditor",
+  translationAuditor: "translator",
+};
+const taskRoleLabels = {
+  developer: "开发员",
+  entryAuditor: "词条审核员",
+  translator: "翻译员",
+  translationAuditor: "翻译审核员",
+};
+
 export default {
   components: {
     SearchBox,
     DataBox,
     OperationArea,
     TimeLine,
+    TaskStateBadge,
     ProductModal,
     VersionModal,
     PlusOutlined,
@@ -324,10 +294,7 @@ export default {
   },
   data() {
     return {
-      user: {
-        userName: "",
-        department: "",
-      },
+      isAdmin: false,
       locale: locale,
       labelCol: { style: { width: "84px" } },
       search: {
@@ -337,13 +304,15 @@ export default {
         department: null,
         state: null,
         developer: "",
-        auditor: "",
+        entryAuditor: "",
         translator: "",
         translationAuditor: "",
+        creator: "",
       },
       tableTitle: "任务列表",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       columns: [
         {
@@ -420,6 +389,12 @@ export default {
           width: 150,
         },
         {
+          title: "任务管理员",
+          dataIndex: "creator",
+          align: "center",
+          width: 150,
+        },
+        {
           title: "任务描述",
           dataIndex: "description",
           align: "center",
@@ -479,10 +454,9 @@ export default {
       addVersionVisible: false,
       copyTaskEntry: {},
       rules: {
-        name: [{ required: true, message: "请输入" }],
-        productName: [{ required: true, message: "请选择" }],
-        versionName: [{ required: true, message: "请选择" }],
-        translateType: [{ required: true, message: "请选择" }],
+        name: [{ required: true, message: "请输入任务名称" }],
+        productId: [{ required: true, message: "请选择产品" }],
+        translateType: [{ required: true, message: "请选择翻译语种" }],
       },
       searchValue: "",
       pagination: {
@@ -514,6 +488,7 @@ export default {
     // 初始化
     init() {
       this.user = this.$store.state.user;
+      this.isAdmin = this.user?.roleName?.includes("超级管理员") || false;
       this.setTableHeight();
       this.searchTaskInfo();
       this.getDepartments();
@@ -522,31 +497,14 @@ export default {
     // 动态设置表格高度
     setTableHeight() {
       this.$nextTick(() => {
-        // 设置列表父元素高度
-        let box = this.$refs.box.offsetHeight;
-        let searchHeight = this.$refs.search.$el.offsetHeight;
-        try {
-          let operationAreaHeight = this.$refs.operationArea.$el.offsetHeight;
-          this.dataHeight = box - searchHeight - operationAreaHeight;
-        } catch (error) {
-          this.dataHeight = box - searchHeight;
-        }
-
-        // 设置表格高度
-        let buttonHeight = 0;
-        try {
-          buttonHeight = this.$refs.button.offsetHeight + 8;
-        } catch (error) {}
-        this.tableHeight.y = this.dataHeight - buttonHeight - 150;
-
-        // console.log(this.tableHeight.y)
+        setTableHeight(this, 8, 166, 0);
       });
     },
     // 获取执行部门
     getDepartments() {
       getDepartments().then((res) => {
         this.departments = [];
-        res.data.list.forEach((item) => {
+        res.data?.list?.forEach((item) => {
           let d = {
             label: item,
             value: item,
@@ -555,7 +513,7 @@ export default {
         });
       });
     },
-    // 获取翻译语言
+    // 获取翻译语种
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {
@@ -568,16 +526,16 @@ export default {
       this.searchTaskInfo();
     },
     // 获取任务列表
-    searchTaskInfo() {
-      this.searchTaskByCondition(this.search);
+    async searchTaskInfo() {
+      await this.searchTaskByCondition(this.search);
     },
-    searchTaskByCondition(data) {
+    async searchTaskByCondition(data) {
       this.loading = true;
       let params = {
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
       };
-      searchTaskInfo(data, params)
+      await searchTaskInfo(data, params)
         .then((res) => {
           this.dataSource = res.data.list;
           this.loading = false;
@@ -632,11 +590,13 @@ export default {
             // 当前行在编辑状态
             return;
           }
-          if (record.state != "0" && record.state != "6") {
-            message.info("当前任务已下发，不可编辑！");
-          } else if (record.state === "6") {
+          // 0-待分配 1-待开发员确认 2-待词条审核员确认 3-待翻译员确认 4-待翻译审核员确认 5-已完成 6-已归档
+          if (record.state === "6") {
             message.info("当前任务已归档，不可编辑！");
-          } else if (record.state === "0") {
+          } else {
+            if (record.state != "0") {
+              console.log("当前任务已下发，不可编辑使用人员！");
+            }
             this.edit(record);
           }
         },
@@ -644,12 +604,22 @@ export default {
     },
     //新增
     handleAdd() {
-      this.pagination.current = 1;// 重置分页
+      this.pagination.current = 1; // 重置分页
+      const defaultUser = this.$store.state.user?.userName;
       const newData = {
         id: `new${this.dataSource.length + 1}`,
         name: "",
         state: "0",
-        department: this.user.department,
+        department: this.$store.state.user?.department,
+        creator: defaultUser, // 任务管理员-创建人-归档
+        developer: defaultUser, // 开发员
+        entryAuditor: defaultUser, // 词条审核员
+        translator: defaultUser, // 翻译员
+        translationAuditor: defaultUser, // 翻译审核员
+        translateType: "英文",
+        versionId: null,
+        versionName: null,
+        isSubmit: false,
       };
       this.options[newData.id] = {
         products: [],
@@ -675,30 +645,31 @@ export default {
       this.editableData[record.id] = cloneDeep(
         this.dataSource.filter((item) => record.id === item.id)[0]
       );
+      if (record.state === "0") {
+        this.editableData[record.id].isSubmit = false;
+      } else {
+        this.editableData[record.id].isSubmit = true;
+      }
     },
     // 保存
-    save(id) {
-      // 校验必填字段
-      this.$refs.tableFormRef
-        .validate()
-        .then(() => {
-          // 保存词条
-          this.saveEntry(id);
-        })
-        .catch((err) => {
-          message.error(err.message);
-        });
+    async save(id) {
+      if (!(await this.validateTasks([this.editableData[id]]))) {
+        return;
+      }
+      try {
+        await this.saveEntry(id);
+      } catch (error) {
+        message.error(error.message || "保存失败");
+      }
     },
     saveEntry(id) {
-      // console.log(this.editableData[id])
-      let falg = this.checkTask(id);
-      if (!falg) {
+      if (!this.checkTask(this.editableData[id])) {
         return;
       }
       if (id.startsWith("new")) {
         // 新增
         let data = [this.editableData[id]];
-        addTaskInfos(data).then((res) => {
+        return addTaskInfos(data).then((res) => {
           message.success("新增成功！");
           this.searchTaskInfo();
           delete this.editableData[id];
@@ -722,7 +693,7 @@ export default {
           this.editableData[id].translationAuditorStartTime = null;
           this.editableData[id].translateStartTime = null;
           this.editableData[id].deliveryTime = null;
-          taskCreateNewLanguageTask(params, this.editableData[id])
+          return taskCreateNewLanguageTask(params, this.editableData[id])
             .then((res) => {
               message.success("已保存！");
               delete this.copyTaskEntry[id];
@@ -730,13 +701,13 @@ export default {
               this.searchTaskInfo();
             })
             .catch((err) => {
-              message.error("复制失败！",err.message);
+              message.error("复制失败！", err.message);
               this.loading = false;
             });
         } else {
           // 新增
           let data = [this.editableData[id]];
-          addTaskInfos(data).then((res) => {
+          return addTaskInfos(data).then((res) => {
             message.success("新增成功！");
             this.searchTaskInfo();
             delete this.editableData[id];
@@ -744,141 +715,178 @@ export default {
         }
       } else {
         // 编辑
-        updateTaskInfo(this.editableData[id]).then((res) => {
+        return updateTaskInfo(this.editableData[id]).then((res) => {
           message.success("编辑成功！");
           this.searchTaskInfo();
           delete this.editableData[id];
         });
       }
     },
-    checkTask(id) {
-      //1、开发员和词条审核员必须成对出现
-      //2、翻译员和翻译审核员必须成对出现
-      //3、(开发员、词条审核员) 和 (翻译员、翻译审核员) 必须出现一对
-      let newTask = this.editableData[id];
-      if (
-        !this.isEmptyString(newTask.developer) &&
-        this.isEmptyString(newTask.entryAuditor)
-      ) {
-        message.info("请选择词条审核员！");
+    getTaskFields(task) {
+      const fields = Object.keys(this.rules).filter(
+        (field) => field === "name" || !task.isSubmit
+      );
+      return fields.concat(Object.keys(taskRolePairs));
+    },
+    isTaskFieldRequired(task, field) {
+      if (this.rules[field]) {
+        return field === "name" || !task.isSubmit;
+      }
+      return !this.isEmptyString(task[field]) ||
+        !this.isEmptyString(task[taskRolePairs[field]]);
+    },
+    getTaskFieldError(task, field) {
+      if (this.rules[field]) {
+        return this.isTaskFieldRequired(task, field) && this.isEmptyString(task[field])
+          ? this.rules[field][0].message
+          : "";
+      }
+      if (this.isEmptyString(task[field]) && !this.isEmptyString(task[taskRolePairs[field]])) {
+        return `请选择${taskRoleLabels[field]}`;
+      }
+      if (field === "developer" && Object.keys(taskRolePairs).every(
+        (role) => this.isEmptyString(task[role])
+      )) {
+        return "请至少选择一组完整的操作人员";
+      }
+      return "";
+    },
+    getTaskRules(task, field) {
+      return [{
+        required: this.isTaskFieldRequired(task, field),
+        validator: () => {
+          const error = this.getTaskFieldError(task, field);
+          return error ? Promise.reject(new Error(error)) : Promise.resolve();
+        },
+        trigger: ["change", "blur"],
+      }];
+    },
+    async validateTaskRoles(id) {
+      await this.$nextTick();
+      return this.$refs.tableFormRef.validateFields(
+        Object.keys(taskRolePairs).map((field) => [id, field])
+      ).catch(() => false);
+    },
+    checkTask(task) {
+      for (const field of this.getTaskFields(task)) {
+        const error = this.getTaskFieldError(task, field);
+        if (error) {
+          const taskName = this.isEmptyString(task.name) ? task.id : task.name;
+          message.info(`任务「${taskName}」：${error}`);
+          return false;
+        }
+      }
+      return true;
+    },
+    async validateTasks(tasks) {
+      const fields = tasks.flatMap((task) =>
+        this.getTaskFields(task).map((field) => [task.id, field])
+      );
+      let formError;
+      try {
+        await this.$refs.tableFormRef.validateFields(fields);
+      } catch (error) {
+        formError = error;
+      }
+      if (!tasks.every((task) => this.checkTask(task))) {
         return false;
       }
-      if (
-        !this.isEmptyString(newTask.entryAuditor) &&
-        this.isEmptyString(newTask.developer)
-      ) {
-        message.info("请选择开发员！");
-        return false;
-      }
-      if (
-        !this.isEmptyString(newTask.translator) &&
-        this.isEmptyString(newTask.translationAuditor)
-      ) {
-        message.info("请选择翻译审核员！");
-        return false;
-      }
-      if (
-        !this.isEmptyString(newTask.translationAuditor) &&
-        this.isEmptyString(newTask.translator)
-      ) {
-        message.info("请选择翻译员！");
-        return false;
-      }
-      if (
-        this.isEmptyString(newTask.translationAuditor) &&
-        this.isEmptyString(newTask.translator) &&
-        this.isEmptyString(newTask.developer) &&
-        this.isEmptyString(newTask.entryAuditor)
-      ) {
-        message.info("请选择操作人员！");
+      if (formError) {
+        message.info(formError.errorFields?.[0]?.errors?.[0] || "请完善任务必填信息后重试");
         return false;
       }
       return true;
     },
     isEmptyString(value) {
-      return value === null || value === "" || value === undefined;
+      return value === null || value === undefined ||
+        (typeof value === "string" && value.trim() === "");
     },
 
     // 批量保存
-    batchSave() {
-      // 校验必填字段
-      this.$refs.tableFormRef.validate().then(() => {
-        // 保存
-        this.batchSaveEntry();
-      });
-    },
-    batchSaveEntry() {
-      let add = [];
-      let edit = [];
-      let copy = [];
-      for (let key in this.editableData) {
-        // console.log(this.editableData[key])
-        let id = this.editableData[key].id;
-        if (id.startsWith("new")) {
-          add.push(this.editableData[key]);
-        } else if (id.startsWith("copy")) {
-          if (this.copyTaskEntry[id] === 1) {
-            copy.push(this.editableData[key]);
-          } else {
-            add.push(this.editableData[key]);
-          }
-        } else {
-          edit.push(this.editableData[key]);
-        }
-      }
-      if (add.length === 0 && edit.length === 0 && copy.length === 0) {
+    async batchSave() {
+      const tasks = Object.values(this.editableData);
+      if (tasks.length === 0 || !(await this.validateTasks(tasks))) {
         return;
       }
+      this.batchSaveEntry();
+    },
+    batchSaveEntry() {
       Modal.confirm({
         title: "是否全部保存?",
         icon: createVNode(ExclamationCircleOutlined),
         okText: "确定",
         cancelText: "取消",
         style: { top: "30%" },
-        onOk: () => {
-          if (add.length > 0) {
-            // 新增接口
-            addTaskInfos(add).then((res) => {
-              // this.searchTaskInfo()
-              delete this.editableData[item.id];
-            });
+        onOk: async () => {
+          const tasks = Object.values(this.editableData);
+          if (tasks.length === 0 || !(await this.validateTasks(tasks))) {
+            return;
           }
-          if (edit.length > 0) {
-            // 修改接口
+          const add = [];
+          const edit = [];
+          const copy = [];
+          for (const task of tasks) {
+            const id = task.id;
+            if (id.startsWith("new")) {
+              add.push(task);
+            } else if (id.startsWith("copy")) {
+              if (this.copyTaskEntry[id] === 1) {
+                copy.push(task);
+              } else {
+                add.push(task);
+              }
+            } else {
+              edit.push(task);
+            }
+          }
+          this.loading = true;
+          try {
+            const promises = [];
+            add.forEach((item) => {
+              promises.push(
+                addTaskInfos([item]).then(() => {
+                  delete this.editableData[item.id];
+                })
+              );
+            });
             edit.forEach((item) => {
-              updateTaskInfo(item).then((res) => {
-                delete this.editableData[item.id];
-              });
+              promises.push(
+                updateTaskInfo(item).then(() => {
+                  delete this.editableData[item.id];
+                })
+              );
             });
-          }
-          if (copy.length > 0) {
-            this.loading = true;
+            const currentDate = this.getCurrentDate();
             copy.forEach((item) => {
-              let first = item.id.indexOf("_");
-              let end = item.id.lastIndexOf("_");
-              let copyTaskId = item.id.substring(first + 1, end);
-              let params = {
-                taskID: copyTaskId,
-              };
-              item.upgrade = 1;
-              item.state = "0";
-              let currentDate = this.getCurrentDate();
-              item.createTime = currentDate;
-              item.endTime = null;
-              item.entryAutiorStartTime = null;
-              item.translationAuditorStartTime = null;
-              item.translateStartTime = null;
-              item.deliveryTime = null;
-              taskCreateNewLanguageTask(params, item).then((res) => {
-                delete this.copyTaskEntry[id];
-                delete this.editableData[id];
-              });
+              promises.push(
+                (async () => {
+                  const first = item.id.indexOf("_");
+                  const end = item.id.lastIndexOf("_");
+                  const copyTaskId = item.id.substring(first + 1, end);
+                  const params = { taskID: copyTaskId };
+                  item.upgrade = 1;
+                  item.state = "0";
+                  item.createTime = currentDate;
+                  item.endTime = null;
+                  item.entryAutiorStartTime = null;
+                  item.translationAuditorStartTime = null;
+                  item.translateStartTime = null;
+                  item.deliveryTime = null;
+                  await taskCreateNewLanguageTask(params, item);
+                  delete this.copyTaskEntry[item.id];
+                  delete this.editableData[item.id];
+                })()
+              );
             });
+            await Promise.all(promises);
+            await this.searchTaskInfo();
+            this.editableData = {};
+            message.success("保存成功！");
+          } catch (error) {
+            message.error("保存失败：" + error.message);
+          } finally {
             this.loading = false;
           }
-          this.searchTaskInfo();
-          message.success("保存成功！");
-          this.editableData = {};
         },
       });
     },
@@ -896,6 +904,7 @@ export default {
         });
       }
     },
+    // 删除任务
     deleteTask() {
       if (this.selectedRowKeys.length === 0) {
         message.info("请选择需要删除的任务！");
@@ -927,10 +936,50 @@ export default {
         },
       });
     },
+    // 无限制删除-仅限超管
+    deleteTaskByAdmin() {
+      if (this.selectedRowKeys.length === 0) {
+        message.info("请选择需要删除的任务！");
+        return;
+      }
+      Modal.confirm({
+        title: "是否确定删除?",
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "确定",
+        cancelText: "取消",
+        style: { top: "30%" },
+        onOk: () => {
+          deleteTaskInfo(this.selectedRowKeys).then((res) => {
+            message.success("删除成功！");
+            this.searchTaskInfo();
+            this.selectedRowKeys = [];
+            this.selectedRows = [];
+          });
+        },
+      });
+    },
+    async getSubmittableTaskIds() {
+      const tasks = this.selectedRows.filter((task) => task.state === "0");
+      if (tasks.length === 0) {
+        return [];
+      }
+      if (tasks.some((task) => task.id.startsWith("new") ||
+        task.id.startsWith("copy") || this.editableData[task.id])) {
+        message.info("请先保存待下发任务的编辑内容！");
+        return [];
+      }
+      if (!(await this.validateTasks(tasks))) {
+        return [];
+      }
+      return tasks.map((task) => task.id);
+    },
     // 任务下发
-    submitTask() {
+    async submitTask() {
       if (this.selectedRows.length === 0) {
         message.info("请选择需要下发的任务！");
+        return;
+      }
+      if ((await this.getSubmittableTaskIds()).length === 0) {
         return;
       }
       Modal.confirm({
@@ -939,24 +988,16 @@ export default {
         okText: "确定",
         cancelText: "取消",
         style: { top: "30%" },
-        onOk: () => {
-          let ids = [];
-          this.selectedRows.forEach((item) => {
-            if (item.state === "0") {
-              // 新建状态
-              ids.push(item.id);
-            } else {
-            }
-          });
+        onOk: async () => {
+          const ids = await this.getSubmittableTaskIds();
           if (ids.length === 0) {
             return;
           }
-          taskSubmission(ids).then((res) => {
-            this.searchTaskInfo();
-            message.success("下发成功！");
-            this.selectedRowKeys = [];
-            this.selectedRows = [];
-          });
+          await taskSubmission(ids);
+          this.searchTaskInfo();
+          message.success("下发成功！");
+          this.selectedRowKeys = [];
+          this.selectedRows = [];
         },
       });
     },
@@ -1028,19 +1069,20 @@ export default {
             developer.push(op);
           });
           developer.push({ label: "无", value: "" });
-          this.options[record.id].developers = developer;
+          this.options[record.id].developer = developer;
+          this.options[record.id].creator = developer; // 任务管理员-创建人-归档，没有data.CREATOR，所以这边我借用了开发者的options
         }
         if (data.ENTRY_AUDITOR) {
-          let auditor = [];
+          let entryAuditor = [];
           data.ENTRY_AUDITOR.forEach((item) => {
             let op = {
               label: item.userName,
               value: item.userName,
             };
-            auditor.push(op);
+            entryAuditor.push(op);
           });
-          auditor.push({ label: "无", value: "" });
-          this.options[record.id].entryAuditors = auditor;
+          entryAuditor.push({ label: "无", value: "" });
+          this.options[record.id].entryAuditor = entryAuditor;
         }
         if (data.TRANSLATOR) {
           let translateor = [];
@@ -1052,19 +1094,19 @@ export default {
             translateor.push(op);
           });
           translateor.push({ label: "无", value: "" });
-          this.options[record.id].translators = translateor;
+          this.options[record.id].translator = translateor;
         }
         if (data.TRANSLATE_AUDITOR) {
-          let translateAuditor = [];
+          let translationAuditor = [];
           data.TRANSLATE_AUDITOR.forEach((item) => {
             let op = {
               label: item.userName,
               value: item.userName,
             };
-            translateAuditor.push(op);
+            translationAuditor.push(op);
           });
-          translateAuditor.push({ label: "无", value: "" });
-          this.options[record.id].translatorAuditors = translateAuditor;
+          translationAuditor.push({ label: "无", value: "" });
+          this.options[record.id].translationAuditor = translationAuditor;
         }
       });
       // console.log(this.options)
@@ -1107,8 +1149,11 @@ export default {
         copyTask.state = "0";
         copyTask.name = copyTask.name + "(复制)";
         copyTask.deliveryTime = null;
-        copyTask.createTime = commen.getCurrentFormattedTime();
+        copyTask.createTime = getCurrentFormattedTime();
         copyTask.endTime = null;
+        copyTask.creator = this.$store.state.user?.userName; // 任务管理员-创建人-归档
+        copyTask.isSubmit = false;
+
         this.dataSource.unshift(copyTask);
         this.options[id] = {
           products: [],
@@ -1121,25 +1166,29 @@ export default {
       }
 
       let _this = this;
-      Modal.confirm({
-        title: "是否使用原任务已导入的词条?",
-        icon: createVNode(ExclamationCircleOutlined),
-        content: "",
-        okText: "是",
-        cancelText: "否",
-        style: { top: "30%" },
-        onOk() {
-          // console.log('OK');
-          copyIds.forEach((item) => {
-            _this.copyTaskEntry[item] = 1;
-          });
-        },
-        onCancel() {
-          // console.log('Cancel');
-          copyIds.forEach((item) => {
-            _this.copyTaskEntry[item] = 0;
-          });
-        },
+      // 使用原任务已导入的词条-后端查询复杂度nm，会缓冲池爆掉，暂时封掉该方法
+      // Modal.confirm({
+      //   title: "是否使用原任务已导入的词条?",
+      //   icon: createVNode(ExclamationCircleOutlined),
+      //   content: "",
+      //   okText: "是",
+      //   cancelText: "否",
+      //   style: { top: "30%" },
+      //   onOk() {
+      //     // console.log('OK');
+      //     copyIds.forEach((item) => {
+      //       _this.copyTaskEntry[item] = 1;
+      //     });
+      //   },
+      //   onCancel() {
+      //     // console.log('Cancel');
+      //     copyIds.forEach((item) => {
+      //       _this.copyTaskEntry[item] = 0;
+      //     });
+      //   },
+      // });
+      copyIds.forEach((item) => {
+        _this.copyTaskEntry[item] = 0;
       });
 
       this.copyNumber = 1;
@@ -1204,9 +1253,10 @@ export default {
         department: null,
         state: null,
         developer: "",
-        auditor: "",
+        entryAuditor: "",
         translator: "",
         translationAuditor: "",
+        creator: "",
       };
       this.pageChangeSearch = this.search;
       this.searchTaskInfo();
@@ -1259,6 +1309,40 @@ export default {
   width: 100%;
   height: 100%;
   // border: 1px solid red;
+}
+.task-required-mark {
+  color: #ff4d4f;
+  flex: none;
+  line-height: 1;
+}
+.task-required-cell {
+  :deep(.ant-form-item-control-input-content) {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    &::before {
+      content: "*";
+      color: #ff4d4f;
+      flex: none;
+      line-height: 1;
+    }
+  }
+  :deep(.ant-select),
+  :deep(.ant-input),
+  :deep(.ant-input-affix-wrapper) {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+}
+.task-required-hint {
+  color: #666;
+  font-size: 12px;
+  align-self: center;
+}
+.task-role-editor {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 </style>
 <style lang="less">

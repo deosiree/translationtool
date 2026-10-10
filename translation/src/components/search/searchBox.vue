@@ -1,7 +1,7 @@
 <template>
     <div class="search">
         <div class="title">
-            <span>查询条件：</span>
+            <span>{{titleName}}：</span>
             <up-outlined class="icon" v-if="showContent" title="收起" @click="trigger"/>
             <down-outlined class="icon" v-if="!showContent" title="展开" @click="trigger"/>
         </div>
@@ -29,12 +29,17 @@ export default {
         operate:{
             type:Boolean,
             default:true
-        }
+        },
+        defaultTitleName:{
+            type:String,
+            default:"查询条件"
+        },
     },
     data(){
         return{
             collapsed: true,
-            showContent: true
+            showContent: true,
+            titleName:this.defaultTitleName
         }
     },
     methods:{

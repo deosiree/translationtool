@@ -1,5 +1,5 @@
 //引入request.js文件
-import request from "../request";
+import request, { requestMultipart } from "../request";
 
 // 保存临时词条
 export function insertEntry(params, data) {
@@ -59,7 +59,7 @@ export function getImportType(params) {
 
 //excel 导入
 export function importExcle(data) {
-  return request({
+  return requestMultipart({
     url: "/workbench/importExcle",
     method: "POST",
     data
@@ -67,10 +67,11 @@ export function importExcle(data) {
 }
 
 //读取装置 excel
-export function readZZExcle(data) {
-  return request({
+export function readZZExcle(params, data) {
+  return requestMultipart({
     url: "/workbench/entryImportExcle",
     method: "POST",
+    params,
     data
   });
 }
@@ -97,27 +98,26 @@ export function updateEntryList(params, data) {
 
 // 删除词条
 export function deleteEntryInfoByID(params, data) {
-    return request({
-        url: "/workbench/deleteEntryInfoByID",
-        method: "POST", 
-        params,
-        data
-    });
-
+  return request({
+    url: "/workbench/deleteEntryInfoByID",
+    method: "POST",
+    params,
+    data
+  });
 }
 
 // 删除任务中的词条
 export function deleteEntryInfoByTaskID(params, data) {
   return request({
-      url: "/workbench/deleteEntryInfoByTaskID",
-      method: "POST", 
-      params,
-      data
+    url: "/workbench/deleteEntryInfoByTaskID",
+    method: "POST",
+    params,
+    data
   });
 
 }
 
-// 过滤语言
+// 过滤语种
 export function filterSourceLanguage(params, data) {
   return request({
     url: "/workbench/filterSourceLanguage",
@@ -138,7 +138,7 @@ export function getDictory(params) {
 
 // 导入
 export function importCommonExcle(data) {
-  return request({
+  return requestMultipart({
     url: "/workbench/importCommonExcle",
     method: "POST",
     data: data
@@ -150,6 +150,33 @@ export function getI18nAdress() {
   return request({
     url: "/workbench/getI18nAdress",
     method: "GET"
+  });
+}
+
+// 获取ip地址对应的分支
+export function getBranches(params) {
+  return request({
+    url: "/workbench/getBranches",
+    method: "POST",
+    params
+  });
+}
+
+// git commit
+export function gitCommit(params) {
+  return request({
+    url: "/workbench/gitCommit",
+    method: "POST",
+    params
+  });
+}
+
+// git push
+export function gitPush(params) {
+  return request({
+    url: "/workbench/gitPush",
+    method: "POST",
+    params
   });
 }
 

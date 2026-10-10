@@ -2,105 +2,200 @@
   <div class="box" ref="box">
     <SearchBox ref="search" @change="setTableHeight">
       <template v-slot:form>
-        <a-form :model="search" name="horizontal_login" layout="inline" autocomplete="off" :label-col="labelCol">
+        <a-form
+          :model="search"
+          name="horizontal_login"
+          layout="inline"
+          autocomplete="off"
+          :label-col="labelCol"
+        >
           <a-form-item label="词条" name="entry">
-            <a-input v-model:value="search.entry" placeholder="请输入词条"></a-input>
+            <a-input
+              v-model:value="search.entry"
+              placeholder="请输入词条"
+            ></a-input>
           </a-form-item>
           <a-form-item label="翻译" name="translate">
-            <a-input v-model:value="search.translate" placeholder="请输入翻译"></a-input>
+            <a-input
+              v-model:value="search.translate"
+              placeholder="请输入翻译"
+            ></a-input>
           </a-form-item>
-          <a-form-item label="翻译类型" name="translateType">
-            <a-select v-model:value="search.translateType" style="width: 186px" placeholder="请选择翻译类型" :options='translateTypes'
-              :fieldNames="{label:'name',value:'name'}" allowClear>
+          <!-- <a-form-item label="翻译过滤" name="filter_translate">
+            <a-input v-model:value="search.filter_translate" placeholder="请输入翻译"></a-input>
+          </a-form-item> -->
+          <a-form-item label="翻译类型" name="type">
+            <a-select
+              v-model:value="search.type"
+              style="width: 186px"
+              placeholder="请选择翻译类型"
+              :options="translateTypes"
+              :fieldNames="{ label: 'name', value: 'name' }"
+              allowClear
+            >
             </a-select>
           </a-form-item>
           <a-form-item label="翻译状态" name="translateState">
-            <a-select v-model:value="search.translateState" style="width: 186px" placeholder="请选择翻译状态" :options='translateStates' allowClear>
-            </a-select>
+            <TransStateSelect
+              :translateState="search.translateState"
+              @update:translateState="search.translateState = $event"
+              :style="'width: 186px'"
+              :placeholder="'请选择翻译状态'"
+            />
           </a-form-item>
           <a-form-item label="可见范围" name="visualRange">
-            <a-select v-model:value="search.visualRange" style="width: 186px" placeholder="请选择可见范围" :options='visualRanges' allowClear>
+            <a-select
+              v-model:value="search.visualRange"
+              style="width: 186px"
+              placeholder="请选择可见范围"
+              :options="visualRanges"
+              allowClear
+            >
             </a-select>
           </a-form-item>
           <a-form-item label="校验类型" name="searchType">
-            <a-select v-model:value="search.searchType" style="width: 186px" placeholder="请选择校验类型" :options='searchTypes' allowClear>
+            <a-select
+              v-model:value="search.searchType"
+              style="width: 186px"
+              placeholder="请选择校验类型"
+              :options="searchTypes"
+              allowClear
+            >
             </a-select>
           </a-form-item>
         </a-form>
       </template>
       <template v-slot:operate>
-        <ResetButton :size="'middle'" :search="search" :currentPage="pagination.current" @resetData="onResetData" />
-        <a-button type="primary" size="middle" @click="getSearchClick">查询</a-button>
+        <ResetButton
+          :size="'middle'"
+          :search="search"
+          :currentPage="pagination.current"
+          @resetData="onResetData"
+        />
+        <a-button type="primary" size="middle" @click="getSearchClick"
+          >查询</a-button
+        >
       </template>
     </SearchBox>
     <DataBox :title="tableTitle" :height="dataHeight" :showOperate="true">
       <template v-slot:operate>
-        <div ref="button" v-if="true" style="margin-bottom:8px;display:flex;gap:10px">
-          <BatchSelectButton v-if="!isGetSykEntry" :size="'middle'" :columns="columns" :dataSource="dataSource" :getSearch="getSearch"
-            v-model:search="search" v-model:lastSearch="lastSearch" v-model:loading="loading" v-model:selectEntry="selectEntry"
-            v-model:selectedRows="selectedRows" v-model:selectedRowKeys="selectedRowKeys" v-model:batchSelectFlag="batchSelectFlag"
-            v-model:batchSelectVisible="batchSelectVisible" />
+        <div
+          ref="button"
+          v-if="true"
+          style="margin-bottom: 8px; display: flex; gap: 10px"
+        >
+          <BatchSelectButton
+            v-if="!isGetSykEntry && !isCheckSameEntry"
+            :size="'middle'"
+            :columns="columns"
+            :dataSource="dataSource"
+            :getSearch="getSearch"
+            v-model:search="search"
+            v-model:lastSearch="lastSearch"
+            v-model:loading="loading"
+            v-model:selectEntry="selectEntry"
+            v-model:selectedRows="selectedRows"
+            v-model:selectedRowKeys="selectedRowKeys"
+            v-model:batchSelectFlag="batchSelectFlag"
+            v-model:batchSelectVisible="batchSelectVisible"
+          />
 
-          <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
-            <template #content>
-              <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
-                <a-row v-for="item in checkboxList" :key="item.value">
-                  <a-col :span="24">
-                    <a-checkbox :value="item.value">
-                      {{ item.label }}
-                    </a-checkbox>
-                  </a-col>
-                </a-row>
-              </a-checkbox-group>
-            </template>
-            <a-button type="primary" size="middle"><template #icon>
-                <SettingOutlined />
-              </template>展示列</a-button>
-          </a-popover>
+          <ColumnFilter
+            v-model="checkedColumn"
+            :columns="columnSettingsList"
+            :overlay-style="overlayStyle"
+            button-size="middle"
+            col-pref-name="colPref-glossary"
+            :normal-width="150"
+            :need-filter="false"
+            @change="syncColumnsFromPref"
+          />
         </div>
       </template>
       <template v-slot:data>
-        <div style="width:100%;position: absolute;">
-          <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
-            :scroll="tableHeight" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="glossaryTable"
-            @resizeColumn="handleResizeColumn" :customRow="customRow"
-            :row-selection="batchSelectFlag ? { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll} : null">
-            <template #bodyCell="{ column, record,text}">
+        <div style="width: 100%; position: absolute">
+          <a-table
+            bordered
+            class="ant-table-striped table-cell-overflow"
+            :columns="columns"
+            :data-source="dataSource"
+            :row-key="(record) => record.id"
+            :scroll="tableHeight"
+            :pagination="pagination"
+            :loading="loading"
+            :rowClassName="getRowClassName"
+            ref="glossaryTable"
+            @resizeColumn="handleResizeColumn"
+            :row-selection="
+              batchSelectFlag
+                ? {
+                    selectedRowKeys: selectedRowKeys,
+                    onChange: onSelectChange,
+                    onSelect: onSelect,
+                    onSelectAll: onSelectAll,
+                  }
+                : null
+            "
+          >
+            <template #headerCell="{ title, column }">
+              <CellOverflowTooltip v-if="column.colValue" :content="title">
+                {{ title }}
+              </CellOverflowTooltip>
+            </template>
+            <template #bodyCell="{ column, record, text }">
               <template v-if="column.dataIndex === 'translate'">
-                <div>
-                  <template v-if="editableData[record.id]">
-                    <a-input v-model:value="editableData[record.id][column.dataIndex]" @pressEnter="editOK(record)" style="margin: -5px 0"
-                      @click="clickInput" />
-                  </template>
-                  <template v-else>
-                    {{ text }}
-                  </template>
-                </div>
-              </template>
-              <template v-if="column.dataIndex === 'translateState'">
-                <template v-if="record[column.dataIndex] === '0'">
-                  <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
+                <template v-if="editableData[record.id]">
+                  <TextArea
+                    :value="editableData[record.id]?.[column.dataIndex] ?? ''"
+                    @update:value="
+                      (val) => handleTranslateChange(val, record, column)
+                    "
+                    :autoSize="{ minRows: 1, maxRows: 5 }"
+                  />
                 </template>
-                <template v-if="record[column.dataIndex] === '1'">
-                  <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-                </template>
-                <template v-if="record[column.dataIndex] === '2'">
-                  <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-                </template>
-                <template v-if="record[column.dataIndex] === '3'">
-                  <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
+                <template v-else>
+                  <CellOverflowTooltip :content="formatCellText(text)">
+                    <span @dblclick="dbclickEdited(record.id)">{{ text }}</span>
+                  </CellOverflowTooltip>
                 </template>
               </template>
-              <template v-if="column.dataIndex === 'operation'">
+              <template v-else-if="column.dataIndex === 'translateState'">
+                <CellOverflowTooltip :content="translateStateLabel(text)">
+                  <TransStateBadge :translateState="text" />
+                </CellOverflowTooltip>
+              </template>
+              <template v-else-if="column.dataIndex === 'operation'">
                 <div class="editable-row-operations">
                   <span v-if="editableData[record.id]">
-                    <a-button type="primary" ghost size="small" @click.stop="save(record.id)">保存</a-button>
-                    <a-button type="primary" ghost size="small" danger @click.stop="cancel(record.id)">取消</a-button>
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      @click.stop="save(record.id)"
+                      >保存</a-button
+                    >
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      danger
+                      @click.stop="cancel(record.id)"
+                      >取消</a-button
+                    >
                   </span>
                   <span v-else>
-                    <a-button type="primary" ghost size="small" @click.stop="viewRelation(record)">详情({{record.relationCount}})</a-button>
+                    <a-button
+                      type="primary"
+                      ghost
+                      size="small"
+                      @click.stop="viewRelation(record)"
+                      >详情({{ record.relationCount }})</a-button
+                    >
                   </span>
                 </div>
+              </template>
+              <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
+                <CellOverflowTooltip :content="formatCellText(text)" />
               </template>
             </template>
           </a-table>
@@ -108,7 +203,11 @@
       </template>
     </DataBox>
   </div>
-  <RelationModal :visible="relationVisible" :currentData="relationData" @relationClose="relationClose"></RelationModal>
+  <RelationModal
+    :visible="relationVisible"
+    :currentData="relationData"
+    @relationClose="relationClose"
+  ></RelationModal>
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
@@ -117,12 +216,16 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import ResetButton from "@/components/Button/resetButton.vue";
 import BatchSelectButton from "@/components/Button/batchSelectButton.vue";
-import commen from "@/views/entry/common.js";
+import TransStateSelect from "@/components/select/transStateSelect.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import RelationModal from "@/views/glossary/relationModal.vue";
+import Input from "@/components/cellEditor/input_IME.vue";
+import TextArea from "@/components/cellEditor/textarea_IME.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import { formatCellText } from "@/components/table/cellText";
 import { updateUserPartiality } from "@/http/api/userPartiality";
-import tableParam from "@/views/glossary/tableParam.js";
-
 import { cloneDeep, flatMap } from "lodash-es";
+import { onEditableCellInput } from "@/utils/validationUtils";
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -133,35 +236,50 @@ import {
   ExclamationCircleOutlined,
   SettingOutlined,
 } from "@ant-design/icons-vue";
-
 import { getLanguage } from "@/http/api/translate";
 import {
   getSykEntry,
+  checkSameEntry,
   getSykNotUsed,
   checkSykEntry,
   updateSykEntry,
   getSykEntryRelation,
+  getSameEntryRelation,
 } from "@/http/api/glossary";
-import { getSearch } from "@/utils/tableUtils";
+import {
+  setTableHeight,
+  handleResizeColumn,
+  getRowClassName,
+} from "@/utils/tableUtils";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import {
   onSelectChange,
   onSelect,
   onSelectAll,
   pageChange,
-  clickInput,
-  setTableHeight,
-  handleResizeColumn,
-  getRowClassName,
-} from "@/utils/tableUtils";
-import { setModalAriaHidden } from "@/utils/commonUtils";
-import { defineComponent, ref, createVNode } from "vue";
+} from "@/utils/selectionUtils";
+import { clickInput, setModalAriaHidden } from "@/utils/domUtils";
+import { getSearch } from "@/utils/requestUtils";
+import commonParam, {
+  glossaryParams,
+  glossaryAllCols,
+  glossaryPresets,
+} from "@/constants/commonParam.js";
+import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
+import { defineComponent, ref, createVNode, nextTick } from "vue";
 export default {
   components: {
     SearchBox,
     DataBox,
     ResetButton,
     BatchSelectButton,
+    TransStateSelect,
+    TransStateBadge,
     RelationModal,
+    Input,
+    TextArea,
+    CellOverflowTooltip,
+    ColumnFilter,
     PlusOutlined,
     DeleteOutlined,
     CopyOutlined,
@@ -182,138 +300,25 @@ export default {
         state: null,
         visualRange: null,
         searchType: null,
+        filter_translate: null, // 翻译过滤字段
       },
       lastSearch: {}, // 存储上一次的查询条件
-      translateStates: [
-        { label: "未翻译", value: "0" },
-        { label: "待审核", value: "1" },
-        { label: "审核不通过", value: "2" },
-        { label: "已审核", value: "3" },
-      ],
-      visualRanges: [
-        { label: "通用平台部", value: "通用平台部" },
-        { label: "监控系统部", value: "监控系统部" },
-        { label: "装置开发部", value: "装置开发部" },
-        { label: "柔性输电系统部", value: "柔性输电系统部" },
-      ],
+      visualRanges: Object.values(commonParam.departmentMap).map((dept) => ({
+        label: dept.label,
+        value: dept.label,
+      })),
       searchTypes: [
         { label: "格式校验", value: "checkSykEntry" },
         { label: "空挂术语", value: "getSykNotUsed" },
+        { label: "查重自检", value: "checkSameEntry" },
         { label: "条件查询", value: "getSykEntry" },
       ],
       tableTitle: "术语列表",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 80,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-          index: 0.1,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 150,
-          fixed: "left",
-          resizable: true,
-          index: 1,
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
-          title: "翻译类型",
-          dataIndex: "type",
-          align: "center",
-          width: 230,
-          resizable: true,
-          index: 3,
-        },
-        {
-          title: "翻译状态",
-          dataIndex: "translateState",
-          align: "center",
-          width: 180,
-          resizable: true,
-          index: 4,
-        },
-        // {
-        //   title: "翻译字符数",
-        //   dataIndex: "charLength",
-        //   align: "center",
-        //   width: 150,
-        //   index: 5,
-        // },
-        {
-          title: "可见范围",
-          dataIndex: "visualRange",
-          align: "center",
-          width: 150,
-          index: 6,
-        },
-        {
-          title: "词条审核员",
-          dataIndex: "entryAuditor",
-          align: "center",
-          width: 150,
-          index: 7,
-        },
-        // {
-        //   title: "公开状态",
-        //   dataIndex: "publicState",
-        //   align: "center",
-        //   width: 150,
-        //   index: 8,
-        // },
-        // {
-        //   title: "最大限制长度",
-        //   dataIndex: "maxLength",
-        //   align: "center",
-        //   width: 150,
-        //   index: 9,
-        // },
-        // {
-        //   title: "审核意见",
-        //   dataIndex: "auditSuggest",
-        //   align: "center",
-        //   width: 230,
-        //   ellipsis: true,
-        //   resizable: true,
-        //   index: 10,
-        // },
-        // {
-        //   title: "备注",
-        //   dataIndex: "remark",
-        //   align: "center",
-        //   width: 200,
-        //   index: 11,
-        // },
-        {
-          title: "操作",
-          dataIndex: "operation",
-          align: "center",
-          width: 150,
-          fixed: "right",
-          index: 12,
-        },
-      ],
+      columns: [],
       dataSource: [],
       selectedRowKeys: [],
       selectedRows: [],
@@ -331,33 +336,41 @@ export default {
       },
       relationVisible: false,
       relationData: [],
-      overlayStyle: tableParam.overlayStyle, // 展示列相关
-      checkboxList: tableParam.checkboxList,
-      checkedColumn: tableParam.checkedColumn,
+      overlayStyle: glossaryParams.overlayStyle,
+      columnSettingsList: [],
+      checkedColumn: [],
       batchSelectFlag: false, // 批量选择的显示（全选/反选）
       isGetSykEntry: true,
+      isCheckSameEntry: false,
       batchSelectVisible: false,
       apiFunctions: {
         getSykEntry: this.getSykEntry,
         getSykNotUsed: this.getSykNotUsed,
+        checkSameEntry: this.checkSameEntry,
         checkSykEntry: this.checkSykEntry,
       },
       requestId: null, // 存储校验按钮的http请求
+      inputRefs: {}, // 初始化一个对象用于存储输入框的 ref
     };
   },
   mounted() {
     let _this = this;
     this.$nextTick(() => {
+      // console.log("localStorage", localStorage);// 本地存储
+      // console.log("store data",this.$store.state.user.department);// Vuex存储数据
+      this.search.visualRange = this.$store.state.user.department; // 设置可见范围
+
       this.init();
       // 读取本地存储的用户偏好
-      const storedPreferences = localStorage.getItem(
-        "glossaryColumnPreferences"
-      );
-      if (storedPreferences) {
-        const preferences = JSON.parse(storedPreferences);
-        this.checkedColumn = preferences.displayColumn.split(",");
-        this.changeColumn(this.checkedColumn);
-      }
+      applyTable(this, {
+        allCols: glossaryAllCols,
+        preset: glossaryPresets.glossary,
+        ctx: { pagination: this.pagination },
+        colPrefName: "colPref-glossary",
+        normalWidth: 150,
+        needFilter: false,
+        lockCellSize: true,
+      });
       /** 控制table的高度 */
       window.onresize = function () {
         _this.setTableHeight();
@@ -377,64 +390,32 @@ export default {
         } else {
           this.isGetSykEntry = true;
         }
+        if (newVal && newVal !== "checkSameEntry") {
+          this.isCheckSameEntry = false;
+        } else {
+          this.isCheckSameEntry = true;
+        }
       },
     },
   },
   methods: {
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
     // 初始化
     init() {
       this.setTableHeight();
       this.getLanguage();
       this.getSearchClick(); // 需要增加取消请求，再在初始化中调用，否则切换查询条件会发生覆盖
     },
-
-    // 展示列切换
-    changeColumn(checkedValue) {
-      this.checkedColumn = checkedValue;
-      this.checkboxList.forEach((value) => {
-        let checkedIndex = this.checkedColumn.findIndex(
-          (item) => item === value.value
-        );
-        let nowColumnIndex = this.columns.findIndex(
-          (item) => item.dataIndex === value.value
-        );
-        if (
-          (nowColumnIndex !== -1 && checkedIndex !== -1) ||
-          (nowColumnIndex === -1 && checkedIndex === -1)
-        ) {
-          return;
-        }
-        if (nowColumnIndex === -1 && checkedIndex !== -1) {
-          let newCol = {
-            title: value.label,
-            dataIndex: value.value,
-            align: "center",
-            width: 100,
-            resizable: true,
-            index: value.index,
-          };
-          this.columns.splice(-1, 0, newCol);
-        }
-        if (nowColumnIndex !== -1 && checkedIndex === -1) {
-          this.columns.splice(nowColumnIndex, 1);
-        }
-      });
-      this.columns.sort(function (a, b) {
-        return a.index - b.index;
-      });
-
-      // 记录
-      let data = {
-        displayColumn: checkedValue.join(","),
-      };
-      // this.recordPartiality(data);
-      localStorage.setItem("glossaryColumnPreferences", JSON.stringify(data)); // localStorage存储用户偏好
-    },
-
-    // 获取翻译语言
+    // 获取翻译语种
     getLanguage() {
       let data = {};
       getLanguage(data).then((res) => {
+        if (!res || !res.data || !Array.isArray(res.data.list)) {
+          this.translateTypes = [];
+          return;
+        }
         this.translateTypes = res.data.list;
       });
     },
@@ -454,6 +435,7 @@ export default {
       const apiFunctions = {
         getSykEntry: this.getSykEntry,
         getSykNotUsed: this.getSykNotUsed,
+        checkSameEntry: this.checkSameEntry,
         checkSykEntry: this.checkSykEntry,
       };
       // 选项赋值
@@ -470,12 +452,13 @@ export default {
       this.lastSearch = currentSearch;
 
       // 入参+请求体
-      this.search.type = this.search.translateType;
+      // this.search.type = this.search.translateType;
       let params = {
         params: {
           pageIndex: this.pagination.current,
           pageSize: this.pagination.pageSize,
           requestId: `${option}-${Date.now().toString(16)}`,
+          // translateType: this.search.type,
         },
         data: this.search,
         lastRequestId: this.requestId, // 获取上一次的请求对象requestId
@@ -492,11 +475,49 @@ export default {
         if (!res) {
           return;
         }
+        if (!res.data || !Array.isArray(res.data.list)) {
+          this.dataSource = [];
+          this.pagination.total = 0;
+          return;
+        }
         this.dataSource = res.data.list;
-        this.pagination.total = res.data.totalNum;
+        this.pagination.total = res.data.totalNum || 0;
         for (let item of this.dataSource) {
           // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           getSykEntryRelation([item]).then((res) => {
+            if (!res || !res.data || !Array.isArray(res.data.list)) {
+              item["relationCount"] = 0;
+              item["reslations"] = [];
+              return;
+            }
+            item["relationCount"] = res.data.list.length;
+            item["reslations"] = res.data.list;
+          });
+        }
+      });
+    },
+    // 查重自检查询
+    checkSameEntry(params, data, lastRequestId) {
+      // console.log("查重自检", params, data, lastRequestId);
+      return checkSameEntry(params, data, lastRequestId).then((res) => {
+        if (!res) {
+          return;
+        }
+        if (!res.data || !Array.isArray(res.data.list)) {
+          this.dataSource = [];
+          this.pagination.total = 0;
+          return;
+        }
+        this.dataSource = res.data.list;
+        this.pagination.total = res.data.totalNum || 0;
+        for (let item of this.dataSource) {
+          // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
+          getSameEntryRelation(item).then((res) => {
+            if (!res || !res.data || !Array.isArray(res.data.list)) {
+              item["relationCount"] = 0;
+              item["reslations"] = [];
+              return;
+            }
             item["relationCount"] = res.data.list.length;
             item["reslations"] = res.data.list;
           });
@@ -509,8 +530,13 @@ export default {
         if (!res) {
           return;
         }
+        if (!res.data || !Array.isArray(res.data.list)) {
+          this.dataSource = [];
+          this.pagination.total = 0;
+          return;
+        }
         this.dataSource = res.data.list;
-        this.pagination.total = res.data.totalNum;
+        this.pagination.total = res.data.totalNum || 0;
         for (let item of this.dataSource) {
           // if (!item.type) item.type = "英文"; // 后端BUG，type字段为空
           // 空挂术语的详情都是0
@@ -534,6 +560,11 @@ export default {
             item["reslations"] = [];
           } else {
             getSykEntryRelation([item]).then((res) => {
+              if (!res || !res.data || !Array.isArray(res.data.list)) {
+                item["relationCount"] = 0;
+                item["reslations"] = [];
+                return;
+              }
               item["relationCount"] = res.data.list.length;
               item["reslations"] = res.data.list;
             });
@@ -543,6 +574,7 @@ export default {
     },
     // 保存
     save(id) {
+      this.loading = true;
       updateSykEntry([this.editableData[id]])
         .then((res) => {
           message.success("编辑成功！");
@@ -550,12 +582,25 @@ export default {
           this.getSearch();
         })
         .catch((err) => {
-          message.error("编辑失败！",err.message);
+          message.error("编辑失败！", err.message);
+        })
+        .finally(() => {
+          this.loading = false;
         });
     },
     // 取消
     cancel(id) {
       delete this.editableData[id];
+    },
+    formatCellText,
+    translateStateLabel(value) {
+      const map = {
+        0: "未翻译",
+        1: "待审核",
+        2: "审核不通过",
+        3: "已审核",
+      };
+      return map[value] ?? "未翻译";
     },
     // 回车编辑框
     editOK(record) {
@@ -563,7 +608,9 @@ export default {
       // record.translate = this.editableData[record.id].translate;
       // delete this.editableData[record.id];
     },
-
+    handleTranslateChange(value, record, column) {
+      onEditableCellInput(this, record.id, column.dataIndex, value);
+    },
     // 查看详情
     viewRelation(record) {
       this.relationData = record.reslations;
@@ -575,7 +622,33 @@ export default {
     relationClose() {
       this.relationVisible = false;
     },
+    // 聚焦单元格
+    focusCell(recordId) {
+      // console.log("聚焦单元格", recordId);
+      nextTick(() => {
+        const inputElement = this.inputRefs[recordId];
+        if (inputElement) {
+          const input = inputElement.input;
+          // console.log("input", input);
+          if (input) {
+            input.focus();
+            const length = input.value.length;
+            // console.log("input.value", input.value);
+            // 设置光标位置到文本末尾
+            input.setSelectionRange(length, length);
+          }
+        }
+      });
+    },
+    // 双击未打开编辑状态的单元格
+    dbclickEdited(recordId) {
+      this.editableData[recordId] = cloneDeep(
+        this.dataSource.filter((item) => recordId === item.id)[0]
+      );
+      // console.log("editableData", this.editableData[recordId]);
 
+      this.focusCell(recordId); // 调用点击编辑方法
+    },
     // 添加表格行点击事件
     customRow(record, index) {
       return {
@@ -633,8 +706,9 @@ export default {
     },
     // 分页切换
     pageChange(page, pageSize) {
-      // console.log("pageChange", page, pageSize);
-      if (this.isGetSykEntry)
+      // console.log("pageChange", page, pageSize, );
+      if (this.isGetSykEntry || this.isCheckSameEntry)
+        // 条件查询||查重自检时，根据分页信息回调查询函数
         // if (!this.search.searchType || this.search.searchType == "getSykEntry")
         pageChange(this, page, pageSize, this.getSearch);
       // 需要回调查询接口，否则一次查询出所有数据，对前端压力太大了，所以每次分页查询只查询当前页的数据
@@ -652,6 +726,10 @@ export default {
   height: 100%;
   padding: 16px;
   // border: 1px solid red;
+  /* 换行后每个表单项的间距 */
+  & :deep(.search .form .ant-row) {
+    margin-bottom: 8px !important;
+  }
 }
 </style>
 <style lang="less">

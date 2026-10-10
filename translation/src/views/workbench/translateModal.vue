@@ -1,130 +1,127 @@
 <template>
-  <Modal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" okText="保存" :okLoading="saveLoading" :fullFlag="true"
-    @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <PipeShell
+    :visible="visible"
+    :modalTitle="modalTitle"
+    :okLoading="loading"
+    okText="保存"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+    @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
+  >
     <div class="content">
       <div class="table">
-        <div class="taskInfo">
-          <div class="taskItem">任务名称：{{task.name}}</div>
-          <div class="taskItem">产品名称：{{task.productName}}</div>
-          <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
-          <div class="taskItem">翻译语种：{{task.translateType}}</div>
-        </div>
-        <div class="form">
-          词条：
-          <a-input v-model:value="keyWords" style="width:200px" size="small" placeholder='请输入词条搜索' />
-          <span style="margin-left:10px">翻译状态：</span>
-          <a-select v-model:value="translateState" allowClear size="small" style="width: 200px" placeholder='请选择'>
-            <a-select-option value="0">待翻译</a-select-option>
-            <a-select-option value="1">待审核</a-select-option>
-            <a-select-option value="2">审核不通过</a-select-option>
-            <!-- <a-select-option value="33">审核通过</a-select-option> -->
-          </a-select>
-          <a-button type="primary" size="small" style="margin-left:8px" @click="getTranslateEntry">查询</a-button>
-          <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="preTranslation">预翻译</a-button>
-          <!-- <a-button type="primary" size="small" style="margin-left:8px" class="resetBtn" @click="save">保存</a-button> -->
-          <a-button type="primary" size="small" style="margin-left:8px" @click="exportExcel">导出Excel</a-button>
-          <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :showUploadList="false" @change="handleChange">
-            <a-button type="primary" size="small" style="margin-left:8px">翻译导入</a-button>
-          </a-upload>
-          <a-dropdown>
-            <template #overlay>
-              <a-menu @click="capitalizeWordsClick">
-                <a-menu-item key="upper">
-                  首字母大写
-                </a-menu-item>
-                <a-menu-item key="lower">
-                  首字母小写
-                </a-menu-item>
-                <a-menu-item key="replace">
-                  查找替换
-                </a-menu-item>
-              </a-menu>
-            </template>
-            <a-button size="small" type="primary" style="margin-left:8px">
-              翻译调整
-              <DownOutlined />
-            </a-button>
-          </a-dropdown>
-          <!-- <a-button type="primary" size="small" style="margin-left:8px" @click="replace">替换</a-button> -->
-        </div>
-        <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
-          :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" childrenColumnName="child" ref="tableContainer"
-          @resizeColumn="handleResizeColumn" :row-selection="{selectedRowKeys: selectedRowKeys, 
-                    onChange: onSelectChange,
-                    selections:[
-                        {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
-                        {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                    ]
-                }" :customRow="customRow">
-          <template #bodyCell="{ column, text, record }">
-            <template v-if="column.dataIndex === 'entry'">
-              <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
-            </template>
-            <template v-if="['english','russian','spanish','french'].includes(column.dataIndex)">
-              <div>
-                <template v-if="editableData[record.id]">
-                  <a-form :model="editableData[record.id]" :rules="rules[record.id]" :ref="'form'+record.id.replaceAll('-','')+column.dataIndex"
-                    autocomplete="off">
-                    <a-form-item :name="column.dataIndex">
-                      <a-input :ref="'ref'+record.id.replaceAll('-','')" v-model:value="editableData[record.id][column.dataIndex]"
-                        style="margin: -5px 0" @pressEnter="inputPressEnter(record)" @click="clickInput" @change="changeInput(record)" />
-                    </a-form-item>
-                  </a-form>
-                </template>
-                <template v-else>
-                  {{ text }}
-                </template>
-              </div>
-            </template>
-            <template v-if="column.dataIndex === 'tag'">
-              <div>
-                <span>
-                  <a-tag v-for="(tag,index) in companyCut(text)" :key="index" color="cyan" class="tag-content">
-                    {{tag}}
-                  </a-tag>
-                </span>
-              </div>
-            </template>
-            <template
-              v-if="['englishTranslateState','russianTranslateState','spanishTranslateState','frenchTranslateState'].includes(column.dataIndex)">
-              <template v-if="record[column.dataIndex] === '0'">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '1'">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '2'">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record[column.dataIndex] === '3'">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
-            </template>
+        <!-- 工具栏壳：校验规则 + 栅格搜索区（展示列嵌在右侧列） -->
+        <PipelinePanel
+          :task="task"
+          :table-host="this"
+          :columns="columns"
+          :data-source="dataSource"
+          :loading="loading"
+          :pagination="pagination"
+          :scroll="tableHeight"
+          :row-selection="translateRowSelection"
+          :custom-row="customRow"
+          :edit="translateEditCols"
+          :editable-data="editableData"
+          :cell-errors="cellErrors"
+          :show-expand-icon="false"
+          :children-column-name="dataSource.length ? 'child' : undefined"
+          @cell-input="onCellInput"
+          @save-edit="editSave"
+          @cancel-edit="editCancel"
+          ref="tableContainer"
+          class="translate-toolbar"
+        >
+          <template #taskExtra>
+            <RulesDropdown :options="rulesOptions" @update:options="rulesOptions"></RulesDropdown>
           </template>
-          <!-- 设置筛选菜单 -->
-          <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-            <div style="padding: 8px">
-              <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-                style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-                @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)" />
-              <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-                @click="handleSearch(selectedKeys, confirm, column.dataIndex,clearFilters)">
-                <template #icon>
-                  <SearchOutlined />
-                </template>搜索</a-button>
-              <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
-            </div>
-          </template>
-          <!-- 设置筛选图标 -->
-          <template #customFilterIcon="{ filtered }">
-            <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-          </template>
-        </a-table>
+          <a-row :gutter="8" justify="space-between">
+            <a-col :span="12">
+              <a-row :gutter="8" justify="start" class="search-row">
+                <a-col :span="12">
+                  <div class="inline-left-align">
+                    <span>词条：</span>
+                    <a-input v-model:value="search.keyWords" size="small" placeholder='请输入词条搜索' />
+                  </div>
+                </a-col>
+                <a-col :span="12">
+                  <div class="inline-left-align">
+                    <span>翻译状态：</span>
+                    <TransStateSelect :translateState="search.translateState" @update:translateState="search.translateState = $event" :size="'small'"
+                      :style="'width: 150px'" :filter="new Set(['3'])" />
+                  </div>
+                </a-col>
+                <a-col :span="12">
+                  <div class="inline-left-align">
+                    <span>部门所属：</span>
+                    <a-select v-model:value="search.department" style="width: 186px" placeholder="请选择" :options='departments' size="small"
+                      @click="clickInput" allowClear>
+                    </a-select>
+                  </div>
+                </a-col>
+              </a-row>
+            </a-col>
+            <a-col :span="12">
+              <a-row :gutter="8" justify="start" class="search-row">
+                <a-col>
+                  <a-button type="primary" size="small" @click="getSearch">查询</a-button>
+                </a-col>
+                <a-col>
+                  <a-button type="primary" size="small" class="resetBtn" @click="preTranslation">预翻译</a-button>
+                </a-col>
+                <a-col>
+                  <a-button type="primary" size="small" @click="exportExcel">导出Excel</a-button>
+                </a-col>
+                <a-col v-if="canShowDelete">
+                  <a-button type="primary" size="small" danger @click="deleteTaskEntry">删除</a-button>
+                </a-col>
+                <!-- <a-col>
+                  <a-upload name="file" :beforeUpload="beforeUpload" :accept="accept" :showUploadList="false" @change="handleChange">
+                    <a-button type="primary" size="small">翻译导入</a-button>
+                  </a-upload>
+                </a-col> -->
+                <a-col>
+                  <a-dropdown>
+                    <template #overlay>
+                      <a-menu @click="capitalizeWordsClick">
+                        <a-menu-item key="upper">
+                          首字母大写
+                        </a-menu-item>
+                        <a-menu-item key="lower">
+                          首字母小写
+                        </a-menu-item>
+                        <a-menu-item key="replace">
+                          查找替换
+                        </a-menu-item>
+                      </a-menu>
+                    </template>
+                    <a-button size="small" type="primary">
+                      翻译调整
+                      <DownOutlined />
+                    </a-button>
+                  </a-dropdown>
+                </a-col>
+                <a-col>
+                  <!-- 展示列（工具栏按钮，非表头放大镜） -->
+                  <ColumnActions
+                    v-model="checkedColumn"
+                    :columns="columnSettingsList"
+                    :overlay-style="overlayStyle"
+                    col-pref-name="colPref-translateModal"
+                    :normal-width="100"
+                    @change="syncColumnsFromPref"
+                  />
+                </a-col>
+              </a-row>
+            </a-col>
+          </a-row>
+        </PipelinePanel>
       </div>
       <div class="suggest">
         <div style="height:30px">
           <span style="float:right;font-size:12px">
-            <a-tooltip placement="left">
+            <!-- <a-tooltip placement="left">
               <template #title>
                 <table>
                   <tr>
@@ -155,16 +152,18 @@
               </template>
               快捷键
               <QuestionCircleOutlined />
-            </a-tooltip>
+            </a-tooltip> -->
           </span>
         </div>
         <div style="margin-bottom: 6px;">词条释义：</div>
         <div class="suggentContent">
           <div>
-            <span class="title">中文释义：</span><span>{{chineseInterpretation}}</span>
+            <span class="title">中文释义：</span>
+            <span>{{chineseInterpretation}}</span>
           </div>
           <div>
-            <span class="title">英文释义：</span><span>{{englishInterpretation}}</span>
+            <span class="title">英文释义：</span>
+            <span>{{englishInterpretation}}</span>
           </div>
         </div>
         <div style="margin-bottom: 6px;">翻译建议：</div>
@@ -175,9 +174,26 @@
               <div class="suggentItem" @click="suggestClick(item.title,item.id)">
                 <div class="tran">
                   <img src="../../assets/icon/local.png" style="width:24px;height:24px;margin-right:8px" />
-                  <span>{{item.title}}</span>
+                  <div class="local-translate-meta">
+                    <div class="local-translate-title">
+                      <CellOverflowTooltip :content="item.title" />
+                    </div>
+                    <div
+                      v-if="item.formattedUpdateTime"
+                      class="local-translate-time"
+                    >
+                      <CellOverflowTooltip
+                        :content="item.formattedUpdateTime"
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div class="tips">{{item.tips}} <span v-if="index < 9">Ctrl+{{index + 1}}</span></div>
+                <div class="tips">
+                  {{item.tips}}
+                  <span v-if='index < 9'>
+                    Ctrl+{{index + 1}}
+                  </span>
+                </div>
               </div>
             </template>
             <span class="title">外网翻译：</span>
@@ -187,17 +203,21 @@
                   <img :src="require('../../assets/icon/'+item.type+'.png')" style="width:24px;height:24px;margin-right:8px" />
                   <span>{{item.title}}</span>
                 </div>
-                <div class="tips">{{item.tips}} <span
-                    v-if="index + this.suggest.local.length < 9">Ctrl+{{index + this.suggest.local.length + 1}}</span></div>
+                <div class="tips">
+                  {{item.tips}}
+                  <span v-if="index + this.suggest.local.length < 9">
+                    Ctrl+{{index + this.suggest.local.length + 1}}
+                  </span>
+                </div>
               </div>
             </template>
           </div>
         </a-spin>
       </div>
     </div>
-  </Modal>
-  <Modal :visible="selectVisible" modalTitle="预翻译" :okLoading="preTranslateOkLoading" @handleClose="selectHandleClose" @handleOK="selectHandleOK"
-    @afterClose="selectAfterClose">
+  </PipeShell>
+  <Modal :visible="preTranslateVisible" modalTitle="预翻译" :okLoading="loading" @handleClose="preTranslateClose"
+    @handleOK="preTranslateOK" @afterClose="preTranslateAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="formRef" name="custom-validation" autocomplete='off' :label-col="labelCol" :model="preTran">
         <a-form-item label="优先级" name="priority" :rules="[{ required: true, message: '请选择优先级!' }]">
@@ -248,16 +268,24 @@
 <script>
 import "@/assets/style/common.less";
 import Modal from "@/components/modal/index.vue";
+import PipeShell from "@/views/workbench/components/PipeShell.vue";
+import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
+import TransStateSelect from "@/components/select/transStateSelect.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import InputIME from "@/components/cellEditor/input_IME.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
 import { cloneDeep } from "lodash-es";
 import {
   getEntryTempByTaskID,
-  updateEntryTemp,
   preTranslate,
   getEntryInfoList,
   updateEntryList,
   importCommonExcle,
   capitalizeWords,
   replaceWords,
+  deleteEntryInfoByTaskID,
 } from "@/http/api/workbench";
 import { translate, workImportExcleTrans } from "@/http/api/entryManage";
 import { entryExportByCondition } from "@/http/api/download";
@@ -269,26 +297,91 @@ import {
 import { checkSykEntryBeforeSave } from "@/http/api/glossary";
 import {
   QuestionCircleOutlined,
-  SearchOutlined,
   InfoCircleOutlined,
   DownOutlined,
+  SettingOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons-vue";
-import { message } from "ant-design-vue";
-import workbenchCommon from "@/views/workbench/common.js";
-import languageParam from "@/utils/languageParam.js";
-import common from "../entry/common";
-import tableParam from "../entry/tableParam";
+import { message, Modal as AntModal } from "ant-design-vue";
 import key from "keymaster";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import dayjs from "dayjs";
+import {
+  clickInput,
+  setModalAriaHidden,
+} from "@/utils/domUtils";
+import {
+  setTableHeight,
+  handleResizeColumn,
+  getRowClassName,
+  handleReset as tableHandleReset,
+} from "@/utils/tableUtils";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
+import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
+import { wbAllCols, wbPresets, entryAllCols, entryPresets } from "@/constants/commonParam.js";
+import { colsToFieldOptions, resolvePresetCols } from "@/components/ColumnFilter";
+import { encodeParams } from "@/utils/requestUtils";
+import { defaultPagination, pageChange as wbPageChange } from "@/views/workbench/composables/page";
+import {
+  handleFilterSearch,
+  resetOnClose,
+} from "@/views/workbench/composables/filterClear";
+import { companyCut, formatTagText } from "@/views/workbench/utils/tagFmt";
+import { editTextCols } from "@/views/workbench/utils/editCols";
+import {
+  byteLength,
+  getMaxLength,
+  validateRefRules,
+  setRefRules,
+  useRefRules,
+  verifyArray_workbench,
+  verifyArray_workbench_page,
+  openSetEdit,
+  clearCellErrorsForRecords,
+  onEditableCellInput,
+  getMethods,
+  revalidateLoaded,
+  saveEdit,
+  cancelEdit,
+  // as 别名：避免 methods 里同名递归
+  showEditOperation as showEditOp,
+  hideEditOperation as hideEditOp,
+} from "@/utils/validationUtils"; // 引入工具函数
+import { loading, startLoading, endLoading } from "@/composables/useLoading";
+import commonParam, { workbenchParams } from "@/constants/commonParam.js";
+import { PipelinePanel, ColumnActions } from "@/views/workbench/components";
+import {
+  selectAllEntry as selectAllEntryUtil,
+  clearAllEntry as clearAllEntryUtil,
+  onSelectChange as onSelectChangeUtil,
+} from "@/utils/selectionUtils";
+import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
+import { createVNode } from "vue";
 export default {
+  // 全局单一 loading 状态（hook 导出，响应式）：表格/保存按钮/预翻译按钮统一绑定
+  setup() {
+    return { loading };
+  },
   components: {
     Modal,
+    PipeShell,
     QuestionCircleOutlined,
-    SearchOutlined,
     InfoCircleOutlined,
     DownOutlined,
+    CheckOutlined,
+    CloseOutlined,
+    ExclamationCircleOutlined,
+    RulesDropdown,
+    TransStateSelect,
+    TransStateBadge,
+    InputIME,
+    TableCellTextArea,
+    CellOverflowTooltip,
+    PipelinePanel,
+    ColumnActions,
   },
-  emits: ["handleClose", "handleOK"],
+  emits: ["handleClose", "handleOK", "afterSave"],
   props: {
     visible: {
       type: Boolean,
@@ -305,146 +398,153 @@ export default {
       type: Object,
     },
   },
-
   data() {
     return {
-      modalWidth: "75%",
+      // modal width 由 PipeShell 默认 90%
       task: {},
-      keyWords: "",
-      tableHeight: { x: "100%", y: 415 },
-      loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          align: "center",
-          width: 50,
-          customRender: (text, record, index, column) => {
-            return (
-              text.index +
-              1 +
-              this.pagination.pageSize * (this.pagination.current - 1)
-            );
-          },
-          fixed: "left",
-        },
-        {
-          title: "翻译状态",
-          dataIndex: "state",
-          align: "center",
-          width: 90,
-          fixed: "left",
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          align: "center",
-          width: 200,
-          fixed: "left",
-          resizable: true,
-          sorter: (a, b) => this.dynamicSortFunction(a, b),
-          sortDirections: ["descend", "ascend"],
-        },
-        {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate",
-          align: "center",
-          width: 300,
-          resizable: true,
-          sorter: (a, b) => this.dynamicSortFunction(a, b),
-          sortDirections: ["descend", "ascend"],
-        },
-        { title: "Tag", dataIndex: "tag", align: "center", width: 150 },
-        {
-          title: "Comment",
-          dataIndex: "Comment",
-          align: "center",
-          width: 150,
-          resizable: true,
-        },
-        {
-          title: "审核意见",
-          dataIndex: "auditSuggess",
-          align: "center",
-          width: 100,
-          resizable: true,
-        },
-      ],
-      dataSource: [],
-      allData: [],
-      editableData: {},
-      pagination: {
-        pageSizeOptions: ["20", "50", "100"],
-        showSizeChanger: true,
-        defaultPageSize: 20,
-        total: 0,
-        current: 1,
-        pageSize: 20,
-        showTotal: (total) => `共 ${total} 条`,
-        onChange: this.pageChange,
+      search: {
+        keyWords: "",
+        translateState: null,
+        department: null,
       },
+      // tableHeight: { x: "100%", y: 415 },
+      tableHeight: { x: "max-content", y: 415 },
+      columns: [],
+      dataSourceAll: [], // 所有数据
+      dataSource: [], // 展示的数据（可能经历过过滤）
+      selectedRowKeys: [],
+      selectedRows: [],
+      preTranslateVisible: false,
+      selectTitle: "",
       selectedRowIndex: null,
+      selectedArr: {
+        updateArr: [],
+        noTranslateIds: new Set(),
+        toLongIds: new Set(),
+        specialIds: new Set(),
+        redHighlightIds: new Set(),
+      },
+      editableData: {},
+      pagination: defaultPagination(this.pageChange),
       suggest: {
         local: [],
         web: [],
       },
       spinning: false,
       timer: null,
-      selectVisible: false,
-      selectTitle: "",
       preTran: {
         priority: null,
       },
       labelCol: { style: { width: "80px" } },
       chineseInterpretation: "",
       englishInterpretation: "",
-      translateState: null,
       rules: {},
+      cellErrors: {},
       exportVisible: false,
       exportModal: {
         field: ["abbr", "词条"],
       },
-      fieldOptions: tableParam.exportFields,
+      fieldOptions: colsToFieldOptions(
+        resolvePresetCols(entryPresets.export, entryAllCols),
+      ),
       accept: ".xls,.xlsx",
-      preTranslateOkLoading: false,
       state: {
         searchText: "",
         searchedColumn: "",
       },
-      clearFilters: null,
-      saveLoading: false,
-      selectedRowKeys: [],
-      selectedRows: [],
-      redHighlightIds: [],
+      antClearFilter: null,
       replaceVisible: false,
       replaceModal: {
         sourceStr: null,
         replaceStr: null,
       },
-      languageParam: null,
+      language: {
+        value: "", // XX语种
+        state: "", // XX翻译状态
+        auditSuggest: "", // XX审核意见
+        transIdName: "",
+      }, // 当前翻译语种的其他信息
+      rulesOptions: commonParam.rulesOptions,
+      overlayStyle: workbenchParams.overlayStyle, // 展示列样式
+      columnSettingsList: [],
+      checkboxList: [], // 展示列可选的值
+      checkedColumn: [], // 展示列已选的值workbenchParams.checkedColumn
+      departments: commonParam.departmentList.map((item) => ({
+        label: item.label,
+        value: item.label,
+      })),
+      editList_needValidate: null, // 可编辑且需要表单校验的list(工作台只有任务的翻译语种可编辑,并且需要进行表单校验)
+      translateStateList: [
+        ...commonParam.langTranslateStateList,
+        "translateState",
+      ],
     };
   },
-
-  created() {},
-  mounted() {
-    this.task = this.currentTask;
-    this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
-    // workbenchCommon.languageMap[this.task.translateType].code
+  computed: {
+    translateEditCols() {
+      return [...this.editableTextAreaColumns, "maxLength"];
+    },
+    editableTextAreaColumns() {
+      return editTextCols(this, { withEditList: false });
+    },
+    canShowDelete() {
+      return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
+    },
+    translateRowSelection() {
+      return {
+        selectedRowKeys: this.selectedRowKeys,
+        onChange: this.onSelectChange,
+        selections: [
+          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
+          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
+        ],
+      };
+    },
   },
-  unmounted() {},
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
-      this.languageParam = languageParam.languageList.find((it) => it.name === this.task.translateType);
-      this.setTranslateColumn();
+      console.log("currentTask", newval, oldval, this.task);
+
+      this.language = commonParam.languageList.find(
+        (it) => it.name === this.task.translateType
+      );
+      this.search.department = this.task.department; // 默认部门
+      // this.setTranslateColumn();
+    },
+    rulesOptions: {
+      deep: true,
+      async handler() {
+        const transCol = this.language?.value;
+        if (!transCol) return;
+        await revalidateLoaded(this, transCol);
+      },
+    },
+    visible: {
+      async handler(newVal) {
+        // console.log("打开工作台-翻译", newVal);
+        if (newVal) {
+          this.$nextTick(() => {
+            // 3.设置翻译列展示的语种
+            // 设置翻译列可编辑&可校验
+            this.editList_needValidate = [this.language.value];
+            applyTable(this, {
+              allCols: wbAllCols,
+              preset: wbPresets.translateModal,
+              ctx: {
+                task: this.task,
+                language: this.language,
+                pagination: this.pagination,
+              },
+              colPrefName: "colPref-translateModal",
+              normalWidth: 100,
+              needFilter: true,
+              filterCols: filterWbColsForCtx,
+              lockCellSize: true,
+            });
+          });
+        }
+      },
     },
     redHighlightIds(newval, oldval) {
       // 强制更新表格，触发 customRow 重新渲染样式
@@ -452,32 +552,90 @@ export default {
     },
   },
   methods: {
-    // 设置翻译列展示的语言
-    setTranslateColumn() {
-      this.columns.forEach((item) => {
-        if (item.title === "翻译") {
-          item.dataIndex = this.languageParam.value;
-        }
-        if (item.title === "翻译状态") {
-          item.dataIndex = this.languageParam.state;
-        }
-        if (item.title === "审核意见") {
-          item.dataIndex = this.languageParam.auditSuggest;
-        }
-      });
-      // console.log(this.columns)
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
     },
+    // 删除词条（词条审核员 + 本任务指派人）
+    deleteTaskEntry() {
+      if (this.selectedRows.length === 0) {
+        return;
+      }
+      AntModal.confirm({
+        title: "是否确定删除?",
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "是",
+        cancelText: "否",
+        style: { top: "30%" },
+        onOk: () => {
+          let deleteIds = [];
+          let delCount = {
+            num: 0,
+            childNum: 0,
+          };
+          this.selectedRows.forEach((item) => {
+            deleteIds.push(item.id);
+            delCount.num++;
+            if (item.children && item.children.length > 0) {
+              delCount.childNum += item.children.length;
+              item.children.forEach((child) => {
+                deleteIds.push(child.id);
+              });
+            }
+          });
+          this.selectedRowKeys = [];
+          this.selectedRows = [];
+          deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteIds)
+            .then((res) => {
+              let text = `删除成功${delCount.num - delCount.childNum}条`;
+              if (delCount.childNum > 0) {
+                text += `(聚合${delCount.childNum}条)`;
+              }
+              message.success(text);
+              this.getTranslateEntry();
+            })
+            .catch((err) => {
+              message.error("删除失败！", err.message);
+            });
+        },
+        onCancel: () => {},
+      });
+    },
+    // // 设置翻译列展示的语种
+    // setTranslateColumn() {
+    //   // 设置翻译列可编辑&可校验
+    //   this.editList_needValidate = [this.language.value];
+    //   this.columns.forEach((item) => {
+    //     if (item.title === "翻译") {
+    //       item.dataIndex = this.language.value;
+    //     }
+    //     if (item.title === "翻译状态") {
+    //       item.dataIndex = this.language.state;
+    //     }
+    //     if (item.title === "审核意见") {
+    //       item.dataIndex = this.language.auditSuggest;
+    //     }
+    //   });
+    // },
     dynamicSortFunction(a, b) {
-      if (a[this.languageParam.value] === null) {
+      if (a[this.language.value] === null) {
         return -1;
       }
-      if (b[this.languageParam.value] === null) {
+      if (b[this.language.value] === null) {
         return 1;
       }
-      return a[this.languageParam.value].localeCompare(b[this.languageParam.value]);
+      return a[this.language.value].localeCompare(b[this.language.value]);
+    },
+    initTranslateEntry() {
+      this.getTranslateEntry();
+      this.init();
+    },
+    formatSuggestTime(value) {
+      if (!value) return "";
+      const parsed = dayjs(value);
+      if (!parsed.isValid()) return "";
+      return parsed.format("YYYY/MM/DD HH:mm");
     },
     init() {
-      this.getTranslateEntry();
       let _this = this;
       // 绑定快捷键
       key("ctrl+down", function () {
@@ -505,275 +663,435 @@ export default {
         return false;
       });
     },
+    // 根据查询条件，过滤dataSource
+    getSearch() {
+      startLoading();
+      try {
+        this.selectedRowKeys = [];
+        this.selectedRows = [];
+        this.selectedRowIndex = null;
+        this.dataSource = this.allData.filter((item) => {
+          const keywordMatch =
+            !this.search.keyWords || item.entry.includes(this.search.keyWords);
+          const stateMatch =
+            !this.search.translateState ||
+            item[this.language.state] === this.search.translateState;
+          return keywordMatch && stateMatch;
+        });
+        this.pagination.current = 1;
+        this.pagination.total = this.dataSource.length;
+      } finally {
+        endLoading();
+      }
+    },
+    onCellInput(value, record, column) {
+      onEditableCellInput(this, record.id, column.dataIndex, value);
+      this.changeInput(record);
+    },
+    formatEntryText,
+    formatCellText,
+    formatMaxLengthText,
+    formatTagText,
+    companyCut,
+    translateStateLabel(value) {
+      const map = {
+        0: "未翻译",
+        1: "待审核",
+        2: "审核不通过",
+        3: "已审核",
+      };
+      return map[value] ?? "未翻译";
+    },
     // 获取待翻译词条
-    getTranslateEntry() {
-      let params = {
+    async getTranslateEntry() {
+      startLoading();
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.selectedRowIndex = null;
+      // 不清空 allData/dataSource：旧数据保留至新响应整体替换，避免表格闪白
+      const params = {
         taskID: this.task.id,
         entryState: "3",
-        entry: this.keyWords,
+        entry: this.search.keyWords,
       };
-      this.loading = true;
-      let data =
-        this.translateState === null || this.translateState === undefined
-          ? ["0", "2"]
-          : [this.translateState];
-      // let data = (this.translateState === null || this.translateState === undefined) ? [] : [this.translateState]
-      getEntryInfoList(params, data)
+      const data = ["0", "2"];
+      await getEntryInfoList(params, data)
         .then((res) => {
-          this.dataSource = res.data.list;
-          if (this.dataSource.length > 0) {
-            this.selectedRowIndex = this.dataSource[0].id;
-            this.assistedTranslation(this.dataSource[0]);
+          // 更新成功：刷新所有任务的小红点
+          this.$emit("afterSave", this.currentTask);
+
+          this.allData = res.data.list;
+          if (this.allData.length > 0) {
+            this.selectedRowIndex = this.allData[0].id;
+            this.assistedTranslation(this.allData[0]);
           }
-          this.dataSource.forEach((item) => {
-            if (
-              item[this.languageParam.state] === null ||
-              item[this.languageParam.state] === ""
-            ) {
-              item[this.languageParam.state] = "0";
+          this.allData.forEach((item) => {
+            // 前端提供了翻译状态的展示，是否合理？
+            if (!item[this.language.state]) {
+              item[this.language.state] = "0";
             }
           });
+          this.dataSource = this.allData; // 在刚取到时，无过滤，所以全量克隆
+          this.pagination.current = 1;
+          this.pagination.total = this.dataSource.length;
         })
         .catch((err) => {
-          message.error("1", err.message);
+          message.error(err.message);
+          // 查询失败清空：防止弹窗复用时残留上一任务的词条，
+          // 被误保存到当前任务（taskID 不符的跨任务写）
+          this.allData = [];
+          this.dataSource = [];
         })
-        .finally(() => {
-          this.loading = false;
+        .finally(async () => {
+          try {
+            await revalidateLoaded(this, this.language.value);
+          } finally {
+            endLoading();
+          }
         });
     },
-    handleOK() {
+    async handleOK() {
       if (this.selectedRows.length === 0) {
         message.info("请选择需要保存的数据！");
         return;
       }
-      this.saveLoading = true;
-      this.loading = true;
+      // 保存/校验期间触发全局遮罩（引用计数成对，防连点由遮罩拦截）
+      startLoading();
+      const currentLang = this.language.value;
+      let arr = {
+        acceptIds: new Set(), // 所有校验通过
+        errorIds: new Set(), // 所有校验不通过
+        toLongIds: new Set(), // 校验长度
+        specialIds: new Set(), // 校验特殊字符
+      };
 
-      // 更新数据源中的翻译数据
+      // 1.先校验（classifyArr 优先读 editableData；失败行保持编辑）
+      clearCellErrorsForRecords(this, this.selectedRowKeys);
+      const methods = getMethods(this);
+      arr = await verifyArray_workbench(
+        this,
+        this.selectedRows,
+        currentLang,
+        methods
+      );
+
+      // 2.仅通过行：merge 进 dataSource，再把 selectedRows 换成同行，避免验/存到旧引用
       for (let key in this.editableData) {
-        let entry = this.dataSource.find((item) => item.id === key);
-        entry[this.languageParam.value] = this.editableData[key][this.languageParam.value];
-        entry[this.languageParam.transIdName] = this.editableData[key][this.languageParam.transIdName];
+        if (!this.selectedRowKeys.includes(key)) continue;
+        if (!arr.acceptIds.has(key)) continue;
+        const index = this.dataSource.findIndex((item) => item.id === key);
+        if (index != -1) {
+          this.dataSource[index] = cloneDeep(this.editableData[key]);
+        }
+        delete this.editableData[key];
       }
-      this.editableData = {};
-
-      // 获取保存数据
-      let saveEntrys = [];
-      this.dataSource.forEach((item) => {
-        if (this.selectedRowKeys.includes(item.id)) {
-          saveEntrys.push(item);
-        }
+      this.selectedRows = this.selectedRows.map((row) => {
+        const found = this.dataSource.find((item) => item.id === row.id);
+        return found || row;
       });
 
-      // 设置翻译状态
-      saveEntrys.forEach((item) => {
-        if (item[this.languageParam.value] === null || item[this.languageParam.value] === "") {
-          item[this.languageParam.state] = "0"; // 待翻译
-        } else if (
-          item[this.languageParam.state] === "0" ||
-          item[this.languageParam.state] === "2"
-        ) {
-          item[this.languageParam.state] = "1"; // 已翻译待审核
-        }
-      });
-
-      // 校验翻译长度
-      let num = this.verifyTranslationLength(saveEntrys);
-      if (num > 0) {
-        message.warn("存在超长翻译，请检查！");
-        this.saveLoading = false;
-        this.loading = false;
-        return;
+      let arrCount = {
+        updateArr: [],
+        toLongNum: arr.toLongIds.size,
+        specialNum: arr.specialIds.size,
+        errorNum: arr.errorIds.size,
+        updateNum: 0,
+        noTranslateNum: 0,
+      };
+      let messageTextParts = [];
+      if (arrCount.errorNum > 0) {
+        let errorNumText = `校验不通过${arrCount.errorNum}条`;
+        messageTextParts.push(errorNumText);
       }
 
-      const datas = [];
-      Object.values(saveEntrys).forEach((item) => {
-        datas.push({
-          id: item.id,
-          entry: item.entry,
-          translate: item[this.languageParam.value],
-        });
-      });
+      // 3.更新选中词条
+      this.updateNewByOld(this.selectedRows, this.dataSource);
 
-      // 链式调用异步操作
-      checkSykEntryBeforeSave(datas)
-        .then((res) => {
-          // 更新 redHighlightIds 数组
-          this.redHighlightIds = this.redHighlightIds.concat(
-            res.data.map((item) => item.id)
-          );
-          // 过滤掉异常数据
-          saveEntrys = saveEntrys.filter(
-            (item) => !this.redHighlightIds.includes(item.id)
-          );
-          message.warn(
-            `校验结束，共有${this.redHighlightIds.length}条翻译异常`,
-            10
-          );
-          let params = {
-            taskID: this.task.id,
-          };
-          return updateEntryList(params, saveEntrys);
-        })
-        .then((res) => {
-          message.success("已保存！");
-          let params = {
-            taskID: this.task.id,
-            entryState: "3",
-            entry: this.keyWords,
-          };
-          let data =
-            this.translateState === null || this.translateState === undefined
-              ? ["0", "2"]
-              : [this.translateState];
-          this.redHighlightIds = []; // 重新查询前要把异常数据清空
-          return getEntryInfoList(params, data);
-        })
-        .then((res) => {
-          this.dataSource = res.data.list;
-          if (this.dataSource.length > 0) {
-            this.selectedRowIndex = this.dataSource[0].id;
-            this.assistedTranslation(this.dataSource[0]);
-          }
-          this.dataSource.forEach((item) => {
-            if (
-              item[this.languageParam.state] === null ||
-              item[this.languageParam.state] === ""
-            ) {
-              item[this.languageParam.state] = "0";
+      // 4.修改状态
+      for (const record of this.selectedRows) {
+        if (arr.acceptIds.has(record.id)) {
+          if (record[currentLang]) {
+            // 校验通过且有翻译
+            arrCount.updateArr.push(record);
+            arrCount.updateNum++;
+            if (["0", "2"].includes(record[this.language.state])) {
+              // 修改可以保存的词条的状态：校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
+              record[this.language.state] = "1"; // 待审核(只有“1”才能通过保存)
             }
-          });
-          if (this.dataSource.length === 0) {
-            // 如果没有待处理的数据就自动关闭弹窗
-            this.handleClose();
+          } else {
+            //  校验通过但无翻译
+            arrCount.noTranslateNum++;
+            // 修改未翻译的词条的状态
+            record[this.language.state] = "0"; // 待翻译
           }
-        })
-        .catch((err) => {
-          message.error("操作失败！", err.message);
-        })
-        .finally(() => {
-          this.saveLoading = false;
-          this.loading = false;
-        });
+        }
+      }
+
+      // 5.更新词条
+      const updateParams = {
+        taskID: this.task.id,
+      };
+      // console.log("5.更新词条",arrCount)
+      try {
+        await updateEntryList(updateParams, arrCount.updateArr)
+          .then(async (res) => {
+            const failCount = res.data.totalNum;
+            const successCount = arrCount.updateNum - failCount;
+            if (successCount) messageTextParts.push(`更新翻译${successCount}条`);
+            if (failCount) messageTextParts.push(`更新翻译失败${failCount}条`);
+            await this.getTranslateEntry(); //刷新（是否关闭弹窗由下方统一判断）
+          })
+          .catch((err) => {
+            message.error("操作失败！", err, 1);
+          });
+
+        // 6.弹窗
+        if (messageTextParts.length > 0) {
+          message.success("已更新翻译！" + messageTextParts.join("，"));
+        }
+
+        // 7.无数据则关闭弹窗；有数据则检验当前页（须在 endLoading 前完成）
+        if (this.dataSource.length === 0) {
+          this.handleClose();
+        } else {
+          try {
+            await verifyArray_workbench_page(this.pagination, currentLang, this);
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.warn("[translateModal] verifyArray_workbench_page failed", err);
+          }
+        }
+      } finally {
+        endLoading();
+      }
     },
+    // async handleOK_bak() {
+    //   if (this.selectedRows.length === 0) {
+    //     message.info("请选择需要保存的数据！");
+    //     return;
+    //   }
+    //   this.saveLoading = true;
+    //   startLoading();
+
+    //   // 1.保存编辑数据
+    //   for (let key in this.editableData) {
+    //     let entry = this.dataSource.find((item) => item.id === key);
+    //     entry[this.language.value] =
+    //       this.editableData[key][this.language.value];
+    //     entry[this.language.transIdName] =
+    //       this.editableData[key][this.language.transIdName];
+    //   }
+    //   this.editableData = {};
+
+    //   // 2.更新选中词条
+    //   this.updateNewByOld(this.selectedRows, this.dataSource);
+
+    //   // 3.（可选）保存前校验：通过校验的词条才可以保存
+    //   await this.validateRules();
+    //   console.log("updateArr", this.selectedArr);
+
+    //   // 4.修改状态
+    //   if (
+    //     this.selectedArr.updateArr.length > 0 ||
+    //     this.selectedArr.noTranslateIds.size > 0
+    //   ) {
+    //     for (const item of this.selectedRows) {
+    //       if (
+    //         this.selectedArr.noTranslateIds.size > 0 &&
+    //         this.selectedArr.noTranslateIds.has(item.id)
+    //       ) {
+    //         // 修改未翻译的词条的状态
+    //         item[this.language.state] = "0"; // 待翻译
+    //       } else if (
+    //         this.selectedArr.updateArr.length > 0 &&
+    //         this.selectedArr.updateArr.some((arr) => arr.id === item.id) &&
+    //         ["0", "2"].includes(item[this.language.state])
+    //       ) {
+    //         // 修改可以保存的词条的状态：校验失败时保留在翻译页面，审核不通过的仍是审核不通过状态
+    //         item[this.language.state] = "1"; // 待审核(只有“1”才能通过保存)
+    //       }
+    //     }
+    //   }
+
+    //   // 5.更新词条
+    //   await this.updateEntryList(this.selectedArr.updateArr);
+    // },
+    // // 校验规则的汇总
+    // async validateRules() {
+    //   let msgError = [];
+    //   // 区分是否已有翻译
+    //   this.selectedRows.forEach((item) => {
+    //     const data = {
+    //       id: item.id,
+    //       entry: item.entry,
+    //       translate: this.editableData.hasOwnProperty(item.id)
+    //         ? this.editableData[item.id][this.language.value]
+    //         : item[this.language.value],
+    //       maxLength: getMaxLength(item, this),
+    //     };
+    //     if (data.translate) {
+    //       this.selectedArr.updateArr.push(data);
+    //     } else {
+    //       this.selectedArr.noTranslateIds.add(data.id);
+    //       item[this.language.state] = "0"; // 待翻译
+    //     }
+    //   });
+    //   if (this.selectedArr.noTranslateIds.size > 0) {
+    //     msgError.push(`未翻译${this.selectedArr.noTranslateIds.size}条`);
+    //   }
+    //   for (const option of this.rulesOptions) {
+    //     if (option.checked) {
+    //       if (option.key === "toLong") {
+    //         // 校验字符长度
+    //         for (const record of this.selectedArr.updateArr) {
+    //           if (
+    //             record.maxLength !== null &&
+    //             byteLength(record.translate) > record.maxLength
+    //           ) {
+    //             this.selectedArr.toLongIds.add(record.id);
+    //             if (record.children && record.children.length > 0) {
+    //               record.children.forEach((child) => {
+    //                 this.selectedArr.toLongIds.add(child.id);
+    //               });
+    //             }
+    //           }
+    //         }
+    //         if (this.selectedArr.toLongIds.size > 0) {
+    //           this.selectedArr.updateArr = this.selectedArr.updateArr.filter(
+    //             (item) => !this.selectedArr.toLongIds.has(item.id)
+    //           );
+    //           msgError.push(`超长翻译${this.selectedArr.toLongIds.size}条`);
+    //         }
+    //       } else if (option.key === "special") {
+    //         // 校验特殊字符
+    //         await checkSykEntryBeforeSave(this.selectedArr.updateArr)
+    //           .then((res) => {
+    //             res.data.forEach((item) => {
+    //               this.selectedArr.specialIds.add(item.id);
+    //             });
+    //           })
+    //           .catch((err) => {
+    //             message.error("特殊字符校验失败！", err);
+    //           });
+    //         if (this.selectedArr.specialIds.size > 0) {
+    //           this.selectedArr.updateArr = this.selectedArr.updateArr.filter(
+    //             (item) => !this.selectedArr.specialIds.has(item.id)
+    //           );
+    //           msgError.push(
+    //             `特殊字符翻译不一致${this.selectedArr.specialIds.size}条`
+    //           );
+    //         }
+    //       }
+    //     }
+    //   }
+    //   if (msgError.length > 0) {
+    //     this.selectedArr.redHighlightIds = new Set([
+    //       ...this.selectedArr.redHighlightIds,
+    //       ...this.selectedArr.toLongIds,
+    //       ...this.selectedArr.specialIds,
+    //     ]);
+    //     // 将所有未通过的词条变为编辑态（这样未通过的原因就会显示出来了）
+    //     this.selectedRows.forEach((record) => {
+    //       if (this.selectedArr.redHighlightIds.has(record.id)) {
+    //         this.editableData[record.id] = cloneDeep(record);
+    //         // this.editableData[record.id] = cloneDeep(
+    //         //   this.dataSource.filter((item) => record.id === item.id)[0]
+    //         // ); // 进入编辑态
+    //         // 设置校验规则
+    //         setRefRules(this, record, [this.language.value]);
+    //       }
+    //     });
+    //     message.warn(`保存未通过：${msgError.join(",")}`, 1);
+    //   }
+    // },
+    // // 保存
+    // async updateEntryList(updateArr) {
+    //   const updateParams = {
+    //     taskID: this.task.id,
+    //   };
+    //   // 3.更新选中词条
+    //   await this.updateNewByOld(updateArr, this.dataSource);
+    //   await updateEntryList(updateParams, updateArr)
+    //     .then(async (res) => {
+    //       if (res.data.totalNum == 0 && updateArr.length > 0) {
+    //         message.success(`翻译成功${updateArr.length}条，已保存！`, 1);
+    //       }
+    //       await this.getTranslateEntry(); //刷新
+    //       if (this.allData.length == 0) this.handleClose();
+    //     })
+    //     .catch((err) => {
+    //       message.error("操作失败！", err, 1);
+    //     })
+    //     .finally(() => {
+    //       this.saveLoading = false;
+    //       endLoading();
+    //     });
+    // },
     handleClose() {
+      this.selectedArr = {
+        updateArr: [],
+        noTranslateIds: new Set(),
+        toLongIds: new Set(),
+        specialIds: new Set(),
+        redHighlightIds: new Set(),
+      }; // 重新查询前要把异常数据清空
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
-    },
-    // 保存
-    save() {
-      for (let key in this.editableData) {
-        let entry = this.dataSource.find((item) => item.id === key);
-        entry.translate = this.editableData[key].translate;
-      }
-      this.editableData = {};
-      updateEntryTemp(this.dataSource).then((res) => {
-        message.success("已保存！");
-      });
+      return getRowClassName(record, index, this.selectedRowIndex);
     },
     // 添加表格行点击事件
     customRow(record, index) {
       return {
         onClick: (event) => {
-          let _this = this;
-          this.selectedRowIndex = record.id;
-          this.assistedTranslation(record);
-          // clearTimeout(this.timer)
-
-          // this.timer = setTimeout(function () {
-          //     _this.selectedRowIndex = record.id
-          //     _this.assistedTranslation(record)
-          // }, 500);
+          if (record.id != this.selectedRowIndex) {
+            // 没选其他词条就不重新执行辅助翻译
+            this.selectedRowIndex = record.id;
+            this.assistedTranslation(record); // 辅助翻译
+          }
         },
-        onDblclick: (event) => {
-          // clearTimeout(this.timer)
+        onDblclick: async (event) => {
           if (this.editableData.hasOwnProperty(record.id)) {
-            // 当前行在编辑状态
             return;
           }
-          this.edit(record);
+          // 打开编辑态并设置翻译列规则；不在此处 applyCell（校验在 ✓ / 底部保存）
+          await openSetEdit(record, [this.language.value], this);
+          this.showEditOperation(); // 显示编辑操作列
         },
         style: {
           // 标红的那一行的<tr></tr>，文字颜色变红
-          color: this.redHighlightIds.includes(record.id) ? "red" : "inherit",
+          color: this.selectedArr.redHighlightIds.has(record.id)
+            ? "red"
+            : "inherit",
         },
       };
     },
-    edit(record) {
-      this.editableData[record.id] = this.editableData.hasOwnProperty(record.id)
-        ? this.editableData[record.id]
-        : cloneDeep(this.dataSource.filter((item) => record.id === item.id)[0]);
-      // 设置校验规则
-      this.rules[record.id] = {
-        entry: [
-          { validator: this.vilidFildLength(record, "chinese") },
-          { required: true, message: "请输入!" },
-        ],
-      };
-      this.rules[record.id][this.languageParam.value] = [
-        { validator: this.vilidFildLength(record, this.languageParam.value) },
-      ];
-      return Promise.resolve();
+    // 行内 ✓ / 编辑-保存：公共 saveEdit；回写翻译列、transId 与 maxLength
+    async editSave(record) {
+      const transCol = this.language.value;
+      await saveEdit(this, record, {
+        transCol,
+        commit: (rec, row) => {
+          rec[transCol] = row[transCol];
+          rec[this.language.transIdName] = row[this.language.transIdName];
+          rec.maxLength = row.maxLength;
+        },
+      });
     },
-    // 校验输入数据的长度
-    vilidFildLength(record, language) {
-      return (rule, value) => {
-        let type = "";
-        if (language === "chinese") {
-          type = "maxByte";
-        } else {
-          type = "foreignMaxByte";
-        }
-        let maxLength = null;
-        if (
-          this.classifyLimit[record.classfy1] === undefined ||
-          this.classifyLimit[record.classfy1] === null
-        ) {
-          if (record.maxLength != null && record.maxLength != "") {
-            maxLength = record.maxLength;
-          } else {
-            return Promise.resolve();
-          }
-        } else {
-          maxLength = this.classifyLimit[record.classfy1][type];
-        }
-        if (
-          maxLength === null ||
-          maxLength === "" ||
-          maxLength === undefined ||
-          maxLength === 0
-        ) {
-          return Promise.resolve();
-        }
-        // 获取输入数据的长度
-        let length = common.byteLength(value);
-        if (length > maxLength) {
-          return Promise.reject("允许最大字符数为" + maxLength + "！");
-        }
-        return Promise.resolve();
-      };
+    // 取消编辑
+    editCancel(record) {
+      cancelEdit(this, record.id);
+    },
+    // 显示编辑操作列
+    showEditOperation() {
+      showEditOp(this);
+    },
+    // 删除操作列
+    hideEditOperation() {
+      hideEditOp(this);
     },
     handleResizeColumn: (w, col) => {
       col.width = w;
-    },
-
-    select() {
-      this.dataSource = this.allData.filter((item) =>
-        item.entry.includes(this.keyWords)
-      );
     },
     // 辅助翻译
     assistedTranslation(record) {
@@ -783,9 +1101,10 @@ export default {
 
       this.spinning = true;
       let params = {
+        // name: encodeParams(record.entry),
         name: record.entry,
         type: this.task.translateType,
-        department: this.task.department,
+        department: this.search.department,
       };
       // 清空 快捷键
       this.deleteShortcutKeys();
@@ -797,6 +1116,12 @@ export default {
             web: [],
           };
           res.data.translateEntities.forEach((element) => {
+            if (
+              element.languageEntities.length == 0 ||
+              (element.languageEntities.length == 1 &&
+                element.languageEntities[0] == null)
+            )
+              return;
             if (element.source.includes("本地翻译")) {
               element.languageEntities.forEach((item) => {
                 let suggent = {
@@ -804,6 +1129,8 @@ export default {
                   tips: element.source,
                   type: "local",
                   id: item.id,
+                  updateTime: item.createTime,
+                  formattedUpdateTime: this.formatSuggestTime(item.createTime),
                 };
                 this.suggest.local.push(suggent);
               });
@@ -826,6 +1153,7 @@ export default {
                   tips: element.source,
                   type: type,
                   id: item.id,
+                  updateTime: item.creatTime,
                 };
                 this.suggest.web.push(suggent);
               });
@@ -863,26 +1191,33 @@ export default {
           key.unbind("ctrl+" + i + 1);
         }
       }
+      key.unbind(
+        "ctrl+down,ctrl+up,ctrl+shift+down,ctrl+shift+up,ctrl+e,ctrl+enter"
+      ); // 解绑快捷键
     },
-    // 辅助翻译快捷键点击事件
+    // 辅助翻译快捷键点击事件：当用户按下与翻译建议对应的快捷键时，调用此方法来应用对应的翻译建议
     clickSug(i) {
+      // 将本地翻译建议和外网翻译建议合并成一个列表
       let list = this.suggest.local.concat(this.suggest.web);
-      // console.log(i)
+      // 调用 suggestClick 方法，传入对应序号的翻译建议的标题和 ID
       this.suggestClick(list[i - 1].title, list[i - 1].id);
     },
-    suggestClick(title, id) {
+    async suggestClick(title, id) {
+      // 检查是否有选中的词条，如果没有则直接返回，不进行后续操作
       if (this.selectedRowIndex === null) {
         return;
       }
+      // 从数据源中查找当前选中的词条记录
       let record = this.dataSource.find(
         (item) => item.id === this.selectedRowIndex
       );
 
-      record[this.languageParam.value] = title;
+      record[this.language.value] = title;
       // record[transIdName] = id
 
       if (this.editableData[this.selectedRowIndex] != undefined) {
-        this.editableData[this.selectedRowIndex][this.languageParam.value] = title;
+        // 如果处于编辑状态，将翻译建议的标题赋值给编辑数据中的翻译字段
+        this.editableData[this.selectedRowIndex][this.language.value] = title;
         // this.editableData[this.selectedRowIndex][transIdName] = id
 
         // 如果有子词条  则写入子词条
@@ -890,99 +1225,110 @@ export default {
           this.editableData[this.selectedRowIndex].children &&
           this.editableData[this.selectedRowIndex].children.length > 0
         ) {
+          // 如果有子词条，将翻译建议的标题应用到所有子词条的翻译字段上
           this.editableData[this.selectedRowIndex].children.forEach((item) => {
-            item[this.languageParam.value] = title;
+            item[this.language.value] = title;
             // item[transIdName] = id
           });
         }
       }
 
-      // 校验字符串长度
-      this.verifyTranslationLength([record]);
+      // 点击翻译建议后，校验本条数据
+      // 打开编辑态;设置校验规则(工作台只为翻译列配置)
+      await openSetEdit(record, [this.language.value], this);
+      // 使用校验规则-翻译列
+      useRefRules(
+        this.$refs,
+        `form${record.id.replaceAll("-", "")}${this.language.value}`,
+        this.language.value,
+        this
+      );
+      // 显示编辑操作列
+      this.showEditOperation();
     },
-    // 输入框 回车事件
-    inputPressEnter(record) {
-      // 长度校验
-      let list = [
-        eval(
-          "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
-        ).validate(),
-      ];
-      Promise.all(list)
-        .then(() => {
-          record[this.languageParam.value] = this.editableData[record.id][this.languageParam.value];
-          record[this.languageParam.transIdName] = this.editableData[record.id][this.languageParam.transIdName];
-          delete this.editableData[record.id];
-        })
-        .catch((err) => {
-          message.error("5", err.message);
-        });
+    // 使用old数据来更新new数据
+    updateNewByOld(New, Old) {
+      // updateNewByOld(this.allData,this.dataSource) 据dataSource（过滤后的展示数据）来更新dataSourceAll（不经过滤的全量数据）
+      // updateNewByOld(this.selectedRows,this.dataSource) 执行保存updateEntryList前更新一下已选数据
+      const idToIndexMap = new Map();
+      New.forEach((item, index) => {
+        idToIndexMap.set(item.id, index);
+      });
+
+      Old.forEach((item) => {
+        const index = idToIndexMap.get(item.id);
+        if (index !== undefined) {
+          // 使用Object.assign合并属性，确保Vue能检测到变化
+          Object.assign(New[index], item);
+        }
+      });
     },
     // 预翻译
     preTranslation() {
       if (this.dataSource.length === 0) {
         return;
       }
-      this.selectVisible = true;
+      this.preTranslateVisible = true;
       setModalAriaHidden(this, document);
     },
-    selectHandleOK() {
-      this.$refs.formRef.validate().then(() => {
-        this.preTranslateOkLoading = true;
-        let params = {
-          taskID: this.task.id,
-          priority: this.preTran.priority,
-        };
-        this.loading = true;
-        // 将 编辑数据对应 的 dataSource 的翻译都变成空，以便被预翻译覆盖
-        this.dataSource.forEach((item) => {
-          if (
-            Object.keys(this.editableData).some(
-              (key) => this.editableData[key].id === item.id
-            )
-          ) {
-            // console.log("取消的翻译", item[this.languageParam.value]);
-            item[this.languageParam.value] = "";
+    preTranslateOK() {
+      startLoading();
+      let params = {
+        taskID: this.task.id,
+        priority: this.preTran.priority,
+      };
+      let dataPreTranslate = null;
+      if (this.selectedRows.length == 0) {
+        // 勾选为空，就翻译所有词条
+        dataPreTranslate = this.dataSource;
+      } else {
+        // 有勾选的词条，就翻译勾选
+        dataPreTranslate = this.selectedRows;
+      }
+      // 将 预翻译数据 翻译都变成空，以便被预翻译覆盖
+      dataPreTranslate.forEach((item) => {
+        if (
+          Object.keys(this.editableData).some(
+            (key) => this.editableData[key].id === item.id
+          )
+        ) {
+          item[this.language.value] = "";
+        }
+      });
+      this.editableData = []; // 取消所有编辑状态
+      preTranslate(params, dataPreTranslate)
+        .then((res) => {
+          // 更新 预翻译数据 中的翻译数据
+          dataPreTranslate = res.data.list.map((item) => {
+            item.translate = item[this.language.value];
+            return item;
+          });
+          this.updateNewByOld(this.allData, dataPreTranslate); // 也更新一下全量数据
+        })
+        .catch((err) => {
+          message.error("预翻译失败！", err.message);
+        })
+        .finally(async () => {
+          // 校验失败也要保证 endLoading 与关窗必达（计数配对优于 afterClose 全局清零兜底）
+          try {
+            await verifyArray_workbench_page(
+              this.pagination,
+              this.language.value,
+              this
+            );
+          } catch (err) {
+            // eslint-disable-next-line no-console
+            console.warn("[translateModal] verifyArray_workbench_page failed", err);
+          } finally {
+            endLoading();
+            this.preTranslateVisible = false;
           }
         });
-        this.editableData = []; // 取消所有编辑状态
-        preTranslate(params, this.dataSource)
-          .then((res) => {
-            // 更新 dataSource 中的翻译数据
-            this.dataSource = res.data.list.map((item) => {
-              item.translate = item[this.languageParam.value];
-              // if (!item.translate) {
-              //   console.log(`${item.entry}没有翻译数据`, item);
-              // }
-              return item;
-            });
-            // // console.log("编辑数据有：", Object.keys(this.editableData));
-            // // 修改编辑中数据值
-            // for (let key in this.editableData) {
-            //   this.editableData[key] = this.dataSource.find(
-            //     (item) => item.id === key
-            //   );
-            // }
-            // 校验翻译长度
-            let num = this.verifyTranslationLength(this.dataSource);
-            if (num > 0) {
-              message.warn("存在超长翻译,请检查！");
-            }
-          })
-          .catch((err) => {
-            message.error("预翻译失败！", err.message);
-          })
-          .finally(() => {
-            this.loading = false;
-            this.selectVisible = false;
-            this.preTranslateOkLoading = false;
-          });
-      });
     },
-    selectHandleClose() {
-      this.selectVisible = false;
+    preTranslateClose() {
+      this.preTranslateVisible = false;
     },
-    selectAfterClose() {
+    preTranslateAfterClose() {
       this.preTran.priority = null;
     },
     clickInput(event) {
@@ -992,31 +1338,24 @@ export default {
       record.translateID = "";
     },
     afterClose() {
+      this.pagination.current = 1;
+      this.pagination.pageSize = 20;
+      this.selectedRowKeys = [];
+      this.selectedRows = [];
+      this.editableData = {};
+      // 关弹窗：Ant 原生清列头筛选 + 搜索态复位
+      resetOnClose(this);
       this.selectedRowIndex = null;
-      this.keyWords = "";
-      this.translateState = null;
-      // 清空 辅助翻译快捷键
-      this.deleteShortcutKeys();
+      this.search = {
+        keyWords: "",
+        translateState: null,
+        department: this.task.department,
+      };
+      this.deleteShortcutKeys(); // 清空 辅助翻译快捷键
       this.suggest = {
         local: [],
         web: [],
       };
-      this.editableData = {};
-      // 解绑快捷键
-      key.unbind(
-        "ctrl+down,ctrl+up,ctrl+shift+down,ctrl+shift+up,ctrl+e,ctrl+enter"
-      );
-
-      if (this.clearFilters) {
-        this.clearFilters({ confirm: true });
-        this.state.searchText = "";
-      }
-
-      this.pagination.current = 1;
-      this.pagination.pageSize = 20;
-
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
     },
 
     // 导出
@@ -1080,7 +1419,7 @@ export default {
       let formData = new FormData();
       formData.append("file", file);
       formData.append("taskID", this.task.id);
-      this.loading = true;
+      startLoading();
       workImportExcleTrans(formData)
         .then((res) => {
           // this.dataSource = res.data.list
@@ -1089,18 +1428,23 @@ export default {
               (item2) => item2.id === item1.id
             );
             if (matchItem) {
-              item1[this.languageParam.value] = matchItem[this.languageParam.value];
+              item1[this.language.value] = matchItem[this.language.value];
             }
           });
           this.dataSource.forEach((item) => {
             item.entryState = 3;
           });
+          this.updateNewByOld(this.allData, this.dataSource); // 也更新一下全量数据
         })
         .catch((err) => {
           message.error("导入失败！", err.message);
         })
-        .finally(() => {
-          this.loading = false;
+        .finally(async () => {
+          try {
+            await revalidateLoaded(this, this.language.value);
+          } finally {
+            endLoading();
+          }
         });
     },
     // 下一个词条 快捷键
@@ -1158,8 +1502,8 @@ export default {
       index++;
       for (index; index < this.dataSource.length; index++) {
         if (
-          this.dataSource[index][this.languageParam.value] === null ||
-          this.dataSource[index][this.languageParam.value] === ""
+          this.dataSource[index][this.language.value] === null ||
+          this.dataSource[index][this.language.value] === ""
         ) {
           notTransIndex = index;
           break;
@@ -1189,8 +1533,8 @@ export default {
       index--;
       for (index; index >= 0; index--) {
         if (
-          this.dataSource[index][this.languageParam.value] === null ||
-          this.dataSource[index][this.languageParam.value] === ""
+          this.dataSource[index][this.language.value] === null ||
+          this.dataSource[index][this.language.value] === ""
         ) {
           preNotTransIndex = index;
           break;
@@ -1211,21 +1555,24 @@ export default {
       if (this.selectedRowIndex === null) {
         return;
       }
+      const refName = `ref${this.selectedRowIndex.replaceAll("-", "")}`;
+      const inputRef = this.$refs[refName];
+
       if (this.editableData.hasOwnProperty(this.selectedRowIndex)) {
         // 编辑数据中包含该数据
-        eval(
-          "this.$refs.ref" + this.selectedRowIndex.replaceAll("-", "")
-        ).focus();
+        if (inputRef) {
+          inputRef.focus();
+        }
       } else {
         // 编辑数据中不包含该数据
         this.editableData[this.selectedRowIndex] = this.dataSource.find(
           (item) => item.id === this.selectedRowIndex
         );
         this.$nextTick(() => {
-          let input = eval(
-            "this.$refs.ref" + this.selectedRowIndex.replaceAll("-", "")
-          );
-          input.focus();
+          const input = this.$refs[refName];
+          if (input) {
+            input.focus();
+          }
         });
       }
     },
@@ -1256,16 +1603,19 @@ export default {
         }
       });
     },
-    // 列筛选
+    // 列头自定义筛选 + 保存 Ant clearFilters
     handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
-      confirm();
-      this.state.searchText = selectedKeys[0];
-      this.state.searchedColumn = dataIndex;
-      this.clearFilters = clearFilters;
+      handleFilterSearch(
+        selectedKeys,
+        confirm,
+        dataIndex,
+        clearFilters,
+        this
+      );
     },
+    // 列筛选重置
     handleReset(clearFilters) {
-      clearFilters({ confirm: true });
-      this.state.searchText = "";
+      tableHandleReset(clearFilters, this);
     },
     // 动态设置表格高度
     setTableHeight(height, type) {
@@ -1275,71 +1625,9 @@ export default {
         this.tableHeight.y = 415;
       }
     },
-    // 分页切换
+    // 分页 + 当前页校验（见 composables/page）
     pageChange(page, pageSize) {
-      this.pagination.current = page;
-      this.pagination.pageSize = pageSize;
-      // 校验该页数据翻译长度
-      let checkArr = this.dataSource.slice(
-        (page - 1) * pageSize,
-        page * pageSize
-      );
-      this.verifyTranslationLength(checkArr);
-    },
-    // 校验翻译长度
-    verifyTranslationLength(array) {
-      let flag = 0;
-      array.forEach((record) => {
-        let maxLength = null;
-        if (record.classfy1 === null || record.classfy1 === "") {
-          if (record.maxLength != null && record.maxLength != "") {
-            maxLength = record.maxLength;
-          } else {
-            return;
-          }
-        } else {
-          maxLength = this.classifyLimit[record.classfy1]
-            ? this.classifyLimit[record.classfy1]["foreignMaxByte"]
-            : null;
-        }
-        if (
-          maxLength === null ||
-          maxLength === "" ||
-          maxLength === undefined ||
-          maxLength === 0
-        ) {
-          return;
-        }
-        // 是否编辑中
-        let text = this.editableData.hasOwnProperty(record.id)
-          ? this.editableData[record.id][this.languageParam.value]
-          : record[this.languageParam.value];
-        if (common.byteLength(text) > maxLength) {
-          flag++;
-          this.edit(record).then(() => {
-            eval(
-              "this.$refs.form" + record.id.replaceAll("-", "") + this.languageParam.value
-            )
-              .validate()
-              .then(() => {})
-              .catch((err) => {
-                message.error("10", err.message);
-              });
-          });
-        }
-      });
-      return flag;
-    },
-    // 切割字符串
-    companyCut(message) {
-      let res = [];
-      if (message === null || message === "") {
-        return res;
-      }
-      const regex = /[;；]/;
-      res = message.split(regex);
-      res = res.filter((item) => item != "");
-      return res;
+      wbPageChange(this, page, pageSize, () => this.language.value);
     },
     // 获取用户偏好
     queryPartiality() {
@@ -1363,35 +1651,13 @@ export default {
       this.updatePartiality(data);
     },
     onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
+      onSelectChangeUtil(this, selectedRowKeys, selectedRows);
     },
     selectAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      let dataToSelect;
-      if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        // 确保 filteredData 是最新的筛选结果
-        dataToSelect = this.dataSource.filter((item) => {
-          const isExistMatch =
-            !this.filters.isExist ||
-            this.filters.isExist.includes(item.isExist);
-          const entrySourceMatch =
-            !this.filters.entrySource ||
-            item.entrySource.includes(this.filters.entrySource);
-          return isExistMatch && entrySourceMatch;
-        });
-      } else {
-        dataToSelect = this.dataSource;
-      }
-      dataToSelect.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-        this.selectedRows.push(item);
-      });
+      selectAllEntryUtil(this);
     },
     clearAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      clearAllEntryUtil(this);
     },
     // 首字母转换
     capitalizeWordsClick(value) {
@@ -1411,6 +1677,8 @@ export default {
             );
             return matchedItem2 || item1;
           });
+          this.updateNewByOld(this.allData, this.dataSource); // 也更新一下全量数据
+
           this.selectedRowKeys = [];
           this.selectedRows = [];
           message.success("转换成功！");
@@ -1442,6 +1710,8 @@ export default {
               );
               return matchedItem2 || item1;
             });
+            this.updateNewByOld(this.allData, this.dataSource); // 也更新一下全量数据
+
             message.success("替换成功！");
             this.replaceVisible = false;
             this.selectedRowKeys = [];
@@ -1459,12 +1729,42 @@ export default {
       };
     },
   },
+  mounted() {
+    let _this = this;
+    this.$nextTick(() => {
+      // this.init();
+      window.onresize = function () {
+        _this.setTableHeight();
+      };
+    });
+  },
+  beforeUnmount() {
+    this.afterClose();
+  },
 };
 </script>
 <style lang="less">
 @import url("@/assets/style/common.less");
 </style>
 <style scoped lang="less">
+.translate-toolbar {
+  margin-bottom: 6px;
+}
+.search-row .ant-col {
+  margin-bottom: 4px !important; /* 使用 !important 确保覆盖 Ant Design 默认样式 */
+}
+.inline-left-align {
+  display: flex; /* 使用 Flex 布局 */
+  flex-direction: row; /* 水平排列 */
+  align-items: center; /* 垂直居中对齐 */
+  white-space: nowrap; /* 防止内容换行 */
+  & span {
+    margin-right: 8px; /* 给 span 右侧添加间距 */
+  }
+  & a-input {
+    flex: 1; /* 让输入框自动填充剩余空间 */
+  }
+}
 .content {
   width: 100%;
   height: 100%;
@@ -1515,9 +1815,44 @@ export default {
         width: 100%;
         .tran {
           display: flex;
-          align-items: center;
+          align-items: flex-start;
+          width: 100%;
 
-          span {
+          .local-translate-meta {
+            display: flex;
+            flex-wrap: wrap;
+            flex: 1 1 auto;
+            min-width: 0;
+            gap: 4px 12px;
+            align-items: center;
+          }
+
+          .local-translate-title {
+            flex: 1 1 8em;
+            min-width: 0;
+            max-width: 100%;
+            color: var(--text-icon-font-gy-190-primary, rgba(0, 0, 0, 0.9));
+            font-family: Microsoft YaHei;
+            font-size: 14px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 22px;
+          }
+
+          .local-translate-time {
+            flex: 0 1 auto;
+            min-width: 0;
+            max-width: 100%;
+            color: var(--text-icon-font-gy-340-placeholder, rgba(0, 0, 0, 0.4));
+            font-family: Microsoft YaHei;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 20px;
+            text-align: right;
+          }
+
+          > span {
             color: var(--text-icon-font-gy-190-primary, rgba(0, 0, 0, 0.9));
             /* 四级文字/常规 */
             font-family: Microsoft YaHei;
@@ -1549,29 +1884,6 @@ export default {
       transform: translate(-50%, -50%);
     }
   }
-  .taskInfo {
-    display: flex;
-    padding: 4px 0px;
-    align-items: center;
-    gap: 32px;
-    align-self: stretch;
-
-    .taskItem {
-      display: flex;
-      align-items: center;
-      flex: 1 0 0;
-    }
-  }
-  .form {
-    display: flex;
-    align-items: center;
-    align-self: stretch;
-    width: 100%;
-    margin-bottom: 6px;
-  }
-}
-.ant-table-cell .ant-form-item {
-  margin-bottom: 0%;
 }
 :deep(.ant-pagination) {
   margin: 8px 0;

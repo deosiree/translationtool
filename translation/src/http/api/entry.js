@@ -1,5 +1,5 @@
 //引入request.js文件
-import request from "../request";
+import request, { requestMultipart } from "../request";
  
 // 查询词条
 export function searchEntry(data,params) {
@@ -167,7 +167,7 @@ export function getEntryProperty(data) {
 
 // 导出
 export function exportEntry(data) {
-    return request({
+    return requestMultipart({
         url: "/test/exportEntry",
         method: "POST",
         responseType: 'blob',
@@ -177,14 +177,14 @@ export function exportEntry(data) {
 
 // 导入
 export function importExcle(data) {
-    return request({
+    return requestMultipart({
         url: "/entry/importCommonExcle",
         method: "POST",
         data:data
     });
 }
 
-// 获取语言表
+// 获取语种表
 export function getLanguage() {
     return request({
         url: "/entry/getLanguage",
@@ -192,7 +192,7 @@ export function getLanguage() {
     });
 }
 
-// 获取语言表
+// 获取语种表
 export function getTranslatedEntry(params) {
     return request({
         url: "/entry/getTranslatedEntry",

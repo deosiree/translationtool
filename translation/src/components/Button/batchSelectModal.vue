@@ -3,36 +3,14 @@
     <div class="table">
       <div>已选词条：</div>
       <a-config-provider :locale="locale">
-        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100vw' , y: '60vh'}" :pagination="pagination"
-          :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
+        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'max-content' , y: '60vh'}"
+          :pagination="pagination" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="batchSelectable" bordered>
           <template #bodyCell="{ column, record, text }">
             <template v-if="column.dataIndex === 'translateState'">
-              <template v-if="text === '0'">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-              </template>
-              <template v-if="text === '1'">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-              </template>
-              <template v-if="text === '2'">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="text === '3'">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <TransStateBadge :translateState="text" />
             </template>
             <template v-if="column.dataIndex === 'publicState'">
-              <template v-if="text === 0">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-              </template>
-              <template v-if="text === 1">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
-              </template>
-              <template v-if="text === 2">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="text === 3">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <EntryStateBadge :entryState="text" />
             </template>
             <template v-if="column.dataIndex === 'operation'">
               <div class="editable-row-operations">
@@ -52,6 +30,8 @@
 <script>
 import CustomModal from "@/components/modal/index.vue";
 import DeleteButton from "@/components/Button/deleteButton.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import zh_CN from "ant-design-vue/es/locale/zh_CN";
 import {
   ExclamationCircleOutlined,
@@ -60,11 +40,15 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { getSykNotUsed, deleteSykEntry } from "@/http/api/glossary";
-import { pageChange } from "@/utils/tableUtils";
+import { pageChange } from "@/utils/selectionUtils";
+import { applyTable } from "@/components/ColumnFilter";
+import { glossaryParams, glossaryAllCols, glossaryPresets } from "@/constants/commonParam.js";
 export default {
   components: {
     CustomModal,
     DeleteButton,
+    EntryStateBadge,
+    TransStateBadge,
     ExclamationCircleOutlined,
     DeleteOutlined,
   },
@@ -81,10 +65,10 @@ export default {
       type: Boolean,
       default: false,
     },
-    columns: {
-      type: Array,
-      default: () => [],
-    },
+    // columns: {
+    //   type: Array,
+    //   default: () => [],
+    // },
     dataSource: {
       type: Array,
       default: () => [],
@@ -102,6 +86,7 @@ export default {
     return {
       locale: zh_CN,
       modalWidth: "60%",
+      columns: [],
       pagination: {
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
@@ -112,6 +97,24 @@ export default {
         onChange: this.pageChange,
       },
     };
+  },
+  watch: {
+    visible: {
+      async handler(newVal) {
+        // console.log("visible changed:", newVal);
+        if (newVal) {
+          applyTable(this, {
+            allCols: glossaryAllCols,
+            preset: glossaryPresets.glossary,
+            ctx: { pagination: this.pagination },
+            colPrefName: "colPref-glossary",
+            normalWidth: 100,
+            needFilter: false,
+          });
+        }
+      },
+      immediate: false, // 不立即执行
+    },
   },
   methods: {
     // 移除某条已选词条（每行最右边的按钮
@@ -165,15 +168,14 @@ export default {
           this.$emit("batchSelectCancel");
         })
         .catch((err) => {
-          message.error("删除失败！",err.message);
+          message.error("删除失败！", err.message);
           // console.log("术语删除失败！", err);
         })
         .finally(() => {
-          this.$emit("refresh");// 让父组件执行refresh函数
+          this.$emit("refresh"); // 让父组件执行refresh函数
           // console.log("刷新");
         });
     },
-
     // 分页切换
     pageChange(page, pageSize) {
       pageChange(this, page, pageSize);

@@ -7,12 +7,12 @@
   </a-badge>
   <BatchSelectModal :visible="batchSelectVisible" :dataSource="selectEntry" @update:dataSource="selectEntry = $event"
     :selectedRowKeys="selectedRowKeys" @update:selectedRowKeys="selectedRowKeys = $event" :selectedRows="selectedRows"
-    @update:selectedRows="selectedRows = $event" :columns="columns" @batchSelectClose="batchSelectClose" @batchSelectCancel="batchSelectCancel"
+    @update:selectedRows="selectedRows = $event" @batchSelectClose="batchSelectClose" @batchSelectCancel="batchSelectCancel"
     @refresh="getSearch" />
 </template>
 
 <script>
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 import BatchSelectModal from "@/components/Button/batchSelectModal.vue";
 export default {
   components: {

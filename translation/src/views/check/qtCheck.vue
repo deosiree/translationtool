@@ -10,7 +10,7 @@
           <a-form-item label="所属类" name="category">
             <a-input v-model:value="search.category" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item>
-          <a-form-item label="Tag" name="tag">
+          <a-form-item label="tag" name="tag">
             <a-input v-model:value="search.tag" style="width: 186px" placeholder="请输入内容" size="small" @click="clickInput"></a-input>
           </a-form-item> -->
           <a-form-item label="删除状态" name="isDelete">
@@ -37,7 +37,7 @@
               @resizeColumn="handleResizeColumn">
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, text, record }">
-                <!--Tag列 -->
+                <!--tag列 -->
                 <template v-if="column.dataIndex === 'tag'">
                   <span>
                     <a-tag color="cyan" class="tag-content">
@@ -58,7 +58,7 @@
       </template>
     </DataBox>
   </div>
-  <QtCheckRelation ref="qtCheckRelation" :visible="relationVisible" :dataSource="relationData" @relationClose="relationClose"></QtCheckRelation>
+  <QtCheckRelation ref="qtCheckRelation" :visible="relationVisible" :dataSource="relationData" @relationClose="relationClose" @update:dataSource="updateDataSource"></QtCheckRelation>
 </template>
 <script>
 import "@/assets/style/common.less";
@@ -66,21 +66,17 @@ import { message, Modal } from "ant-design-vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import QtCheckRelation from "@/views/check/qtCheckRelation.vue";
-import commen from "@/views/entry/common.js";
-import languageParam from "@/utils/languageParam.js";
+import commonParam from "@/constants/commonParam.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import { getTsProblems, getEntryByTsVo } from "@/http/api/check";
 import { defineComponent, ref, createVNode } from "vue";
 import {
-  clickInput,
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  pageChange,
-  onSelectChange,
-} from "@/utils/tableUtils"; // 引入工具函数
-import { setModalAriaHidden } from "@/utils/commonUtils";
-
+} from "@/utils/tableUtils";
+import { pageChange, onSelectChange } from "@/utils/selectionUtils";
+import { clickInput, setModalAriaHidden } from "@/utils/domUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,
@@ -92,6 +88,7 @@ export default {
       labelCol: { style: { width: "84px" } },
       tableTitle: "术语列表",
       dataHeight: 400,
+      // tableHeight: { x: "max-content", y: 0 },
       tableHeight: { x: "max-content", y: 0 },
       loading: false,
       search: {
@@ -136,7 +133,7 @@ export default {
           index: 1,
         },
         {
-          title: "异常的翻译语言",
+          title: "异常的翻译语种",
           dataIndex: "type",
           align: "center",
           width: 200,
@@ -144,7 +141,7 @@ export default {
           index: 2,
         },
         {
-          title: "Tag",
+          title: "tag",
           dataIndex: "tag",
           align: "center",
           width: 200,
@@ -232,7 +229,7 @@ export default {
               // console.log("详情：",resByTsVo);
               item["relationCount"] = resByTsVo.data.totalNum;
               // 对 resByTsVo.data.list 进行排序
-              const tsProblemsTypeValue = languageParam.languageList.find((it) => it.name === item.type).value;
+              const tsProblemsTypeValue = commonParam.languageList.find((it) => it.name === item.type).value;
               resByTsVo.data.list.sort((a, b) => {
                 const valueA = a[tsProblemsTypeValue];
                 const valueB = b[tsProblemsTypeValue];
@@ -256,6 +253,15 @@ export default {
           this.loading = false;
         });
     },
+    updateDataSource(dataSource) {
+      this.dataSource = dataSource;
+      this.pagination.total = dataSource.length;
+      this.pagination.current = 1;
+      this.pagination.pageSize = 20;
+      this.pagination.showTotal = (total) => `共 ${total} 条`;
+      this.pagination.onChange = this.pageChange;
+      this.pagination.showSizeChanger = true;
+    }, 
 
     // 查看详情
     viewRelation(record) {

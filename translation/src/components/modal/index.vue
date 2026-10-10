@@ -3,12 +3,12 @@
     :visible="modalVisible"
     :title='null'
     :closable='false'
-    :bodyStyle="{padding: '0px',height: '70%'}"
+    :bodyStyle="computedBodyStyle"
     :width="width"
     :footer="!footer ? null : undefined"
     :afterClose="afterClose"
     :maskClosable='false'
-    :wrap-class-name=" fullScreen ? 'full-modal' : null"
+    :wrap-class-name="wrapClassNames"
     centered
     ok-text="确定"
     cancel-text="取消"
@@ -29,7 +29,7 @@
             <img src="../../assets/icon/unfull.png" class='full' v-if="fullFlag && fullScreen" @click="reduce" title="还原"/>
             <img src="../../assets/icon/closeModel.png" class='close' @click="cancel" title="关闭"/>
         </div>
-        <div class="modalContent" ref="contentRef">
+        <div class="modalContent" ref="contentRef" :style="computedContentStyle">
             <a-spin :spinning="spinning" :tip="loadingTip">
                 <slot v-if="collapsed" />
             </a-spin>
@@ -69,6 +69,16 @@ export default {
             type: String,
             default:'500px'
         },
+        // 自定义 modal body 高度：默认保持现有行为（70%）
+        bodyHeight: {
+            type: String,
+            default: '70%'
+        },
+        // 自定义 modal body 最大高度：例如 '80vh'；默认不设置
+        bodyMaxHeight: {
+            type: String,
+            default: null
+        },
         footer:{
             type:Boolean,
             default: true
@@ -96,6 +106,11 @@ export default {
         fullFlag:{
             type: Boolean,
             default: false
+        },
+        // 额外挂到 modal wrap 上的 class（与全屏 full-modal 可并存）
+        wrapClassName: {
+            type: String,
+            default: ''
         }
     },
     data() {
@@ -117,6 +132,35 @@ export default {
             dragRect: { left: 0, right: 0, top: 0, bottom: 0 },
         }
     },
+    computed: {
+        wrapClassNames() {
+            const names = []
+            if (this.fullScreen) names.push('full-modal')
+            if (this.wrapClassName) names.push(this.wrapClassName)
+            return names.length ? names.join(' ') : null
+        },
+        computedBodyStyle() {
+            // 默认保持旧行为：固定 height（百分比）
+            // 当设置了 bodyMaxHeight 时，使用 maxHeight + auto 高度，避免内部内容“顶破” modal
+            const style = { padding: '0px', height: this.bodyHeight };
+            if (this.bodyMaxHeight) {
+                style.maxHeight = this.bodyMaxHeight;
+                style.height = 'auto';
+                // 让滚动发生在 modalContent，而不是 body 本身
+                style.overflow = 'hidden';
+            }
+            return style;
+        },
+        computedContentStyle() {
+            if (!this.bodyMaxHeight) return null;
+            // body 内部结构：header(35px) + content
+            // 这里用 calc 约束内容区最大高度，确保超出时在内容区滚动，不会溢出 modal
+            return {
+                maxHeight: `calc(${this.bodyMaxHeight} - 35px)`,
+                overflowY: 'auto',
+            };
+        }
+    },
     
     created() {
     },
@@ -130,10 +174,23 @@ export default {
         }
     },
     methods: {
+        // 关闭/隐藏 modal 前先移除焦点，避免 aria-hidden + focus 触发可访问性告警
+        blurActiveElement() {
+            try {
+                const el = document && document.activeElement
+                if (el && typeof el.blur === 'function') {
+                    el.blur()
+                }
+            } catch (e) {
+                // ignore
+            }
+        },
         cancel(){
+            this.blurActiveElement()
             this.$emit("handleClose")
         },
         ok(){
+            this.blurActiveElement()
             this.$emit("handleOK")
         },
         afterClose(){

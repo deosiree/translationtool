@@ -1,5 +1,7 @@
 # translation
 
+人类文档在 `humanDocs/`（原 `docs/`）。Harness 工作流在 `docs/`（本地，不入库）。
+
 ## nodejs version
 ```
 V16.16.0

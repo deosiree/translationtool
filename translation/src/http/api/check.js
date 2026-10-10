@@ -1,5 +1,5 @@
 import request from "../request";
-import { cancelRequest, cancelAllRequests } from "../request";
+import { cancelRequest } from "../request";
 
 // 查询校验列表
 export function mockSearchCheckInfo(params, path, lastRequestId) { //参数为键值对用params  对象用data

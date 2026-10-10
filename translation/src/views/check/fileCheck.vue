@@ -68,13 +68,13 @@ import {
   getModuleNames,
   getQuestionTypes,
 } from "@/http/api/check";
+import { clickInput } from "@/utils/domUtils";
 import {
-  clickInput,
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  pageChange,
-} from "@/utils/tableUtils"; // 引入工具函数
+} from "@/utils/tableUtils";
+import { pageChange } from "@/utils/selectionUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,
@@ -119,17 +119,18 @@ export default {
       dataSource: [], // 表格数据
       i18nURLs: [
         {
-          label: "http://10.17.14.115:18001",
-          value: "http://10.17.14.115:18001",
+          label: "http://10.17.196.115:18001",
+          value: "http://10.17.196.115:18001",
         },
       ],
       moduleNames: [],
       questionTypes: [],
-      translateTypes: [], // 翻译语言
+      translateTypes: [], // 翻译语种
       labelCol: { style: { width: "84px" } },
       tableTitle: "校验日志",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       selectedRowKeys: [], // 表格选中项
       selectedRows: [], // 表格选中项

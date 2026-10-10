@@ -87,7 +87,6 @@ export default {
           align: "center",
           width: "10%",
         },
-        ,
         {
           title: "更新的任务",
           dataIndex: "task",
@@ -140,8 +139,9 @@ export default {
       checkNotUseEntry({
         // classfyID: "690aae89-47f0-4578-8e6a-aefb35884403",
         // i18nUrl: "http://10.17.43.20:18099/",
+        i18nURL: this.i18nURL,
+        // classfyID: "1",
         classfyID: this.redundantClassfyID,
-        i18nUrl: this.i18nURL,
       })
         .then((res) => {
           // 都放到.then内，可以确保执行顺序
@@ -174,9 +174,34 @@ export default {
         })
         .catch((error) => {
           // console.log("error", error);
-          if (error.status==200) {
-            message.error(`请求失败: ${error.data.operationObject}`);
-          }else{
+          if (error.status == 200) {
+            // message.error(`请求失败: ${error.data.operationObject}`);
+            if (error.data.list) {
+              // 不知道为什么error中也能有error.status==200的情况
+              // 设置默认全选
+              this.redundantEntries = Object.values(error.data.list);
+              // console.log("newDataSource", this.redundantEntries);
+              this.dataSource = [];
+              this.selectedRows = [];
+              this.selectedRowKeys = [];
+              if (this.redundantEntries.length != 0) {
+                this.redundantEntries.forEach((item) => {
+                  const EntryVO = Object.values(item.sourceFileAndEntryVO);
+                  const sourceType = item.type;
+                  if (EntryVO.length != 0) {
+                    EntryVO.forEach((item) => {
+                      this.selectedRowKeys.push(item.sourceFile);
+                      this.selectedRows.push({
+                        sourceFile: item.sourceFile,
+                        sourceType: sourceType,
+                      });
+                    });
+                  }
+                });
+              }
+              this.dataSource = this.selectedRows;
+            }
+          } else {
             message.error(`请求失败，状态码: ${error.data.operationObject}`);
           }
         })

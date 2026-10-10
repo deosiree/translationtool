@@ -13,7 +13,7 @@
         </a-tag>
       </div>
       <div>
-        翻译语言：
+        翻译语种：
         <span class="value">{{dataSource.tsProblemsType}}</span>
       </div>
     </div>
@@ -28,32 +28,10 @@
               <span>{{ record[this.translate] }}</span>
             </template>
             <template v-if="column.dataIndex === 'translateState'">
-              <template v-if="record[this.translateState] === '0'">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-              </template>
-              <template v-if="record[this.translateState] === '1'">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-              </template>
-              <template v-if="record[this.translateState] === '2'">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record[this.translateState] === '3'">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <TransStateBadge :translateState="text" />
             </template>
             <template v-if="['publicState', 'entryState'].includes(column.dataIndex)">
-              <template v-if="[0, '0'].includes(record[this.publicState])">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-              </template>
-              <template v-if="record[this.publicState] === 1">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
-              </template>
-              <template v-if="record[this.publicState] === 2">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record[this.publicState] === 3">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <EntryStateBadge :entryState="text" />
             </template>
             <template v-if="column.dataIndex === 'operation'">
               <a-button type="primary" danger size="small" @click.stop="handleDelete(record)">删除</a-button>
@@ -67,11 +45,17 @@
 </template>
 <script>
 import { message, Modal } from "ant-design-vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import { deleteEntryInfo } from "@/http/api/entryManage";
-import languageParam from "@/utils/languageParam.js";
+import commonParam from "@/constants/commonParam.js";
 export default {
-  emits: ["relationClose"],
+  components: {
+    EntryStateBadge,
+    TransStateBadge,
+  },
+  emits: ["relationClose", "update:dataSource"],
   props: {
     visible: {
       type: Boolean,
@@ -191,9 +175,9 @@ export default {
     dataSource: {
       immediate: true, // 在组件初始化时就会立即执行一次 handler 函数，确保在初始数据加载时也能设置默认全选。
       handler(newDataSource) {
-        console.log("新数据", newDataSource);
+        // console.log("新数据", newDataSource);
         if (newDataSource.tsProblemsType) {
-          languageParam.languageList.forEach((item) => {
+          commonParam.languageList.forEach((item) => {
             if (newDataSource.tsProblemsType === item.name) {
               this.translate = item.value;
               this.translateState = item.state;
@@ -216,13 +200,18 @@ export default {
     // 针对单一词条的删除按钮
     handleDelete(record) {
       this.loading = true;
-      deleteEntryInfo([record.id],{tableName:"t_entry_info"})
+      deleteEntryInfo([record.id], { tableName: "t_entry_info" })
         .then((res) => {
           if (res.code === 200) {
             message.success("删除成功");
-            this.dataSource.list = this.dataSource.list.filter(
-              (item) => item.id !== record.id
-            );
+            const nextDataSource = {
+              ...(this.dataSource || {}),
+              list: ((this.dataSource && this.dataSource.list) || []).filter(
+                (item) => item.id !== record.id
+              ),
+            };
+            // props 不可直接修改：通过事件通知父组件更新
+            this.$emit("update:dataSource", nextDataSource);
             this.pagination.current = 1;
             this.pagination.total--;
           } else {

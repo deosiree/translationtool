@@ -10,11 +10,14 @@
         <a-form-item label="词条" name="entry">
           <a-input v-model:value="search.entry" placeholder="请输入内容"></a-input>
         </a-form-item>
-        <a-form-item label="Tag" name="tag">
+        <a-form-item label="tag" name="tag">
           <a-input v-model:value="search.tag" placeholder="请输入内容"></a-input>
         </a-form-item>
-        <a-form-item label="来源" name="common">
+        <!-- <a-form-item label="来源" name="common">
           <a-input v-model:value="search.common" placeholder="请输入内容"></a-input>
+        </a-form-item> -->
+        <a-form-item label="comment" name="comment">
+          <a-input v-model:value="search.comment" placeholder="请输入内容"></a-input>
         </a-form-item>
         <a-form-item>
           <a-button type="primary" @click="select">查看</a-button>
@@ -30,7 +33,7 @@
               <pre>{{ text }}</pre>
             </template>
           </template>
-          <!--Tag列 -->
+          <!--tag列 -->
           <template v-if="column.dataIndex === 'tag'">
             <span>
               <a-tag color="cyan" class="tag-content">
@@ -83,7 +86,8 @@ export default {
   data() {
     return {
       modalWidth: "65%",
-      tableHeight: { x: "100%", y: 380 },
+      // tableHeight: { x: "100%", y: 380 },
+      tableHeight: { x: "max-content", y: 380 },
       dataSource: [],
       columns: [
         {
@@ -96,15 +100,16 @@ export default {
           },
         },
         { title: "词条", dataIndex: "source", align: "center", width: 200 },
-        { title: "来源", dataIndex: "comments", align: "center", width: 200 },
-        { title: "Tag", dataIndex: "tag", align: "center", width: 150 },
+        { title: "comment", dataIndex: "comment", align: "center", width: 200 },
+        { title: "tag", dataIndex: "tag", align: "center", width: 150 },
         { title: "翻译", dataIndex: "translation" },
       ],
       search: {
         fileName: null,
         source: "",
         tag: "",
-        common: "",
+        // common: "",
+        comment: "",
       },
       dictionaryOption: [],
       product: {},
@@ -176,7 +181,8 @@ export default {
         fileName: null,
         source: "",
         tag: "",
-        common: "",
+        // common: "",
+        comment: "",
       };
     },
     // 格式化json

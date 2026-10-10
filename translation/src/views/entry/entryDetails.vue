@@ -251,7 +251,8 @@
 import { cloneDeep } from 'lodash-es';
 import Modal from '@/components/modal/index.vue';
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN';
-import common from "./common.js";
+// import common from "./common.js";
+import { byteLength } from "@/utils/validationUtils";
 import { message} from 'ant-design-vue';
 import {
     updateEntry,
@@ -354,7 +355,8 @@ export default {
             if(value === null || value === '' || value === undefined){
                 return Promise.resolve();
             }
-            let length = common.byteLength(value)
+            // let length = common.byteLength(value)
+            let length = byteLength(value)
             if ( length > byteLimit) {
                 return Promise.reject('最大字节数为'+byteLimit);
             } 
@@ -373,7 +375,7 @@ export default {
                 // console.log('error', err);
             });
         },
-        // 获取语言列表
+        // 获取语种列表
         getLanguage(){
             getLanguage().then((res) => {
                 let language = {}
@@ -466,7 +468,7 @@ export default {
                 // 取消选中
                 this.checked[index][language] = false
             }else{
-                // 选中时 将其他已选中的该语言翻译变为未选中  然后选中点击的翻译
+                // 选中时 将其他已选中的该语种翻译变为未选中  然后选中点击的翻译
                 for (let i in this.checked) {
                     this.checked[i][language] = false
                 }

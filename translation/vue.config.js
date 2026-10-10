@@ -10,9 +10,9 @@ module.exports = defineConfig({
       },
     },
   },
-  pluginOptions:{
-    electronBuilder:{
-      nodeIntegration:true,
+  pluginOptions: {
+    electronBuilder: {
+      nodeIntegration: true,
       builderOptions: {
         extraResources: [
           {
@@ -25,10 +25,17 @@ module.exports = defineConfig({
   },
   configureWebpack: {
     resolve: {
-      fallback: { 
+      alias: {
+        '@': require('path').resolve(__dirname, 'src'),
+        '@prototype': require('path').resolve(__dirname, 'prototype'),
+      },
+      extensions: ['.js', '.vue', '.json'],
+      fallback: {
         path: require.resolve("path-browserify"),
-        fs: false
-     },
+        fs: false,
+        // timers: require.resolve("timers-browserify"),
+        // stream: require.resolve("stream-browserify"),
+      },
     },
   },
 })

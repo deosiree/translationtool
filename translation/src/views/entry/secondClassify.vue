@@ -50,7 +50,8 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { cloneDeep, iteratee } from "lodash-es";
-import common from "@/views/entry/common.js";
+// import common from "@/views/entry/common.js";
+import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import { getClassfy } from "@/http/api/entryManage";
 import {
   getSecondClassify,
@@ -193,7 +194,8 @@ export default {
         parentName: this.classfy1Option.find(
           (item) => item.key === this.search.classify1
         ).title,
-        createTime: common.getCurrentFormattedTime(),
+        // createTime: common.getCurrentFormattedTime(),
+        createTime: getCurrentFormattedTime(),
       };
       this.dataSource.push(newData);
       this.editableData[newData.id] = newData;
@@ -213,16 +215,26 @@ export default {
       if (id.startsWith("new")) {
         // 新增
         addSecondClassify(this.editableData[id]).then((res) => {
-          message.success("新增成功！");
-          this.getSecondClassify();
-          delete this.editableData[id];
+          if (res.type == "ERROR") {
+            console.log(res.data);
+            message.warning(`新增失败，${res.data}`);
+          } else {
+            message.success("新增成功！");
+            this.getSecondClassify();
+            delete this.editableData[id];
+          }
         });
       } else {
         // 编辑
         updateSecondClassify(this.editableData[id]).then((res) => {
-          message.success("编辑成功！");
-          this.getSecondClassify();
-          delete this.editableData[id];
+          if (res.type == "ERROR") {
+            console.log(res.data);
+            message.warning(`编辑失败，${res.data}`);
+          } else {
+            message.success("编辑成功！");
+            this.getSecondClassify();
+            delete this.editableData[id];
+          }
         });
       }
     },

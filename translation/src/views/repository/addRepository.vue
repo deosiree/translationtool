@@ -98,7 +98,7 @@ import {
   createVersionTable,
   getVersionTableByCondition,
 } from "@/http/api/versionTable";
-import { setModalAriaHidden } from "@/utils/commonUtils";
+import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
   components: {
     BookOutlined,
@@ -122,7 +122,6 @@ export default {
   data() {
     return {
       SHOW_PARENT: TreeSelect.SHOW_PARENT,
-      user: {},
       visible: false,
       modalWidth: "450px",
       modalTitle: "生成版本库",
@@ -143,15 +142,6 @@ export default {
         // {title: "序号",dataIndex: 'index',align:'center',width:70,customRender: (text, record, index, column) => {
         //     return text.index + 1
         // },fixed: 'left'},
-        {
-          title: "Abbr",
-          dataIndex: "abbr",
-          width: 150,
-          fixed: "left",
-          customCell: (record, rowIndex, column) => ({
-            colSpan: record.flag != "col" ? 1 : 17,
-          }),
-        },
         {
           title: "版本",
           dataIndex: "version",
@@ -278,6 +268,15 @@ export default {
           ],
         },
         {
+          title: "Abbr",
+          dataIndex: "abbr",
+          width: 150,
+          fixed: "left",
+          customCell: (record, rowIndex, column) => ({
+            colSpan: record.flag != "col" ? 1 : 17,
+          }),
+        },
+        {
           title: "备注",
           dataIndex: "remark",
           align: "center",
@@ -314,7 +313,6 @@ export default {
     };
   },
   mounted() {
-    this.user = this.$store.state.user;
   },
   methods: {
     // 添加版本单元格双击可编辑事件
@@ -360,6 +358,8 @@ export default {
     // 合并单元格
     getCheckboxProps(record) {
       if (record.flag != "col") {
+        // 默认行为：不隐藏 checkbox
+        return {};
       } else {
         return {
           props: {
@@ -406,7 +406,7 @@ export default {
         pageSize: -1,
       };
       let data = {
-        department: this.user.department,
+        department: this.$store.state.user?.department,
       };
       getVersionTableByCondition(params, data).then((res) => {
         this.repositoryList = [];

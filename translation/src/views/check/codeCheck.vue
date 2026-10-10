@@ -77,13 +77,13 @@ import {
   getQuestionTypes,
 } from "@/http/api/check";
 import { message } from "ant-design-vue";
+import { clickInput } from "@/utils/domUtils";
 import {
-  clickInput,
   setTableHeight,
   handleResizeColumn,
   getRowClassName,
-  pageChange,
-} from "@/utils/tableUtils"; // 引入工具函数
+} from "@/utils/tableUtils";
+import { pageChange } from "@/utils/selectionUtils"; // 引入工具函数
 export default {
   components: {
     SearchBox,
@@ -107,7 +107,8 @@ export default {
       },
       tableTitle: "校验日志",
       dataHeight: 400,
-      tableHeight: { x: "100%", y: 0 },
+      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "max-content", y: 0 },
       loading: false,
       columns: [
         {
@@ -208,8 +209,8 @@ export default {
       selectedRowIndex: null, // 表格选中项
       i18nURLs: [
         {
-          label: "http://10.17.14.115:18001",
-          value: "http://10.17.14.115:18001",
+          label: "http://10.17.196.115:18001",
+          value: "http://10.17.196.115:18001",
         },
       ],
       moduleNames: [
@@ -368,6 +369,7 @@ export default {
             });
             // console.log("校验成功", tempData);
             this.dataSource = tempData;
+            this.pagination.current = 1;
             this.pagination.total = this.dataSource.length;
           } else {
             // console.log("校验失败", res.data.message);

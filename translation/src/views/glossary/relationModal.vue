@@ -6,26 +6,18 @@
         <a-table class="ant-table-striped" :columns="columns" :data-source="currentData" :scroll="{x:'100%' , y: '280px'}"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" ref="secondClassifyTable"
           bordered>
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record,text }">
             <template v-if="column.dataIndex === 'entryState'">
-              <template v-if="record.entryState === 0">
-                <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-              </template>
-              <template v-if="record.entryState === 1">
-                <a-badge color="#FBB31F" /><span style="color:#FBB31F">审核中</span>
-              </template>
-              <template v-if="record.entryState === 2">
-                <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-              </template>
-              <template v-if="record.entryState === 3">
-                <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-              </template>
+              <EntryStateBadge :entryState="text" />
             </template>
-            <!--Tag列 -->
+            <template v-if="column.dataIndex === 'translateState'">
+              <TransStateBadge :translateState="text" />
+            </template>
+            <!--tag列 -->
             <template v-if="column.dataIndex === 'tag'">
               <span>
                 <a-tag color="cyan" class="tag-content">
-                  <span>{{ text }}</span>
+                  <span>{{ record.tag }}</span>
                 </a-tag>
               </span>
             </template>
@@ -36,8 +28,10 @@
   </CustomModal>
 </template>
 <script>
-import '@/assets/style/common.less'
+import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import {
   CheckOutlined,
@@ -48,7 +42,6 @@ import {
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { cloneDeep, iteratee } from "lodash-es";
-import common from "@/views/entry/common.js";
 export default {
   components: {
     CustomModal,
@@ -56,6 +49,8 @@ export default {
     EditOutlined,
     CloseOutlined,
     ExclamationCircleOutlined,
+    EntryStateBadge,
+    TransStateBadge,
   },
   emits: ["relationClose"],
   props: {
@@ -88,14 +83,13 @@ export default {
           },
           fixed: "left",
         },
+        { title: "词条", dataIndex: "entry", align: "center", width: 200 },
         {
           title: "词条状态",
           dataIndex: "entryState",
           align: "center",
           width: 120,
         },
-        { title: "Abbr", dataIndex: "abbr", align: "center", width: 200 },
-        { title: "词条", dataIndex: "entry", align: "center", width: 200 },
         { title: "翻译", dataIndex: "translate", align: "center", width: 200 },
         {
           title: "翻译状态",
@@ -115,7 +109,8 @@ export default {
           align: "center",
           width: 200,
         },
-        { title: "TAG", dataIndex: "tag", align: "center", width: 200 },
+        { title: "Tag", dataIndex: "tag", align: "center", width: 200 },
+        { title: "comment", dataIndex: "comment", align: "center", width: 200 },
         {
           title: "版本",
           dataIndex: "versionName",
@@ -142,6 +137,7 @@ export default {
           align: "center",
           width: 200,
         },
+        { title: "Abbr", dataIndex: "abbr", align: "center", width: 200 },
       ],
       search: {
         classify1: null,

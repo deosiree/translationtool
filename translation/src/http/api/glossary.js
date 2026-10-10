@@ -20,6 +20,16 @@ export function getSykEntry(params, data) {
   });
 }
 
+// 查重自检查询
+export function checkSameEntry(params, data) {
+  return request({
+    url: "/Syk/checkSykSameEntry",
+    method: "POST",
+    params,
+    data
+  });
+}
+
 // 空挂术语查询
 export function getSykNotUsed(params, data) {
   return request({
@@ -63,6 +73,16 @@ export function updateSykEntry(data) {
 export function getSykEntryRelation(data) {
   return request({
     url: "/Syk/getSykEntryRelation",
+    method: "POST",
+    data
+  });
+}
+
+// 获取术语库同名词条关联信息
+export function getSameEntryRelation(data) {
+  return request({
+    // url: "/Syk/getSykEntryRelation",
+    url: "/Syk/getSameEntryRelation",
     method: "POST",
     data
   });

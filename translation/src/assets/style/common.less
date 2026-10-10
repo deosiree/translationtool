@@ -7,6 +7,10 @@
   // position: absolute;
 }
 
+.ant-table-header {
+  margin-right: 12px; // 加宽滚动条后，纵向滚动条的宽度补偿
+}
+
 .ant-btn-background-ghost span {
   font-size: 12px;
 }
@@ -18,11 +22,24 @@
 // 表格宽度（全局）
 .ant-table-striped .ant-table-cell {
   padding: 10px;
-}// 列名
+}
+
+// 列名
 
 .ant-table-striped tr td.ant-table-cell {
   padding: 2px;
-}// 单元格
+}
+
+// 单元格
+
+// 全局滚动条样式 - 应用于所有可滚动元素
+// Firefox 浏览器
+* {
+  scrollbar-width: auto;
+  /* auto | thin | none */
+  scrollbar-color: #dddddd #f1f1f1;
+  /* 滑块颜色 轨道颜色 */
+}
 
 // 表格滚动条样式
 &::-webkit-scrollbar {
@@ -97,6 +114,59 @@
 .yellowBtn:focus {
   background: #FBB31F;
   border-color: #FBB31F
+}
+
+.table-cell-overflow {
+  .ant-table-cell {
+    overflow: hidden;
+  }
+  // 右固定列左侧分隔：与左固定「词条」列同风格——深一点的细线，不要阴影
+  .ant-table-cell-fix-right {
+    border-left: 1px solid #d9d9d9 !important;
+  }
+  .ant-table-ping-right .ant-table-cell-fix-right {
+    border-left: 1px solid #d9d9d9 !important;
+    box-shadow: none !important;
+    &::before,
+    &::after {
+      box-shadow: none !important;
+      display: none !important;
+    }
+  }
+  .cell-overflow-tooltip {
+    display: block;
+    max-width: 100%;
+  }
+  .table-cell-editor {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+  .table-cell-editor-error {
+    margin-top: 2px;
+    color: #ff4d4f;
+    font-size: 12px;
+    line-height: 1.4;
+    text-align: left;
+    word-break: break-word;
+    white-space: pre-wrap;
+  }
+  .table-cell-editor--error textarea.ant-input {
+    border-color: #ff4d4f;
+  }
+  .table-cell-editor .ant-input-textarea,
+  .ant-table-cell .ant-input-textarea {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .ant-table-cell textarea.ant-input {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    resize: none;
+    word-break: break-word;
+    overflow-x: auto;
+  }
 }
 
 .tag-content {

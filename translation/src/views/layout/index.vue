@@ -39,7 +39,7 @@
           @click="() => (collapsed = !collapsed)"
         />
         <menu-fold-outlined v-else class="trigger" @click="() => (collapsed = !collapsed)" />
-        <span class="user">登陆人：{{user.userName}}_{{user.department}}</span>
+        <span class="user">登陆人：{{$store.state.user?.userName || ''}}_{{$store.state.user?.department || ''}}</span>
         <a-dropdown>
           <a-avatar style="background-color: #87d068;">
             <template #icon>
@@ -71,7 +71,7 @@ import {
   BarsOutlined,
   DownOutlined
 } from '@ant-design/icons-vue';
-export default ({
+export default {
   components: {
     UserOutlined,
     VideoCameraOutlined,
@@ -85,10 +85,6 @@ export default ({
     return {
       collapsed:false,
       menu:[],
-      user: {
-        userName:"",
-        department:""
-      },
       selectedKeys: [],
       defaultSelectedKeys: []
     };
@@ -100,7 +96,6 @@ export default ({
     this.$nextTick(() => {
       // 页面加载完成后执行的代码
       this.menu = this.$store.state.menu
-      this.user = this.$store.state.user
       //默认选中第一个导航
       let currentPath = this.$route.path
       if(currentPath === '/translate'){
@@ -136,7 +131,7 @@ export default ({
     
   },
 
-});
+}
 </script>
 <style>
     .ant-layout-sider-children .logo{

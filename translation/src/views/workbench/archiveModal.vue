@@ -1,128 +1,50 @@
 <template>
-  <CustomModal :visible="visible" :modalTitle="modalTitle" :modalWidth="modalWidth" :fullFlag="true" :okLoading="saveLoading" :showCancel="false"
-    okText="归档并结束任务" @handleClose="handleClose" @handleOK="handleOK" @afterClose="afterClose" @setTableHeight="setTableHeight">
+  <PipeShell
+    :visible="visible"
+    :modalTitle="modalTitle"
+    :okLoading="loading"
+    :showCancel="false"
+    okText="归档并结束任务"
+    @handleClose="handleClose"
+    @handleOK="handleOK"
+    @afterClose="afterClose"
+    @setTableHeight="setTableHeight"
+  >
     <div class="content">
-      <div class="taskInfo">
-        <div class="taskItem">任务名称：{{task.name}}</div>
-        <div class="taskItem">产品名称：{{task.productName}}</div>
-        <div class="taskItem">上级分类名称：{{task.classifyName}}</div>
-        <div class="taskItem">翻译语种：{{task.translateType}}</div>
-      </div>
-      <div class="form">
+      <!-- 工具栏壳：任务信息 + 查询区 + 内联展示列 -->
+      <PipelinePanel
+        :task="task"
+        :table-host="this"
+        :columns="columns"
+        :data-source="dataSource"
+        :loading="loading"
+        :pagination="pagination"
+        :scroll="tableHeight"
+        :row-selection="archiveRowSelection"
+        :column-actions="archiveColumnActions"
+        :custom-row="customRow"
+        @update:model-value="checkedColumn = $event"
+        @columns-change="syncColumnsFromPref"
+        ref="archiveTable"
+      >
         词条：
         <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
         <span style="margin-left:10px">词条状态：</span>
-        <a-select v-model:value="entryState" size="small" style="width: 300px" placeholder="请选择" allowClear>
-          <a-select-option value="1">待审核</a-select-option>
-          <a-select-option value="2">审核不通过</a-select-option>
-          <a-select-option value="3">已审核</a-select-option>
-        </a-select>
+        <EntryStateSelect :entryState="entryState" @update:entryState="entryState = $event" :size="'small'" :style="'width: 300px'" />
         <span style="margin-left:10px">翻译状态：</span>
-        <a-select v-model:value="translateState" size="small" style="width: 300px" placeholder="请选择" allowClear>
-          <a-select-option value="0">未翻译</a-select-option>
-          <a-select-option value="1">未审核</a-select-option>
-          <a-select-option value="2">审核不通过</a-select-option>
-          <a-select-option value="3">已审核</a-select-option>
-        </a-select>
+        <TransStateSelect :translateState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
         <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
-        <a-popover trigger="click" placement="leftTop" :overlayStyle="overlayStyle">
-          <template #content>
-            <a-checkbox-group v-model:value="checkedColumn" @change="changeColumn">
-              <a-row v-for="item in checkboxList" :key="item.value">
-                <a-col :span="24">
-                  <a-checkbox :value="item.value">
-                    {{ item.label }}
-                  </a-checkbox>
-                </a-col>
-              </a-row>
-            </a-checkbox-group>
-          </template>
-          <a-button type="primary" size="small" style="margin-left:auto"><template #icon>
-              <SettingOutlined />
-            </template>展示列</a-button>
-        </a-popover>
-      </div>
-      <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id" :scroll="tableHeight"
-        :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" :expandIconColumnIndex="2" :customRow="customRow" :row-selection="{ 
-                selectedRowKeys: selectedRowKeys, 
-                selectedRows: selectedRows,
-                onChange: onSelectChange,
-                selections:[
-                    {key:'selectAll',text:'全部选择',onSelect:selectAllEntry},
-                    {key:'clearAll',text:'取消选择',onSelect:clearAllEntry}
-                ]
-            }" ref="archiveTable" @resizeColumn="handleResizeColumn" @change="handleTableChange">
-        <template #bodyCell="{ column, record,text }">
-          <template v-if="column.dataIndex === 'entry'">
-            <span v-text="text?text.replace(/\n/g, '\\n'):text"></span>
-          </template>
-          <template v-if="column.dataIndex === 'entryState'">
-            <template v-if="record.entryState === 0">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">新建</span>
-            </template>
-            <template v-if="record.entryState === 1">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">待审核</span>
-            </template>
-            <template v-if="record.entryState === 2">
-              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-            </template>
-            <template v-if="record.entryState === 3">
-              <a-badge color="#36BF7D" /><span style="color:#36BF7D">已审核</span>
-            </template>
-          </template>
-          <template
-            v-if="['englishTranslateState','frenchTranslateState','russianTranslateState','spanishTranslateState'].includes(column.dataIndex)">
-            <template v-if="record[column.dataIndex] === '0' || record[column.dataIndex] === null">
-              <a-badge color="#6BB8FF" /><span style="color:#6BB8FF">未翻译</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '1'">
-              <a-badge color="#FBB31F" /><span style="color:#FBB31F">未审核</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '2'">
-              <a-badge color="#ff0000" /><span style="color:#ff0000">审核不通过</span>
-            </template>
-            <template v-if="record[column.dataIndex] === '3'">
-              <a-badge color="#36BF7D" /><span style="color:#36BF7D">审核通过</span>
-            </template>
-          </template>
-        </template>
-        <template #expandIcon="props">
-          <span v-if="props.record.children != null && props.record.children.length > 0">
-            <div v-if="props.expanded" style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
-              <CaretDownOutlined />
-            </div>
-            <div v-else style="display: inline-block; margin-right: 10px" @click="(e) => {props.onExpand(props.record, e);}">
-              <CaretRightOutlined />
-            </div>
-          </span>
-          <span v-else style="margin-right:23px"></span>
-        </template>
-        <!-- 设置筛选菜单 -->
-        <template #customFilterDropdown="{ setSelectedKeys, selectedKeys, confirm, clearFilters, column }">
-          <div style="padding: 8px">
-            <a-input ref="searchInput" :placeholder="`搜索 ${column.title}`" :value="selectedKeys[0]"
-              style="width: 188px; margin-bottom: 8px; display: block" @change="e => setSelectedKeys(e.target.value ? [e.target.value] : [])"
-              @pressEnter="handleSearch(selectedKeys, confirm, column.dataIndex)" />
-            <a-button type="primary" size="small" style="width: 90px; margin-right: 8px"
-              @click="handleSearch(selectedKeys, confirm, column.dataIndex)">
-              <template #icon>
-                <SearchOutlined />
-              </template>搜索</a-button>
-            <a-button size="small" style="width: 90px" @click="handleReset(clearFilters)">重置</a-button>
-          </div>
-        </template>
-        <!-- 设置筛选图标 -->
-        <template #customFilterIcon="{ filtered }">
-          <SearchOutlined :style="{ color: filtered ? '#108ee9' : undefined }" />
-        </template>
-      </a-table>
+        <a-button v-if="canShowDelete" type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
+      </PipelinePanel>
     </div>
-    <template v-slot:leftBottomBtn>
+    <template #leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
-      <a-button type="primary" ghost @click="placeOnFile">归档</a-button>
+      <a-button type="primary" ghost @click="placeOnFile" v-if="$currentDepartment && $currentDepartment.ops.has('needIP')">归档</a-button>
+      <a-button type="primary" ghost @click="placeOnFile2">结束任务</a-button>
     </template>
-  </CustomModal>
-  <CustomModal :visible="ipSelectModal" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK" @afterClose="ipSelectAfterClose">
+  </PipeShell>
+  <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK"
+    @afterClose="ipSelectAfterClose">
     <div style="width:100%;height:100%">
       <a-form ref="ipModal" name="custom-validation" :model="ipModal">
         <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
@@ -134,33 +56,70 @@
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import PipeShell from "@/views/workbench/components/PipeShell.vue";
+import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
+import EntryStateSelect from "@/components/select/entryStateSelect.vue";
+import TransStateSelect from "@/components/select/transStateSelect.vue";
+import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
+import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import { formatEntryText, formatCellText } from "@/components/table/cellText";
+import "@/assets/style/common.less";
 import { cloneDeep, iteratee } from "lodash-es";
-import { getEntryInfoList, getI18nAdress } from "@/http/api/workbench";
+import { getEntryInfoList, getI18nAdress, deleteEntryInfoByTaskID } from "@/http/api/workbench";
 import { updateTaskInfo } from "@/http/api/task";
 import { setInfo } from "@/http/api/i18Server";
 import {
   CheckOutlined,
   CloseOutlined,
   ExclamationCircleOutlined,
-  CaretDownOutlined,
-  CaretRightOutlined,
   SettingOutlined,
-  SearchOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
-import workbenchCommon from "@/views/workbench/common.js";
-import common from "../entry/common.js";
+import commonParam, { workbenchParams } from "@/constants/commonParam.js";
+import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
+import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
+import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
+import {
+  handleTableChange as tableHandleTableChange,
+  handleReset as tableHandleReset,
+  handleResizeColumn,
+  getRowClassName,
+} from "@/utils/tableUtils";
+import { defaultPagination } from "@/views/workbench/composables/page";
+import {
+  handleFilterSearch,
+  resetOnClose,
+} from "@/views/workbench/composables/filterClear";
+import {
+  PipelinePanel,
+} from "@/views/workbench/components";
+import {
+  selectAllEntry as selectAllEntryUtil,
+  clearAllEntry as clearAllEntryUtil,
+  onSelectChange as onSelectChangeUtil,
+} from "@/utils/selectionUtils";
+import { getCurrentFormattedTime } from "@/utils/dateUtils";
+import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
+import { loading, startLoading, endLoading, resetLoading } from "@/composables/useLoading";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
+  setup() {
+    return { loading };
+  },
   components: {
     CheckOutlined,
     CloseOutlined,
-    CaretDownOutlined,
-    CaretRightOutlined,
-    SettingOutlined,
-    SearchOutlined,
     ExclamationCircleOutlined,
     CustomModal,
+    PipeShell,
+    IsExistBadge,
+    EntryStateSelect,
+    TransStateSelect,
+    EntryStateBadge,
+    TransStateBadge,
+    CellOverflowTooltip,
+    PipelinePanel,
   },
   emits: ["handleClose", "handleOK", "refresh"],
   props: {
@@ -182,112 +141,32 @@ export default {
 
   data() {
     return {
-      modalWidth: "70%",
+      // modal width 由 PipeShell 默认 90%
       task: {},
       keyWords: "",
-      tableHeight: { x: "100%", y: "415px" },
-      loading: false,
-      columns: [
-        {
-          title: "序号",
-          dataIndex: "index",
-          width: 70,
-          customRender: (text, record, index, column) => {
-            return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
-          },
-          fixed: "left",
-          index: 0,
-        },
-        {
-          title: "Abbr",
-          dataIndex: "abbr",
-          align: "center",
-          fixed: "left",
-          width: 150,
-          resizable: true,
-          index: 2,
-        },
-        {
-          title: "词条",
-          dataIndex: "entry",
-          width: 200,
-          resizable: true,
-          index: 3,
-          align: "center",
-        },
-        {
-          title: "翻译",
-          dataIndex: "translate",
-          align: "center",
-          width: 200,
-          resizable: true,
-          index: 4,
-        },
-        {
-          title: "翻译状态",
-          dataIndex: "translateState",
-          align: "center",
-          width: 130,
-          resizable: true,
-          index: 4.5,
-        },
-        {
-          title: "中文释义",
-          dataIndex: "chineseInterpretation",
-          align: "center",
-          width: 200,
-          resizable: true,
-          index: 5,
-        },
-        {
-          title: "英文释义",
-          dataIndex: "englishInterpretation",
-          align: "center",
-          width: 200,
-          resizable: true,
-          index: 6,
-        },
-        {
-          title: "审核意见",
-          dataIndex: "auditSuggess",
-          align: "center",
-          width: 200,
-          resizable: true,
-          index: 98,
-        },
-        {
-          title: "词条状态",
-          dataIndex: "entryState",
-          align: "center",
-          width: 130,
-          fixed: "right",
-          index: 99,
-        },
-      ],
+      // tableHeight: { x: "100%", y: "415px" },
+      tableHeight: { x: "max-content", y: "415px" },
+      columns: [],
       dataSource: [],
-      pagination: {
-        pageSizeOptions: ["20", "50", "100"],
-        showSizeChanger: true,
-        defaultPageSize: 20,
-        total: 0,
-        current: 1,
-        pageSize: 20,
-        showTotal: (total) => `共 ${total} 条`,
-        onChange: this.pageChange,
-      },
+      pagination: defaultPagination(this.pageChange),
       entryState: null,
       translateState: null,
       selectedRowIndex: null,
-      overlayStyle: workbenchCommon.overlayStyle,
-      checkedColumn: workbenchCommon.checkedColumn,
-      checkboxList: workbenchCommon.checkboxList,
+      overlayStyle: workbenchParams.overlayStyle, // 展示列样式
+      columnSettingsList: [],
+      checkboxList: [], // 展示列可选的值
+      checkedColumn: [], // 展示列已选的值
+      translateStateList: [
+        ...commonParam.langTranslateStateList,
+        "translateState",
+      ],
       state: {
         searchText: "",
         searchedColumn: "",
       },
       filters: null,
-      filteredData: [],
-      saveLoading: false,
+      // 历史字段 filteredData：曾由 tableUtils.handleTableChange 写入，仓库内无读取方；批量勾选走 this.filters + selectionUtils（AND）。
+      antClearFilter: null,
       selectedRowKeys: [],
       selectedRows: [],
       ipSelectModal: false,
@@ -296,32 +175,145 @@ export default {
       },
       ipOptions: [],
       optionFlag: 0,
+      writeBackLoading: false,
     };
   },
-
   created() {},
   mounted() {
-    this.task = this.currentTask;
+    this.$nextTick(() => {
+      // 获取当前用户信息
+      this.user = this.$store.state.user;
+    });
   },
   watch: {
     currentTask(newval, oldval) {
       this.task = newval;
-      this.setTranslateColumn();
+      this.task.transMap = commonParam.languageMap[this.task.translateType];
+    },
+    visible: {
+      async handler(newVal) {
+        // console.log("打开工作台-归档", newVal);
+        if (newVal) {
+          this.$nextTick(() => {
+            // 1.设置翻译列展示的语种
+            applyTable(this, {
+              allCols: wbAllCols,
+              preset: wbPresets.archiveModal,
+              ctx: {
+                task: this.task,
+                transMap: this.task.transMap,
+                pagination: this.pagination,
+              },
+              colPrefName: "colPref-archiveModal",
+              normalWidth: 100,
+              needFilter: true,
+              filterCols: filterWbColsForCtx,
+              lockCellSize: true,
+            });
+          });
+        }
+      },
+    },
+  },
+  computed: {
+    canShowDelete() {
+      return canDeleteAsEntryAuditor(this.$store.state.user, this.task);
+    },
+    archiveColumnActions() {
+      return {
+        modelValue: this.checkedColumn,
+        columns: this.columnSettingsList,
+        overlayStyle: this.overlayStyle,
+        colPrefName: "colPref-archiveModal",
+        normalWidth: 100,
+      };
+    },
+    archiveRowSelection() {
+      return {
+        columnWidth: 48,
+        selectedRowKeys: this.selectedRowKeys,
+        selectedRows: this.selectedRows,
+        onChange: this.onSelectChange,
+        selections: [
+          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
+          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
+        ],
+      };
     },
   },
   methods: {
-    // 设置翻译列展示的语言
-    setTranslateColumn() {
-      this.columns.forEach((item) => {
-        if (item.title === "翻译") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code;
-        }
-        if (item.title === "翻译状态") {
-          item.dataIndex =
-            workbenchCommon.languageMap[this.task.translateType].code +
-            "TranslateState";
-        }
+    syncColumnsFromPref() {
+      applyTableColumnsFromPref(this);
+    },
+    formatEntryText,
+    formatCellText,
+    isExistLabel(value) {
+      if (value === 0) return "新建";
+      if (value === 1) return "已存在";
+      return "";
+    },
+    entryStateLabel(value) {
+      const map = {
+        0: "新建",
+        1: "审核中",
+        2: "审核不通过",
+        3: "已审核",
+        "-1": "禁用",
+      };
+      return map[value] ?? "";
+    },
+    translateStateLabel(value) {
+      const map = {
+        0: "未翻译",
+        1: "待审核",
+        2: "审核不通过",
+        3: "已审核",
+      };
+      return map[value] ?? "未翻译";
+    },
+    // 删除词条（词条审核员 + 本任务指派人）
+    deleteTaskEntry() {
+      if (this.selectedRows.length === 0) {
+        return;
+      }
+      Modal.confirm({
+        title: "是否确定删除?",
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "是",
+        cancelText: "否",
+        style: { top: "30%" },
+        onOk: () => {
+          let deleteIds = [];
+          let delCount = {
+            num: 0,
+            childNum: 0,
+          };
+          this.selectedRows.forEach((item) => {
+            deleteIds.push(item.id);
+            delCount.num++;
+            if (item.children && item.children.length > 0) {
+              delCount.childNum += item.children.length;
+              item.children.forEach((child) => {
+                deleteIds.push(child.id);
+              });
+            }
+          });
+          this.selectedRowKeys = [];
+          this.selectedRows = [];
+          deleteEntryInfoByTaskID({ taskID: this.task.id }, deleteIds)
+            .then((res) => {
+              let text = `删除成功${delCount.num - delCount.childNum}条`;
+              if (delCount.childNum > 0) {
+                text += `(聚合${delCount.childNum}条)`;
+              }
+              message.success(text);
+              this.getTaskEntry();
+            })
+            .catch((err) => {
+              message.error("删除失败！", err.message);
+            });
+        },
+        onCancel: () => {},
       });
     },
     // 获取词条
@@ -335,16 +327,17 @@ export default {
       if (this.translateState) {
         data.push(this.translateState);
       }
-      this.loading = true;
+      startLoading();
 
       getEntryInfoList(params, data)
         .then((res) => {
           this.dataSource = res.data.list;
-          this.loading = false;
         })
         .catch((err) => {
-          this.loading = false;
           message.error(err.message);
+        })
+        .finally(() => {
+          endLoading();
         });
     },
     handleOK() {
@@ -355,18 +348,22 @@ export default {
         entry: "",
       };
       let data = [];
-      this.saveLoading = true;
-      getEntryInfoList(params, data).then((res) => {
-        this.checkedEntry(res.data.list);
-      });
+      startLoading();
+      getEntryInfoList(params, data)
+        .then((res) => {
+          this.checkedEntry(res.data.list);
+        })
+        .catch((err) => {
+          message.error(err.message);
+          endLoading();
+        });
     },
     checkedEntry(data) {
       if (!data) {
+        endLoading();
         return;
       }
-      let code =
-        workbenchCommon.languageMap[this.task.translateType].code +
-        "TranslateState";
+      let code = commonParam.languageMap[this.task.translateType].state;
       let flag = false;
       data.forEach((item) => {
         if (item.entryState != 3 || item[code] != 3) {
@@ -376,7 +373,7 @@ export default {
       });
 
       if (flag) {
-        this.saveLoading = false;
+        endLoading();
         Modal.error({
           title: "当前任务存在未处理完的词条，不可归档！",
           style: { top: "30%" },
@@ -422,22 +419,9 @@ export default {
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
-      let className = null;
-      if (index % 2 === 1) {
-        className = "table-striped";
-        if (this.selectedRowIndex === record.id) {
-          className = className + " highlighted-row";
-        }
-      } else {
-        if (this.selectedRowIndex === record.id) {
-          className = "highlighted-row";
-        }
-      }
-      return className;
+      return getRowClassName(record, index, this.selectedRowIndex);
     },
-    handleResizeColumn: (w, col) => {
-      col.width = w;
-    },
+    handleResizeColumn,
     // 添加表格行点击事件
     customRow(record, index) {
       return {
@@ -447,68 +431,45 @@ export default {
       };
     },
     afterClose() {
+      resetLoading();
       this.keyWords = "";
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
-      this.clearFilters();
+      // 关弹窗：Ant 原生清列头筛选 + 搜索态复位
+      resetOnClose(this);
     },
-    // 展示列设置
-    changeColumn(checkedValue) {
-      this.checkedColumn = checkedValue;
-      this.checkboxList.forEach((value) => {
-        let checkedIndex = this.checkedColumn.findIndex(
-          (item) => item === value.value
-        );
-        let nowColumnIndex = this.columns.findIndex(
-          (item) => item.dataIndex === value.value
-        );
-        if (
-          (nowColumnIndex !== -1 && checkedIndex !== -1) ||
-          (nowColumnIndex === -1 && checkedIndex === -1)
-        ) {
-          return;
-        }
-        if (nowColumnIndex === -1 && checkedIndex !== -1) {
-          let newCol = {
-            title: value.label,
-            dataIndex: value.value,
-            align: "center",
-            width: 200,
-            ellipsis: true,
-            resizable: true,
-            index: value.index,
-          };
-          if (newCol.dataIndex === "abbr") {
-            newCol.fixed = "left";
-          }
-          if (newCol.dataIndex === "entrySource") {
-            // 添加词条来源可筛选
-            (newCol.width = 250), (newCol.customFilterDropdown = true);
-            (newCol.filteredValue = null),
-              (newCol.onFilter = eval(
-                "(value, record) => record.entrySource.toString().toLowerCase().includes(value.toLowerCase())"
-              ));
-          }
-          this.columns.splice(-1, 0, newCol);
-        }
-        if (nowColumnIndex !== -1 && checkedIndex === -1) {
-          this.columns.splice(nowColumnIndex, 1);
-        }
-      });
-      this.columns.sort(function (a, b) {
-        return a.index - b.index;
-      });
+    // 列头自定义筛选 + 保存 Ant clearFilters
+    handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
+      handleFilterSearch(
+        selectedKeys,
+        confirm,
+        dataIndex,
+        clearFilters,
+        this
+      );
     },
-    // 列筛选
-    handleSearch(selectedKeys, confirm, dataIndex) {
-      confirm();
-      this.state.searchText = selectedKeys[0];
-      this.state.searchedColumn = dataIndex;
-    },
+    // 列筛选重置
     handleReset(clearFilters) {
-      clearFilters({ confirm: true });
-      this.state.searchText = "";
+      tableHandleReset(clearFilters, this);
     },
+    // 同步 filters / filteredValue（供全部选择；filteredData 写入见 tableUtils）
+    handleTableChange(pagination, filters) {
+      tableHandleTableChange(pagination, filters, this);
+    },
+    // // 两个数组取并集(可封装)
+    // intersection(nums1, nums2) {
+    //   if (nums1.length === 0) {
+    //     return nums2;
+    //   }
+    //   if (nums2.length === 0) {
+    //     return nums1;
+    //   }
+    //   let a = new Set(nums1);
+    //   let b = new Set(nums2);
+    //   let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
+    //   return arr;
+    // },
+
     // 动态设置表格高度
     setTableHeight(height, type) {
       if (type === "full") {
@@ -517,87 +478,19 @@ export default {
         this.tableHeight.y = 415;
       }
     },
-    // 分页切换
+    // 分页（archive 无当前页校验）
     pageChange(page, pageSize) {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
     },
-    // 表格change事件
-    handleTableChange(pagination, filters) {
-      this.filters = filters;
-      for (let key in filters) {
-        this.columns.forEach((col) => {
-          if (col.dataIndex === key) {
-            col.filteredValue = filters[key];
-          }
-        });
-      }
-      // 获取筛选后的数据
-      let isExistData = this.dataSource.filter((item) => {
-        return filters.isExist && filters.isExist.includes(item.isExist);
-      });
-      let sourceData = this.dataSource.filter((item) => {
-        return (
-          filters.entrySource && item.entrySource.includes(filters.entrySource)
-        );
-      });
-      this.filteredData = this.intersection(isExistData, sourceData);
-    },
-    // 两个数组取并集
-    intersection(nums1, nums2) {
-      if (nums1.length === 0) {
-        return nums2;
-      }
-      if (nums2.length === 0) {
-        return nums1;
-      }
-      let a = new Set(nums1);
-      let b = new Set(nums2);
-      let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
-      return arr;
-    },
-    // 清空表格筛选条件
-    clearFilters() {
-      if (this.filters) {
-        for (let key in this.filters) {
-          this.columns.forEach((col) => {
-            if (col.dataIndex === key) {
-              col.filteredValue = null;
-            }
-          });
-        }
-      }
-    },
     onSelectChange(selectedRowKeys, selectedRows) {
-      this.selectedRowKeys = selectedRowKeys;
-      this.selectedRows = selectedRows;
+      onSelectChangeUtil(this, selectedRowKeys, selectedRows);
     },
     selectAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
-      let dataToSelect;
-      if (this.filters && (this.filters.isExist || this.filters.entrySource)) {
-        // 确保 filteredData 是最新的筛选结果
-        dataToSelect = this.dataSource.filter((item) => {
-          const isExistMatch =
-            !this.filters.isExist ||
-            this.filters.isExist.includes(item.isExist);
-          const entrySourceMatch =
-            !this.filters.entrySource ||
-            item.entrySource.includes(this.filters.entrySource);
-          return isExistMatch && entrySourceMatch;
-        });
-      } else {
-        dataToSelect = this.dataSource;
-      }
-      dataToSelect.forEach((item) => {
-        this.selectedRowKeys.push(item.id);
-        this.selectedRows.push(item);
-      });
+      selectAllEntryUtil(this);
     },
     clearAllEntry() {
-      this.selectedRowKeys = [];
-      this.selectedRows = [];
+      clearAllEntryUtil(this);
     },
     // 归档  回写数据
     writeBackFun() {
@@ -619,12 +512,14 @@ export default {
           this.selectedRowKeys = [];
           this.selectedRows = [];
           this.ipSelectModal = false;
+          this.writeBackLoading = false;
         })
         .catch((err) => {
-          message.error("归档失败！",err.message);
+          message.error("归档失败！", err.message);
+          this.writeBackLoading = false;
         });
     },
-    // 归档、归档并结束任务按钮点击事件
+    // 归档按钮点击事件
     placeOnFile() {
       if (this.selectedRows.length === 0) {
         message.info("请选择词条");
@@ -634,10 +529,31 @@ export default {
       this.optionFlag = 0;
       this.getIPs();
     },
+    // 结束任务按钮点击事件
+    placeOnFile2() {
+      Modal.confirm({
+        title: "是否结束任务？",
+        content: '词条状态将更新为"已归档"',
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: "是",
+        cancelText: "否",
+        style: { top: "30%" },
+        onOk: () => {
+          this.task.state = "6";
+          this.task.endTime = getCurrentFormattedTime();
+          updateTaskInfo(this.task).then((res) => {
+            message.success("已结束任务！（词条状态更新为'已归档'）");
+            this.$emit("refresh");
+          });
+        },
+      });
+    },
     ipSelectAfterClose() {
-      this.ipModal.ip === null;
+      resetLoading();
+      this.ipModal.ip = null;
     },
     ipSelectOK() {
+      this.writeBackLoading = true;
       this.$refs.ipModal
         .validate()
         .then(() => {
@@ -645,10 +561,11 @@ export default {
             // 归档
             this.writeBackFun();
           } else if (this.optionFlag === 1) {
-            // 归档并结束任务
-            this.saveLoading = false;
+            // 归档并结束任务+回写
+            endLoading();
             this.task.state = "6";
-            this.task.endTime = common.getCurrentFormattedTime();
+            // this.task.endTime = common.getCurrentFormattedTime();
+            this.task.endTime = getCurrentFormattedTime();
             updateTaskInfo(this.task).then((res) => {
               message.success("已归档！");
               this.$emit("refresh");
@@ -672,11 +589,14 @@ export default {
         })
         .catch((err) => {
           message.error(err.message);
+        })
+        .finally(() => {
+          this.writeBackLoading = false;
         });
     },
     ipSelectClose() {
       this.ipSelectModal = false;
-      this.saveLoading = false;
+      endLoading();
       this.ipModal.ip = null;
     },
     // 获取i18服务器ip
@@ -713,25 +633,6 @@ export default {
   gap: 16px;
   align-self: stretch;
 
-  .taskInfo {
-    display: flex;
-    padding: 4px 0px;
-    align-items: center;
-    gap: 32px;
-    align-self: stretch;
-
-    .taskItem {
-      display: flex;
-      align-items: center;
-      flex: 1 0 0;
-    }
-  }
-  .form {
-    display: flex;
-    align-items: center;
-    align-self: stretch;
-    width: 100%;
-  }
 }
 .ant-table-cell .ant-form-item {
   margin-bottom: 0%;

@@ -99,7 +99,7 @@ export default {
                 department:this.task.department
             }
             getClassTree(params).then((res) => {
-                this.treeData = res.data.list
+                this.treeData = res.data?.list || []
                 this.handleTreeData(this.treeData)
             })
         },
