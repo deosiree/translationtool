@@ -8,7 +8,9 @@ import com.shr.translationtoolservice.entity.ConstantInterface;
 import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.ErrorCodeList;
 import com.shr.translationtoolservice.entity.TLanguage;
-import com.shr.translationtoolservice.entity.vo.DictionaryVo;
+import com.shr.translationtoolservice.exception.i18nServerConnectException;
+import com.shr.translationtoolservice.exception.i18nServerParseException;
+
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,9 @@ public class TsUtils {
             List<TLanguage> tLanguages = languageMapper.selectLaguageByName(transType);
             fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
             switch (transType) {
+                case ConstantInterface.CHINESE:
+                    trans = entryInfoEntity1.getChinese();
+                    break;
                 case ConstantInterface.ENGLISH:
                     trans = entryInfoEntity1.getEnglish();
                     break;

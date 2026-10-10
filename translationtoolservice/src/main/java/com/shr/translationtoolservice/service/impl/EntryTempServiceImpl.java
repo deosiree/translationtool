@@ -71,6 +71,13 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     @Value("${ConfigFile.commonUrl}")
     private String configFileCommonUrl;
 
+    @Value("${ConfigFile.zh_CN.commonUrl}")
+    private String config_File_Common_ZH_Url;
+    @Value("${ConfigFile.zh_CN.jkUrl}")
+    private String config_File_JK_ZH_Url;
+    @Value("${ConfigFile.zh_CN.zzUrl}")
+    private String config_File_ZZ_ZH_Url;
+
     @Value("${ConfigFile.en_US.commonUrl}")
     private String config_File_Common_EN_Url;
     @Value("${ConfigFile.en_US.jkUrl}")
@@ -263,20 +270,35 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     @Override
-    public List<EntryInfoEntity> preTranslate(HttpServletRequest request,List<EntryInfoEntity> entryInfoList, String taskID, String priority) {
+    public List<EntryInfoEntity> preTranslateForTask(HttpServletRequest request,List<EntryInfoEntity> entryInfoList, String taskID, String priority) {
+        String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
+        return preTranslateByType(request, entryInfoList, translateType, priority);
+    }
+
+    @Override
+    public List<EntryInfoEntity> preTranslateByType(HttpServletRequest request,List<EntryInfoEntity> entryInfoList, String translateType, String priority) {
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         String department = JWTTokenUtils.getDepartment(token);
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
-            for (EntryInfoEntity entryInfoEntity : entryInfoList) {
+        for (EntryInfoEntity entryInfoEntity : entryInfoList) {
             //子不翻译
             if (StringUtils.isNotBlank(entryInfoEntity.getParentID())) {
                 continue;
             }
-            String translateType = taskInfoMapper.selectById(taskID).getTranslateType();
+
             String translate = "";
 
             switch (translateType) {
+                case ConstantInterface.CHINESE:
+                    if (StringUtils.isBlank(entryInfoEntity.getChinese())) {
+                        translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority,department);
+                        if (StringUtils.isNotBlank(translate)) {
+                            entryInfoEntity.setChinese(translate);
+                        }
+                    }
+                    entryInfoEntities.add(entryInfoEntity);
+                    break;
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isBlank(entryInfoEntity.getEnglish())) {
                         translate = addSuggessTransByPriority(entryInfoEntity, translateType, priority,department);
@@ -466,6 +488,19 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
             String fileName = "";
             if (StringUtils.isNotBlank(translateType)){
                 switch (translateType) {
+                    case ConstantInterface.CHINESE:
+                        if (fileType.equals("common")) {
+                            //src/main/resources/config/en_common.xlsx
+                            fileUrl = config_File_Common_ZH_Url;
+                            fileName = "通用词条中文翻译模板_common.xlsx";
+                        } else if (fileType.equals("zz")) {
+                            fileUrl = config_File_ZZ_ZH_Url;
+                            fileName = "装置词条中文翻译模板_zz.xlsx";
+                        } else if (fileType.equals("jk")) {
+                            fileUrl = config_File_JK_ZH_Url;
+                            fileName = "监控词条中文翻译模板_zz.xlsx";
+                        }
+                        break;
                     case ConstantInterface.ENGLISH:
                         if (fileType.equals("common")) {
                             //src/main/resources/config/en_common.xlsx
@@ -599,6 +634,9 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
 
     private void sortEmptyTrans(List<EntryInfoEntity> entryInfoEntityList, String translateType) {
         switch (translateType){
+            case ConstantInterface.CHINESE:
+                entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getChinese, Comparator.nullsFirst(Comparator.naturalOrder())));
+                break;
             case ConstantInterface.ENGLISH:
                 entryInfoEntityList.sort(Comparator.comparing(EntryInfoEntity::getEnglish, Comparator.nullsFirst(Comparator.naturalOrder())));
                 break;
@@ -791,6 +829,11 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         for (EntryInfoEntity entryInfoEntity1 : childrenInfoEntry) {
             entryInfoEntity1.setEntryState(entryInfoEntity.getEntryState());
             switch (translateType){
+                case ConstantInterface.CHINESE:
+                    if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+                        entryInfoEntity1.setZhTransId(entryInfoEntity.getZhTransId());
+                    }
+                    break;
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
                         entryInfoEntity1.setEnTransId(entryInfoEntity.getEnTransId());
@@ -824,6 +867,23 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
         String finalTransId ;
         //如果有翻译 就更新翻译
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                transId = updateTrans(entryInfoEntity.getChineseAuditSuggest(), entryInfoEntity.getChinese(), entryInfoEntity.getZhTransId(), ConstantInterface.CHINESE, entryInfoEntity.getChineseTranslateState(), entryInfoEntity, department);
+                if (StringUtils.isBlank(transId)){
+                    return "";
+                }
+                entryInfoEntity.setZhTransId(transId);
+
+
+                finalTransId = transId;
+                if (CollectionUtils.isEmpty(entryInfoEntity.getChildren())){
+                    break;
+                }
+                entryInfoEntity.getChildren().stream().forEach(entryInfoEntity1 -> {
+                    entryInfoEntity1.setZhTransId(finalTransId);
+                });
+                // writeI18Entry(entryInfoEntity, entryInfoEntity.getEnglish());
+                break;
             case ConstantInterface.ENGLISH:
                 transId = updateTrans(entryInfoEntity.getEnglishAuditSuggest(), entryInfoEntity.getEnglish(), entryInfoEntity.getEnTransId(), ConstantInterface.ENGLISH, entryInfoEntity.getEnglishTranslateState(), entryInfoEntity, department);
                 if (StringUtils.isBlank(transId)){

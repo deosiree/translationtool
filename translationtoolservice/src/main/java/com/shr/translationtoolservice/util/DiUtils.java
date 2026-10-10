@@ -114,7 +114,7 @@ public class DiUtils {
 
         } catch (Exception e) {
             log.error(" 请求失败 URL ： " + i18nUrl + ConstantInterface.UPDTAE_DICTIONARY + ConstantInterface.SPRIT);
-            e.printStackTrace();
+            log.error(e.getMessage(),e);
             return ErrorCodeList.I18N_SERVER_ERROR;
         }
         return ConstantInterface.OK_STR;
@@ -131,6 +131,12 @@ public class DiUtils {
         // dictionaryVo.setTag(entryInfoEntity.getEntryLabel());
         Map<String, String> transMap = new HashMap<>();
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+                    transMap.put(langCode, entryInfoEntity.getChinese());
+                    dictionaryVo.setTranslation(transMap);
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
                     transMap.put(langCode, entryInfoEntity.getEnglish());
@@ -182,6 +188,12 @@ public class DiUtils {
                     transMap = new HashMap<>();
                 }
                 switch (translateType) {
+                    case ConstantInterface.CHINESE:
+                        if (StringUtils.isNotBlank(entryInfoEntity.getChinese())) {
+                            transMap.put(langCode, entryInfoEntity.getChinese());
+                            dictionaryVo.setTranslation(transMap);
+                        }
+                        break;
                     case ConstantInterface.ENGLISH:
                         if (StringUtils.isNotBlank(entryInfoEntity.getEnglish())) {
                             transMap.put(langCode, entryInfoEntity.getEnglish());
@@ -247,12 +259,54 @@ public class DiUtils {
                 if (dicName.contains("/")){
                     dicName1 = dicName.split("/")[1];
                 }
-                String s = httpUtils.get(i18nUrl + ConstantInterface.IMPORT_DICTIONARY, headerParameters);
-                jsonArray = JSONArray.parseArray(s);
-                for (int i = 0; i < jsonArray.size(); i++) {
-                    DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
-                    if (Objects.isNull(dictionaryVo.getTranslation())) {
-                        continue;
+            } catch (Exception e) {
+                if(!exceptionCollection.containsKey(e)){
+                    exceptionCollection.put(e, new HashSet<>());
+                }
+                exceptionCollection.get(e).add(dicName);
+                
+                // exceptionList.add("当前读取文件: \"" + dicName +"\"" + "时发生异常,请检查网络服务是否正常, 该文件是否存在, 文件内容是否存在异常");
+                continue;
+            }
+            for (int i = 0; i < jsonArray.size(); i++) {
+                DictionaryVo dictionaryVo = JSONObject.parseObject(jsonArray.getString(i), DictionaryVo.class);
+                if (Objects.isNull(dictionaryVo.getTranslation())) {
+                    continue;
+                }
+                EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
+                entryInfoEntity.setId(commonUtils.getUUID());
+                entryInfoEntity.setEntry(dictionaryVo.getSource());
+                entryInfoEntity.setVersionID(versionID);
+                entryInfoEntity.setTaskId(taskID);
+                entryInfoEntity.setTag(dictionaryVo.getTag());
+                entryInfoEntity.setComment(dictionaryVo.getComments());
+                entryInfoEntity.setImportType(ConstantInterface.DI);
+                entryInfoEntity.setWriteType(ConstantInterface.DI);
+                entryInfoEntity.setEntryState(1);
+                entryInfoEntity.setEntrySource(dicName);
+                entryInfoEntity.setDiFileName("tr/" + dicName1);
+                entryInfoEntity.setProductID(productId);
+                entryInfoEntity.setIsDelete(0);
+                entryInfoEntity.setUpdateTime(date);
+                entryInfoEntity.setUpdate(userName);
+                Map<String, String> map = dictionaryVo.getTranslation();
+                if (StringUtils.isBlank(map.get(translateType))) {
+                    switch (translateType) {
+                        case ConstantInterface.CHINESE:
+                            entryInfoEntity.setChinese(map.get(translateType));
+                            break;
+                        case ConstantInterface.ENGLISH:
+                            entryInfoEntity.setEnglish(map.get(translateType));
+                            break;
+                        case ConstantInterface.RUSSIAN:
+                            entryInfoEntity.setRussian(map.get(translateType));
+                            break;
+                        case ConstantInterface.FRENCH:
+                            entryInfoEntity.setFrench(map.get(translateType));
+                            break;
+                        case ConstantInterface.SPANISH:
+                            entryInfoEntity.setSpanish(map.get(translateType));
+                            break;
                     }
                     EntryInfoEntity entryInfoEntity = new EntryInfoEntity();
                     entryInfoEntity.setId(commonUtils.getUUID());
@@ -354,6 +408,14 @@ public class DiUtils {
     private void createNewTrans(EntryInfoEntity entryInfoEntity, String translateType, String translate) {
         //写入翻译字段
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(translate)) {
+                    entryInfoEntity.setChinese(translate);
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(translate)) {
                     entryInfoEntity.setEnglish(translate);

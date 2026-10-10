@@ -235,6 +235,14 @@ public class I18SeverController extends BaseController {
     private void createNewTrans(EntryInfoEntity entryInfoEntity, String translateType, String translate) {
         //写入翻译字段
         switch (translateType) {
+            case ConstantInterface.CHINESE:
+                if (StringUtils.isNotBlank(translate)) {
+                    entryInfoEntity.setChinese(translate);
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.TRANSLATED);
+                } else {
+                    entryInfoEntity.setChineseTranslateState(ConstantInterface.UNTRANSLATED);
+                }
+                break;
             case ConstantInterface.ENGLISH:
                 if (StringUtils.isNotBlank(translate)) {
                     entryInfoEntity.setEnglish(translate);
@@ -290,6 +298,9 @@ public class I18SeverController extends BaseController {
                     Map<String, String> requestMap = new HashMap<>();
                     requestMap.put("source", entryInfoEntity.getEntry());
                     switch (tsWordVO.getTranslateType()) {
+                        case ConstantInterface.CHINESE:
+                            requestMap.put("translate", entryInfoEntity.getChinese());
+                            break;
                         case ConstantInterface.ENGLISH:
                             requestMap.put("translate", entryInfoEntity.getEnglish());
                             break;
@@ -757,6 +768,9 @@ public class I18SeverController extends BaseController {
                 Map<String, String> map = dictionaryVo.getTranslation();
                 if (StringUtils.isBlank(map.get(code))) {
                     switch (code) {
+                        case ConstantInterface.CHINESE:
+                            entryInfoEntity.setChinese(map.get(code));
+                            break;
                         case ConstantInterface.ENGLISH:
                             entryInfoEntity.setEnglish(map.get(code));
                             break;
@@ -839,7 +853,7 @@ public class I18SeverController extends BaseController {
                     entryInfoEntity.setVersionID(versionID);
                     entryInfoEntity.setTaskId(taskID);
                     entryInfoEntity.setTag(dictionaryVo.getTag());
-                    entryInfoEntity.setEntryLabel(dictionaryVo.getComments());
+                    entryInfoEntity.setComment(dictionaryVo.getComments());
                     entryInfoEntity.setImportType(ConstantInterface.DI);
                     entryInfoEntity.setWriteType(ConstantInterface.DI);
                     entryInfoEntity.setEntryState(1);
@@ -852,6 +866,9 @@ public class I18SeverController extends BaseController {
                     Map<String, String> map = dictionaryVo.getTranslation();
                     if (StringUtils.isBlank(map.get(code))) {
                         switch (code) {
+                            case ConstantInterface.CHINESE:
+                                entryInfoEntity.setChinese(map.get(code));
+                                break;
                             case ConstantInterface.ENGLISH:
                                 entryInfoEntity.setEnglish(map.get(code));
                                 break;
@@ -1124,6 +1141,7 @@ public class I18SeverController extends BaseController {
             String source = nodeName + "_" + appName + "_" + dbName + "_" + tbName;
             for (int i = 0; i < jsonArray.size(); i++) {
                 TDBFieldInfo tdbFieldInfo = JSONArray.parseObject(jsonArray.getString(i), TDBFieldInfo.class);
+                String fieldName = tdbFieldInfo.getFieldName();
                 for (String entry : tdbFieldInfo.getFieldDatas()) {
                     EntryInfoEntity fieldEntry = new EntryInfoEntity();
                     fieldEntry.setId(commonUtils.getUUID());
@@ -1141,6 +1159,8 @@ public class I18SeverController extends BaseController {
                     fieldEntry.setIsDelete(0);
                     fieldEntry.setImportType(ConstantInterface.DB_META);
                     fieldEntry.setWriteType(ConstantInterface.DI);
+                    fieldEntry.setTag(tbName + "/" + fieldName);
+                    fieldEntry.setImportType(ConstantInterface.DB);
                     entryInfoEntities.add(fieldEntry);
                 }
 

@@ -40,6 +40,8 @@ public class ErrorCodeList {
     public static final String OPERATE_ERROR = "操作记录更新失败";
     public static final String ENTRY_EXIST = "词条已存在";
 
+    public static final String ENTRY_STATE_ERROR = "词条状态异常（只允许新建词条）";
+
     public static final String UPDATE_TS_ERROR = "TS文件 更新失败 !";
     public static final String UPDATE_DIC_ERROR = "词典 更新失败 !";
     public static final String GET_DIC_ERROR = "词典 获取失败 !";

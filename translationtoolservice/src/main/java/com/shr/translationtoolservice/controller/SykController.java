@@ -1,6 +1,8 @@
 package com.shr.translationtoolservice.controller;
 
+import com.hankcs.hanlp.dependency.nnparser.parser_dll;
 import com.shr.translationtoolservice.common.HttpResponse;
+import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import com.shr.translationtoolservice.entity.ResponseListModel;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
@@ -16,9 +18,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Predicate;
 
 
 /**
@@ -45,8 +52,8 @@ public class SykController extends BaseController{
         ResponseListModel responseListModel = new ResponseListModel();
         translate.setEntry(StringUtil.addEscapeCharacter(translate.getEntry()));
         translate.setTranslate(StringUtil.addEscapeCharacter(translate.getTranslate()));
-        responseListModel.setList(sykService.getSykEntry(translate,pageIndex,pageSize));
-        responseListModel.setTotalNum(sykService.getSykEntry(translate,-1,-1).size());
+        responseListModel.setList(sykService.getSykEntry(translate,null,pageIndex,pageSize));
+        responseListModel.setTotalNum(sykService.getSykEntry(translate,null,-1,-1).size());
         return checkResult(responseListModel);
     }
 
@@ -135,5 +142,39 @@ public class SykController extends BaseController{
         List<TranslateEntity> problemEntities = sykService.checkSykEntryOnList(translateEntities);
         return checkResult(problemEntities);
 
+    }
+
+
+    @PostMapping("/checkSykSameEntry")
+    @ApiOperation("获取一个词条多种翻译的术语")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> checkSykSameEntry(@RequestBody TranslateEntity translate , @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
+                                                      @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
+        ResponseListModel<TranslateEntity> responseListModel = new ResponseListModel<>();
+        translate.setEntry(StringUtil.addEscapeCharacter(translate.getEntry()));
+        translate.setTranslate(StringUtil.addEscapeCharacter(translate.getTranslate()));
+        /* 获取术语库中entry,type,department相同,但翻译不同的术语(translate为null，entry,type,department不为null) */
+        List<TranslateEntity> acquireSykSameEntry = sykService.acquireSykSameEntry(translate,pageIndex,pageSize);
+        responseListModel.setList(acquireSykSameEntry); 
+        responseListModel.setTotalNum(sykService.acquireSykSameEntry(translate,-1,-1).size());
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/getSameEntryRelation")
+    @ApiOperation("获取术语库词条关联信息")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<ResponseListModel> getSameEntryRelation(@RequestBody TranslateEntity template) {
+        /* 获取符合条件的所有术语 */
+        ResponseListModel<SykEntryVO> responseListModel = new ResponseListModel();
+        Set<String> matchList = new HashSet<>();
+        matchList.add("translate");
+        matchList.add("entry");
+        List<TranslateEntity> translateEntities = sykService.getSykEntry(template,matchList,-1,-1);
+        List<SykEntryVO> translateEntityList = sykService.getSykEntryRelation(translateEntities);
+        responseListModel.setList(translateEntityList);
+        responseListModel.setTotalNum(translateEntityList.size());
+        return checkResult(responseListModel);
     }
 }

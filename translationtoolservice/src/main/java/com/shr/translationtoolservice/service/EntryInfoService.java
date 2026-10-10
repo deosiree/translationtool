@@ -4,13 +4,12 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.*;
-import com.shr.translationtoolservice.entity.vo.TsVo.TsEntryInfoVo;
-
-import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.HashMap;
+
+import java.io.ByteArrayOutputStream;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -18,7 +17,7 @@ import java.util.Set;
 /**
  *
  */
-public interface EntryInfoService extends IService<EntryInfoEntity> {
+public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileImportService,EntryFileExportService,EntryFileService {
 
     List<EntryInfoEntity> getEntryByVersion(EntryInfoEntity entryInfoEntity,Integer offset,Integer pageSize);
 
@@ -44,9 +43,10 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String upgrade(UpgradeVO upgradeVO, HttpServletRequest request);
 
-    String updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
+    List<EntryUpdateInfoEntity> updateEntryInfoList(List<EntryInfoEntity> entryInfoEntities, HttpServletRequest request, String notes);
 
-    List<EntryInfoEntity>  importExcle(MultipartFile multipartFile,String taskID);
+
+    boolean checkBeforeAddSingleEntry(EntryInfoEntity entryInfoEntity,String department);
 
     EntryInfoEntity addSingleEntry(EntryInfoEntity entryInfoEntity, HttpServletRequest request);
 
@@ -58,22 +58,21 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     void versionExport(String versionID, HttpServletResponse response,String translateType);
 
-    List<EntryInfoEntity> importZZExcle(MultipartFile multipartFile, String taskID,HttpServletRequest httpServletRequest);
 
     List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,HttpServletRequest httpServletRequest);
+
+    List<EntryInfoEntity> insertEntry(List<EntryInfoEntity> entryInfoEntities,String taskID,String userName,String department);
 
 
     String addEntryAudit(List<EntryInfoEntity> entryInfoEntities, String taskID, HttpServletRequest request);
 
     String createVersionByEntry(List<EntryInfoEntity> entryInfoEntities, String productID, String common, String versionName, HttpServletRequest request);
 
-    void entryExportByCondition( ExcelExportVO excelExportVO, HttpServletResponse response,String taskID);
 
     List<EntryClassify> getClassfy(String parentId, String type);
 
-    String addProductRelation(List<EntryInfoEntity>  relationEntity,HttpServletRequest request);
+    String addProductRelation(List<EntryInfoEntity>  relationEntity,HttpServletRequest request) throws Exception;
 
-    List<EntryInfoEntity> importCommonExcle(MultipartFile multipartFile, String taskID);
 
     List<EntryInfoEntity>  filterSourceLanguage(List<EntryInfoEntity> entryInfoEntities, String languageType);
 
@@ -81,17 +80,12 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
 
     String setInfoByEntryList(List<EntryInfoEntity> entryInfoEntities, String translateType, String writeType, boolean tag, boolean comment, String fileName,String i18nUrl);
 
-    String importTransExcle(MultipartFile multipartFile, HttpServletRequest httpServletRequest,String transType);
-
-    List<EntryInfoEntity> workImportExcleTrans(MultipartFile multipartFile,  String taskID);
 
     List<EntryInfoEntity> capitalizeWords(List<EntryInfoEntity> entryInfoEntities, String changeType,String translateType);
 
     List<EntryInfoEntity> replaceWords(List<EntryInfoEntity> entryInfoEntities, String sourceStr, String replaceStr,String translateType);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntity, String classfyID, Integer pageIndex, Integer pageSize,String translateType);
-
-    int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
+    // int getEntryByClassfTotal(EntryInfoEntity entryInfoEntity, String classfyID,String translateType);
 
     List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID, Map<String,List<String>> soucreMap)
      throws Exception;
@@ -102,20 +96,26 @@ public interface EntryInfoService extends IService<EntryInfoEntity> {
     List<EntryInfoEntity> checkNotUseEntry(String i18nUrl,String classfyID,  Map<String,List<String>> soucreMap,Map<String,String> condition) throws Exception;
 
 
-    List<TaskEntryVO> checkNewEntryByClassfy(String i18nUrl, String classfyID, HttpServletRequest request);
-
-    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,HttpServletRequest request);
+    List<SourceEntryVO> getEntrysourceListByClassfy( String classfyID,String i18nUrl,String token,List<String> exceptionMessage);
 
     void doWeight();
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
 
-    List<EntryInfoEntity> getEntryByClassfy(EntryInfoEntity entryInfoEntityTemplate,String classfyID);
-
-    List<EntryInfoEntity> onPage(List<EntryInfoEntity> entryInfoEntities,Integer pageIndex,Integer pageSize);
-
-    List<EntryInfoEntity> filterEntryInfoByTransInfo(List<EntryInfoEntity> entryInfoEntities,EntryInfoEntity entryInfoEntityTemplate,String translateType);
-
+    EntryInfoVO getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime,Integer pageIndex,Integer pageSize);
+    
+    EntryInfoVO getEntryByClassfyOnPage(String classfyID, Integer pageIndex, Integer pageSize);
 
     List<EntryInfoEntity> getEntryInfoByTsVo(List<TsVo> tsVoList);
+    /* 禁用词条 */
+    boolean forrbiddenEntry(List<EntryInfoEntity> entryInfoEntities,HttpServletRequest request);
+
+    Set<String> getEntrySourcesByClassify(String classifyID,String writeType);
+
+    Set<String> getWriteFileNamesByClassify(String classifyID,String writeType);
+
+
+    EntryInfoGroupVO makeGroupForEntryInfos(Collection<EntryInfoEntity> entryInfoEntities,Collection<String> replicatedTargetAttributes);
+
+    void getLog(ByteArrayOutputStream outputStream, String logPath);
 }

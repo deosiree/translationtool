@@ -4,6 +4,7 @@ import com.shr.translationtoolservice.entity.EntryInfoEntity;
 import lombok.Data;
 
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * @ClassName ExcelExportVO
@@ -20,5 +21,10 @@ public class ExcelExportVO {
     //文件名字
     private String excelName;
     //导出数据
-    private List<EntryInfoEntity> entryInfoEntities;
+    private List<T> entryInfoEntities;
+    /* 导出的文件类型: xlsx,csv,xml */
+    private String exportFileType;
+    /* 判断词条是否不应当被导出,test方法为true，代表不应该被导出 */
+    private Predicate<EntryInfoEntityForExcel> predicate;
+
 }

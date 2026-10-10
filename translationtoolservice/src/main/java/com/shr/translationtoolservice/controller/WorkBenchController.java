@@ -1,16 +1,12 @@
 package com.shr.translationtoolservice.controller;
 
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.common.Token;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.DictionaryVo;
-import com.shr.translationtoolservice.entity.vo.ImportResultEntryVO;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
 import com.shr.translationtoolservice.service.I18nService;
 import com.shr.translationtoolservice.service.TI8nAddressService;
-import com.shr.translationtoolservice.util.CommonUtils;
-import com.shr.translationtoolservice.util.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -42,30 +39,12 @@ public class WorkBenchController extends BaseController {
     private EntryInfoService entryInfoService;
     @Autowired
     private EntryTempService entryTempService;
-    @Autowired
-    private CommonUtils commonUtils;
 
     @Autowired
     private TI8nAddressService ti8nAddressService;
     @Autowired
     private I18nService i18nService;
-    @Autowired
-    private StringUtil stringUtil;
 
-    @PostMapping("/importExcle")
-    @ApiOperation("导入excle(预留)")
-    @CrossOrigin
-    @Transactional
-    public HttpResponse<ResponseListModel> importExcle(@RequestParam("file") MultipartFile multipartFile,
-                                                       @RequestParam("taskID") String taskID
-    ) {
-        ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryInfoEntity> entryEntities = entryInfoService.importExcle(multipartFile, taskID);
-        responseListModel.setList(entryEntities);
-        responseListModel.setTotalNum(entryEntities.size());
-
-        return checkResult(responseListModel);
-    }
 
 
     @GetMapping("/getI18nAdress")
@@ -116,12 +95,21 @@ public class WorkBenchController extends BaseController {
     public HttpResponse<ResponseListModel> importCommonExcle(@RequestParam("file") MultipartFile multipartFile,
                                                              @RequestParam("taskID") String taskID
     ) {
-        ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryInfoEntity> entryEntities = entryInfoService.importCommonExcle(multipartFile, taskID);
-        responseListModel.setList(entryEntities);
-        responseListModel.setTotalNum(entryEntities.size());
+        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
+        try {
+            ResponseListModel responseListModel = new ResponseListModel();
+            List<EntryInfoEntity> entryEntities = entryInfoService.importCommonExcle(FileInputStreamEntity.convertFrom(multipartFile), taskID);
+            responseListModel.setList(entryEntities);
+            responseListModel.setTotalNum(entryEntities.size());
 
-        return checkResult(responseListModel);
+            return checkResult(responseListModel);            
+        } catch (Exception e) {
+            log.error("导入翻译文件时出现异常", e);
+            return error(null, String.format("导入文件时出现异常, 异常信息为: %s", e.getMessage()));
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
+        }
+
     }
 
 
@@ -131,13 +119,31 @@ public class WorkBenchController extends BaseController {
     @Transactional
     //new
     public HttpResponse<ResponseListModel> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,
-                                                            @RequestParam("taskID") String taskID, HttpServletRequest httpServletRequest
+        @RequestParam(value = "departmentType",defaultValue = "通用平台部") String departmentType, 
+        @RequestParam("taskID") String taskID,
+        @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding, 
+        HttpServletRequest httpServletRequest
     ) {
         ResponseListModel responseListModel = new ResponseListModel();
-        List<EntryInfoEntity> entryInfoEntities = entryInfoService.importZZExcle(multipartFile, taskID, httpServletRequest);
-        responseListModel.setList(entryInfoEntities);
-        responseListModel.setTotalNum(entryInfoEntities.size());
-        return checkResult(responseListModel);
+        Collection<EntryInfoEntity> entryInfoEntities = null;
+        FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
+        try {
+            entryInfoEntities = entryInfoService.importEntitiesFromFile(fileInputStreamEntity, taskID,departmentType, encoding,httpServletRequest);
+
+            if(entryInfoEntities == null){
+                throw new NullPointerException("entryInfoEntities == null");
+            }
+            responseListModel.setList(entryInfoEntities);
+            responseListModel.setTotalNum(entryInfoEntities.size());
+            return checkResult(responseListModel);
+        } catch (Exception e) {
+            // TODO: handle exception
+            log.error("导入excel文件的词条时报错", e);
+            return error(null, e.getMessage());
+        } finally{
+            FileInputStreamEntity.close(fileInputStreamEntity);
+        }
+
     }
 
     @PostMapping("/insertEntry")
@@ -220,18 +226,6 @@ public class WorkBenchController extends BaseController {
 
         return checkResult(result);
     }
-/*
-    @PostMapping("/deleteEntryInfoByID")
-    @ApiOperation("删除词条")
-    @CrossOrigin
-    @Transactional
-    public HttpResponse<String> deleteEntryInfoByID(@RequestBody List<String> entryID
-                                                   ) {
-
-        String result = entryTempService.deleteEntryInfoByID(entryID);
-
-        return checkResult(result);
-    }*/
 
     @PostMapping("/preTranslate")
     @ApiOperation("预翻译")
@@ -240,7 +234,7 @@ public class WorkBenchController extends BaseController {
     public HttpResponse<ResponseListModel> preTranslate( HttpServletRequest request,@RequestBody List<EntryInfoEntity> entryInfoEntities, @RequestParam String taskID, @RequestParam String priority) {
         ResponseListModel responseListModel = new ResponseListModel();
 
-        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslate(request,entryInfoEntities, taskID, priority);
+        List<EntryInfoEntity> entryInfoEntities1 = entryTempService.preTranslateForTask(request,entryInfoEntities, taskID, priority);
         responseListModel.setList(entryInfoEntities1);
         responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);
