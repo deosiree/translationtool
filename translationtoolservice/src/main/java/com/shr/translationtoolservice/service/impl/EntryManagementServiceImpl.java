@@ -1,31 +1,23 @@
 package com.shr.translationtoolservice.service.impl;
 
-import cn.hutool.poi.excel.ExcelUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
-import com.shr.translationtoolservice.service.EntryCommonEntityService;
-import com.shr.translationtoolservice.service.EntryProductEntityService;
-import com.shr.translationtoolservice.service.EntryProjectEntityService;
 import com.shr.translationtoolservice.service.EntryManagementService;
 import com.shr.translationtoolservice.util.*;
 
 import lombok.extern.slf4j.Slf4j;
 import org.assertj.core.util.Lists;
 import org.junit.platform.commons.util.StringUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -39,23 +31,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class EntryManagementServiceImpl implements EntryManagementService {
     @Autowired
-    private TranslateUtils translate;
-    @Autowired
-    private EntryProductEntityMapper entryProductEntityMapper;
-    @Autowired
-    private EntryProjectEntityMapper entryProjectEntityMapper;
-    @Autowired
     private EntryCommonEntityMapper entryCommonEntityMapper;
-    @Autowired
-    private EntryProductEntityService entryProductEntityService;
-    @Autowired
-    private EntryCommonEntityService entryCommonEntityService;
     @Autowired
     private EntryMapper entryMapper;
     @Autowired
     private EntryOperateMapper entryOperateMapper;
-    @Autowired
-    private EntryVersionMapper entryVersionMapper;
     @Autowired
     private IndexMapper indexMapper;
     @Autowired
@@ -78,6 +58,9 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Autowired
     private ExcelUtils excelUtils;
+
+    @Autowired
+    private BaiduTransUtils baiduTransUtils;
 
     @Autowired
     private YoudaoTrans youdaoTrans;
@@ -330,6 +313,27 @@ public class EntryManagementServiceImpl implements EntryManagementService {
 
     @Override
     public String deleteEntryClassfy(List<String> idList) {
+        //List<EntryClassify> entryClassifies = entryClassifyMapper.getEntryClassfyByParentId(idList);
+       /* for (String id : idList) {
+            //判断当前分类是否是产品分类
+
+            //如果type是classify,则判断是否有子分类
+
+            //如果有子分类，判断子分类是否是产品分类
+
+            //如果是产品分类则用id去任务表里查询是否有在执行的任务（）
+
+            //如果有在执行的任务则返回错误
+
+
+
+
+
+            if (!CollectionUtils.isEmpty(entryClassifies)) {
+                return ErrorCodeList.OBJECT_HAS_EXIST;
+            }
+        }*/
+
         int delete = entryClassifyMapper.deleteByIds(idList);
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
@@ -435,13 +439,18 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         List<EntryInfoEntity> entryInfoEntities = new ArrayList<>();
         try {
 
-            entryInfoEntities = excelUtils.readExcelToEntity(EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename());
+            entryInfoEntities = excelUtils.readExcelToEntity(transType,EntryInfoEntity.class, multipartFile.getInputStream(), multipartFile.getOriginalFilename()).getParsedObjects().stream().collect(Collectors.toList());
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         for (EntryInfoEntity  entryInfoEntity : entryInfoEntities){
             switch (transType){
+                case ConstantInterface.CHINESE:
+                    if (StringUtils.isBlank(entryInfoEntity.getChinese())){
+                        entryInfoEntity.setChineseTranslateState("0");
+                    }
+                    break;
                 case ConstantInterface.ENGLISH:
                     if (StringUtils.isBlank(entryInfoEntity.getEnglish())){
                         entryInfoEntity.setEnglishTranslateState("0");
@@ -1007,19 +1016,40 @@ public class EntryManagementServiceImpl implements EntryManagementService {
         //ArrayList<TranslateEntity> list = new ArrayList<>();
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
 
-        try {
+
             for (TLanguage tLanguage : tLanguages) {
                 if (tLanguage.getName().equals(type)) {
                     continue;
                 }
-                languageEntities.add(translate.getTranslateResult(entry, ConstantInterface.AUTO, tLanguage));
-                Thread.sleep(1000);
+                //languageEntities.add(translate.getTranslateResult(entry, ConstantInterface.AUTO, tLanguage));
+                //默认主语言都是中文
+                String trans = "";
+
+                try {
+                 trans = baiduTransUtils.translate(entry, "zh", tLanguage.getBdCode());
+                // Thread.sleep(1000);
+                } catch (Exception e) {
+                    log.error(" 百度翻译异常 ！ ");
+                    e.printStackTrace();
+                }
+                LanguageEntity languageEntity = new LanguageEntity();
+                languageEntity.setValue(trans);
+                ConstantInterface.getInstance();
+                Map<String, String> languageMap = ConstantInterface.LANGUAGE_MAP;
+
+                languageEntity.setLanguage(languageMap.get(tLanguage.getBdCode()).toLowerCase());
+                languageEntity.setState(true);
+
+
+
+                languageEntities.add(languageEntity);
+
+
+
             }
             entryEntity.setLanguageEntities(languageEntities);
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
 
         return entryEntity;
     }

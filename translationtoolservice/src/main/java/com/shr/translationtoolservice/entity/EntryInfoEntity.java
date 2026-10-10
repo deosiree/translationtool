@@ -93,6 +93,17 @@ public class EntryInfoEntity implements Serializable {
     @DefaultValue("")
     private String englishInterpretation;
 
+    @TableField(value = "russian_interpretation")
+    @DefaultValue("")
+    private String russianInterpretation;
+
+    @TableField(value = "french_interpretation")
+    @DefaultValue("")
+    private String frenchInterpretation;
+
+    @TableField(value = "spanish_interpretation")
+    @DefaultValue("")
+    private String spanishInterpretation;
     /**
      * 词条来源
      */
@@ -171,7 +182,7 @@ public class EntryInfoEntity implements Serializable {
      */
     @TableField(value = "en_trans_id")
     @DefaultValue("")
-    private String enTransId;
+        private String enTransId;
     @TableField(exist = false)
     @DefaultValue("")
     private String english;
@@ -190,6 +201,24 @@ public class EntryInfoEntity implements Serializable {
     @TableField(value = "en_char_length")
     @DefaultValue("")
     private Integer enCharLength;
+
+
+    /**
+     * 俄文翻译id
+     */
+    @TableField(value = "zh_trans_id")
+    @DefaultValue("")
+    private String zhTransId;
+    @TableField(exist = false)
+    @DefaultValue("")
+    private String chinese;
+    @TableField(exist = false)
+    @DefaultValue("")
+    private String chineseTranslateState;
+    @TableField(exist = false)
+    @DefaultValue("")
+    private String chinesePublicState;
+
     /**
      * 俄文翻译id
      */
@@ -205,6 +234,9 @@ public class EntryInfoEntity implements Serializable {
     @TableField(exist = false)
     @DefaultValue("")
     private String russianPublicState;
+
+    @TableField(exist = false)
+    private String chineseAuditSuggest;
 
     @TableField(exist = false)
     private String englishAuditSuggest;
@@ -224,6 +256,12 @@ public class EntryInfoEntity implements Serializable {
     @TableField(value = "ru_char_length")
     @DefaultValue("")
     private Integer ruCharLength;
+    /**
+     * 俄文翻译长度
+     */
+    @TableField(value = "zh_char_length")
+    @DefaultValue("")
+    private Integer zhCharLength;
 
 
     /**
@@ -334,6 +372,11 @@ public class EntryInfoEntity implements Serializable {
     @TableField(value = "tag")
     private String tag;
 
+    /**
+     * comment
+     */
+    @TableField(value = "comment")
+    private String comment;
 
     /**
      * 存在情况（0否 1是） 导入时使用这个判断是否存在用
@@ -357,4 +400,13 @@ public class EntryInfoEntity implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+
+    /*来源表名*/
+    @TableField(value = "source_table")
+    private String srcTabName;
+    /*数据库记录ID */
+    @TableField(value = "db_record_id")
+    private String dbRID;
+
 }

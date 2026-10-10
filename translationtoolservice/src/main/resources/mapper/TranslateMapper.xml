@@ -17,7 +17,17 @@
         <result property="versionID" column="version_id" jdbcType="VARCHAR"/>
         <result property="translateState" column="translate_state" jdbcType="INTEGER"/>
         <result property="auditSuggest" column="audit_suggest" jdbcType="VARCHAR"/>
-        <result property="lastUseTime" column="last_use_time" jdbcType="VARCHAR"/>
+        <result property="lastUseTime" column="last_use_time" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <resultMap id = "translateEntitiyReplicateCheckVOMap" type = "com.shr.translationtoolservice.entity.vo.TranslateEntitiyReplicateCheckVO">
+        <result property="id" column="id" jdbcType="VARCHAR"/>
+        <result property="entry" column="entry" jdbcType="VARCHAR"/>
+        <result property="translate" column="translate" jdbcType="VARCHAR"/>
+        <result property="translateType" column="type" jdbcType="VARCHAR"/>
+        <result property="visualRange" column="visual_range" jdbcType="VARCHAR"/>
+        <result property="translateState" column="translate_state" jdbcType="INTEGER"/>
+        <result property="latestUseTime" column="last_use_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
@@ -29,15 +39,15 @@
     <select id="getTrans" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
-        from t_translate where delete_state =0 and public_state =0
+            from t_translate where delete_state =0 and public_state =0
         <if test="translateEntity.translate != null  and translateEntity.translate != ''">
-            and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+            and BINARY `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
             and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.entry != null  and translateEntity.entry != ''">
-            and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
+            and BINARY entry = #{translateEntity.entry,jdbcType=VARCHAR}
         </if>
         <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
             and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
@@ -46,6 +56,76 @@
             LIMIT #{limit} OFFSET #{offset}
         </if>
     </select>
+    <select id="getSykTrans" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_translate where delete_state =0 and public_state =0
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            <choose>
+                <when test = "matchList != null and matchList.contains('translate')">
+                    and BINARY  `translate` = #{translateEntity.translate,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and  `translate`  like CONCAT('%',#{translateEntity.translate,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range  like CONCAT('%',#{translateEntity.visualRange,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            <choose>
+                <when test = "matchList != null and matchList.contains('entry')">
+                    and BINARY entry = #{translateEntity.entry,jdbcType=VARCHAR}
+                </when>
+                <otherwise>
+                    and  entry like CONCAT('%',#{translateEntity.entry,jdbcType=VARCHAR},'%')
+                </otherwise>
+            </choose>
+        </if>
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateState != null  and translateEntity.translateState != ''">
+            and translate_state = #{translateEntity.translateState,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.type != null  and translateEntity.type != ''">
+            and type = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+   <select id="checkSykSameEntry" resultMap="BaseResultMap">
+        SELECT tbl.entry,tbl.type,tbl.visual_range,count(*) from (SELECT entry,translate,type,visual_range FROM t_translate 
+        WHERE delete_state = 0 and public_state = 0 and entry is not NULL 
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            and  `translate`  like CONCAT('%',#{translateEntity.translate,jdbcType=VARCHAR},'%')
+
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range  like CONCAT('%',#{translateEntity.visualRange,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            and  entry like CONCAT('%',#{translateEntity.entry,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateState != null  and translateEntity.translateState != ''">
+            and translate_state = #{translateEntity.translateState,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.type != null  and translateEntity.type != ''">
+            and type = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+        GROUP BY entry,translate,type,visual_range  ORDER BY entry,type) as tbl 
+        GROUP BY tbl.entry,tbl.type,tbl.visual_range HAVING COUNT(*) > 1 
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
     <select id="getPublicEntry" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
@@ -86,6 +166,12 @@
         </if>
 
     </select>
+
+    <update id = "deleteById">
+        update t_translate set delete_state = 1 where id = #{translateEntity.id,jdbcType=VARCHAR}
+    </update>
+
+
     <update id="deleteByIds">
         update t_translate set delete_state = 1 where id in(
         <foreach collection="idList" item="id" index="index" separator=",">
@@ -98,7 +184,7 @@
     from t_translate
     where version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
     and public_state = 1 and delete_state = 0 and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
-    and  `translate` = #{translateEntity.translate,jdbcType=VARCHAR} and  entry = #{translateEntity.entry,jdbcType=VARCHAR}
+    and BINARY  `translate` = #{translateEntity.translate,jdbcType=VARCHAR} and BINARY entry = #{translateEntity.entry,jdbcType=VARCHAR}
 </select>
 
     <update id="updateTranslation">
@@ -107,15 +193,18 @@
         </foreach>
     </update>
 
+    <update id="updateEntity">
+        update t_translate set translate = #{translateEntity.translate,jdbcType=VARCHAR} where id = #{translateEntity.id,jdbcType=VARCHAR}
+    </update>
+
     <select id="selectRepByEntryTemp" resultMap="BaseResultMap">
         select   <include refid="Base_Column_List"/>
         from t_translate
         where delete_state = 0 and  version_id = #{entryTempEntity.versionID,jdbcType=VARCHAR}
-        and  entry = #{entryTempEntity.entry,jdbcType=VARCHAR}
-        and  `translate` = #{entryTempEntity.translate,jdbcType=VARCHAR}
+        and BINARY  entry = #{entryTempEntity.entry,jdbcType=VARCHAR}
+        and BINARY `translate` = #{entryTempEntity.translate,jdbcType=VARCHAR}
         and `type` = #{entryTempEntity.translateType,jdbcType=VARCHAR}
     </select>
-
 
 
     <select id="getSuggestTrans" resultMap="BaseResultMap">
@@ -148,12 +237,301 @@
         select  <include refid="Base_Column_List"/>
         from t_translate
         where delete_state = 0
-        and  entry = #{entry,jdbcType=VARCHAR}
+        and BINARY  entry = #{entry,jdbcType=VARCHAR}
         and `type` = #{translateType,jdbcType=VARCHAR}
-        <if test="visualRange != null  and visualRange != ''">
-            and visual_range = #{visualRange,jdbcType=VARCHAR}
-        </if>
+
+        and visual_range = #{visualRange,jdbcType=VARCHAR}
+        and BINARY `translate` =  #{translate,jdbcType=VARCHAR}
         and translate_state ='3'
-        and  `translate` =  #{translate,jdbcType=VARCHAR}
+    </select>
+
+    <insert id="insertTranslate" parameterType="com.shr.translationtoolservice.entity.TranslateEntity">
+        insert into t_translate
+    (
+    id,
+    entry,
+    `translate`,
+    `unique`,
+    remark,
+    `type`,
+    visual_range,
+    public_state,
+    delete_state,
+    version_id,
+    translate_state,
+    audit_suggest,
+    max_length,
+    char_length,
+    last_use_time)
+        values
+            (
+    #{translateEntity.id,jdbcType=VARCHAR},
+    #{translateEntity.entry,jdbcType=VARCHAR},
+    #{translateEntity.translate,jdbcType=VARCHAR},
+    #{translateEntity.unique,jdbcType=VARCHAR},
+    #{translateEntity.remark,jdbcType=VARCHAR},
+    #{translateEntity.type,jdbcType=VARCHAR},
+    #{translateEntity.visualRange,jdbcType=VARCHAR},
+    #{translateEntity.publicState,jdbcType=INTEGER},
+    #{translateEntity.deleteState,jdbcType=INTEGER},
+    #{translateEntity.versionID,jdbcType=VARCHAR},
+    #{translateEntity.translateState,jdbcType=INTEGER},
+    #{translateEntity.auditSuggest,jdbcType=VARCHAR},
+    #{translateEntity.maxLength,jdbcType=INTEGER},
+    #{translateEntity.charLength,jdbcType=INTEGER},
+   NOW()
+    )
+    </insert>
+
+    <insert id="batchInsertTranslate">
+        insert into t_translate
+        (
+            id,
+            entry,
+            `translate`,
+            `unique`,
+            remark,
+            `type`,
+            visual_range,
+            public_state,
+            delete_state,
+            version_id,
+            translate_state,
+            audit_suggest,
+            max_length,
+            char_length,
+            last_use_time
+        )
+        values
+        <foreach collection = "translateEntities" item = "translateEntity" separator = ",">
+            (
+                #{translateEntity.id,jdbcType=VARCHAR},
+                #{translateEntity.entry,jdbcType=VARCHAR},
+                #{translateEntity.translate,jdbcType=VARCHAR},
+                #{translateEntity.unique,jdbcType=VARCHAR},
+                #{translateEntity.remark,jdbcType=VARCHAR},
+                #{translateEntity.type,jdbcType=VARCHAR},
+                #{translateEntity.visualRange,jdbcType=VARCHAR},
+                #{translateEntity.publicState,jdbcType=INTEGER},
+                #{translateEntity.deleteState,jdbcType=INTEGER},
+                #{translateEntity.versionID,jdbcType=VARCHAR},
+                #{translateEntity.translateState,jdbcType=INTEGER},
+                #{translateEntity.auditSuggest,jdbcType=VARCHAR},
+                #{translateEntity.maxLength,jdbcType=INTEGER},
+                #{translateEntity.charLength,jdbcType=INTEGER},
+                NOW()
+            )
+        </foreach>
+    </insert>
+    <select id="getTransForCheckSykEntry" resultMap="BaseResultMap">
+        
+        select
+        <include refid="Base_Column_List"/>
+        from t_translate where delete_state =0 and public_state =0
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            and  `translate` like CONCAT('%',#{translateEntity.translate,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            and  entry like CONCAT('%',#{translateEntity.entry,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateState != null  and translateEntity.translateState != ''">
+            and translate_state = #{translateEntity.translateState,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.type != null  and translateEntity.type != ''">
+            and type = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="getTransForSykNotUsed" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_translate where delete_state =0 and public_state =0
+        <if test="translateEntity.translate != null  and translateEntity.translate != ''">
+            and  `translate` like CONCAT('%',#{translateEntity.translate,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="translateEntity.visualRange != null  and translateEntity.visualRange != ''">
+            and visual_range = #{translateEntity.visualRange,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.entry != null  and translateEntity.entry != ''">
+            and  entry like CONCAT('%',#{translateEntity.entry,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="translateEntity.versionID != null  and translateEntity.versionID != ''">
+            and version_id = #{translateEntity.versionID,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.translateState != null  and translateEntity.translateState != ''">
+            and translate_state = #{translateEntity.translateState,jdbcType=VARCHAR}
+        </if>
+        <if test="translateEntity.type != null  and translateEntity.type != ''">
+            and type = #{translateEntity.type,jdbcType=VARCHAR}
+        </if>
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
+
+    <select id="newGetRepTrans" resultMap="translateEntitiyReplicateCheckVOMap">
+        select  
+            id as id,
+            translate as translate,
+            entry as entry,
+            `type` as `type`,
+            visual_range as visual_range,
+            translate_state as translate_state,
+            last_use_time as last_use_time
+        from t_translate
+        where delete_state = 0
+        <!-- 关键：用IN条件匹配多字段组合，替代UNION ALL -->
+        and (
+            <foreach item="conditionVO" collection="conditionVOs" separator="OR">
+                (
+                    <!-- entry匹配：非空则等于，空则为NULL -->
+                    <choose>
+                        <when test="conditionVO.entry != null">
+                            BINARY entry = #{conditionVO.entry,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            entry IS NULL
+                        </otherwise>
+                    </choose>
+                    AND
+                    <!-- type匹配 -->
+                    <choose>
+                        <when test="conditionVO.translateType != null">
+                            BINARY `type` = #{conditionVO.translateType,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            `type` IS NULL
+                        </otherwise>
+                    </choose>
+                    AND
+                    <!-- visual_range匹配 -->
+                    <choose>
+                        <when test="conditionVO.visualRange != null">
+                            BINARY visual_range = #{conditionVO.visualRange,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            visual_range IS NULL
+                        </otherwise>
+                    </choose>
+                    AND
+                    <!-- translate匹配 -->
+                    <choose>
+                        <when test="conditionVO.translate != null">
+                            BINARY translate = #{conditionVO.translate,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            translate IS NULL
+                        </otherwise>
+                    </choose>
+                    AND
+                    <!-- translate_state匹配 -->
+                    <choose>
+                        <when test="conditionVO.translateState != null">
+                            BINARY translate_state = #{conditionVO.translateState,jdbcType=VARCHAR}
+                        </when>
+                        <otherwise>
+                            translate_state IS NULL
+                        </otherwise>
+                    </choose>
+                )
+            </foreach>
+        )
+        <!-- 空集合时返回空结果，避免SQL语法错误 -->
+        <if test="conditionVOs == null or conditionVOs.isEmpty()">
+            AND 1 = 0
+        </if>
+    </select>
+
+    <select id = "selectTransIDByConditions" resultType = "java.lang.String">
+        select id from t_translate
+
+        <where>
+            <choose>
+                <when test = "entry != null">
+                    and BINARY entry = #{entry}
+                </when>
+                <otherwise>
+                    and entry is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "translate != null">
+                    and BINARY translate = #{translate}
+                </when>
+                <otherwise>
+                    and translate is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "translateType != null">
+                    and BINARY `type` = #{translateType}
+                </when>
+                <otherwise>
+                    and `type` is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "visualRange != null">
+                    and BINARY visual_range = #{visualRange}
+                </when>
+                <otherwise>
+                    and visual_range is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "translateState != null">
+                    and BINARY translate_state = #{translateState}
+                </when>
+                <otherwise>
+                    and translate_state is NULL
+                </otherwise>
+            </choose>
+            <choose>
+                <when test = "latestUseTime != null">
+                    and BINARY last_use_time = #{latestUseTime}
+                </when>
+                <otherwise>
+                    and last_use_time is NULL
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <select id="selectTranslatesByIDs" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from t_translate 
+        <where>
+            delete_state =0 and public_state = 0
+            and id in 
+            <choose>
+                <when test = "ids != null and !ids.isEmpty()">
+                    id in 
+                    <foreach item = "id" collection = "ids" separator = "," open = "(" close = ")">
+                        #{id}
+                    </foreach>
+                </when>
+                <otherwise>
+                    1 = 0
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+    <select id="selectMutilTypeTranslatesByTransID" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from t_translate 
+        <where>
+            delete_state =0 and public_state = 0
+            and id in (#{enTransID},#{ruTransID},#{spaTransID},#{fraTransID},#{zhTransID})
+        </where>
     </select>
 </mapper>

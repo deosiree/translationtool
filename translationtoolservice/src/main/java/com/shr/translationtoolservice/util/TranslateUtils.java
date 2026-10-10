@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,6 +60,9 @@ public class TranslateUtils {
 
     @Autowired
     private YoudaoTrans youdaoTrans;
+
+    @Autowired
+    private BaiduTransUtils baiduTransUtils;
 
 
     public TranslateUtils getInstance() {
@@ -148,21 +152,38 @@ public class TranslateUtils {
         //ArrayList<TranslateEntity> list = new ArrayList<>();
         ArrayList<LanguageEntity> languageEntities = new ArrayList<>();
 
-        try {
+
             for (TLanguage tLanguage : tLanguages) {
              /*   if (tLanguage.getName().equals(type)) {
                     continue;
                 }*/
+                LanguageEntity languageEntity = new LanguageEntity();
 
+                ConstantInterface.getInstance();
+                Map<String, String> languageMap = ConstantInterface.LANGUAGE_MAP;
+
+                languageEntity.setLanguage(languageMap.get(tLanguage.getBdCode()).toLowerCase());
+                languageEntity.setState(true);
+                String trans = "";
+                try {
                 //默认主语言都是中文
-                languageEntities.add(getTranslateResult(entry, "zh", tLanguage));
-                Thread.sleep(1000);
+                 trans = baiduTransUtils.translate(entry, "zh", tLanguage.getBdCode());
+                 Thread.sleep(1000);
+                } catch (Exception e) {
+                    log.error(" ==== baidu翻译失败 ！ ====");
+                    //languageEntities.add(languageEntity);
+                    e.printStackTrace();
+                }
+                languageEntity.setValue(trans);
+                languageEntity.setSource("百度翻译");
+
+
+                languageEntities.add(languageEntity);
+
             }
             entryEntity.setLanguageEntities(languageEntities);
 
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
 
         return entryEntity;
 
@@ -192,6 +213,12 @@ public class TranslateUtils {
                 continue;
             }*/
             languageEntities.add(youdaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                // TODO: handle exception
+                e.printStackTrace();
+            }
         }
 
 
@@ -218,6 +245,12 @@ public class TranslateUtils {
                 continue;
             }*/
             languageEntities.add(youdaoTrans.youdaoTranslate(name, "zh-CHS", tLanguage));
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                // TODO: handle exception
+                e.printStackTrace();
+            }
         }
 
 
@@ -238,6 +271,7 @@ public class TranslateUtils {
             languageEntity.setValue(translate.getTranslate());
             languageEntity.setId(translate.getId());
             languageEntity.setCreateTime(translate.getLastUseTime());
+            languageEntity.setSource("本地翻译-" + translate.getVisualRange());
             languageEntities.add(languageEntity);
         }
         entryEntity.setLanguageEntities(languageEntities);
@@ -260,10 +294,17 @@ public class TranslateUtils {
             String code = tLanguage.getDeeplCode();
             // 翻译
             String translate = deepLTranslateUtils.translate(text, null, code);
+            try {
+                Thread.sleep(1000);
+            } catch (Exception e) {
+                // TODO: handle exception
+                e.printStackTrace();
+            }
             // 设置返回值
             LanguageEntity languageEntity = new LanguageEntity();
             languageEntity.setValue(translate);
             languageEntity.setLanguage(tLanguage.getCode());
+            languageEntity.setSource("deepl翻译");
             languageEntities.add(languageEntity);
         }
         entryEntity.setLanguageEntities(languageEntities);

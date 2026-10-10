@@ -18,6 +18,14 @@ import org.springframework.format.annotation.DateTimeFormat;
 @TableName(value ="t_translate")
 @Data
 public class TranslateEntity implements Serializable {
+
+    @TableField(exist = false)
+    private String productName;
+    @TableField(exist = false)
+    private String versionName;
+    @TableField(exist = false)
+    private String taskName;
+
     /**
      * 主键
      */
@@ -41,6 +49,7 @@ public class TranslateEntity implements Serializable {
      */
     @TableField(value = "`unique`")
     private String unique;
+
 
     @TableField(value = "last_use_time")
     @DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
@@ -110,4 +119,7 @@ public class TranslateEntity implements Serializable {
 
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
+
+    @TableField(exist = false)
+    private boolean isNotUsedByEntryInfo;
 }

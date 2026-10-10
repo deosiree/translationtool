@@ -4,6 +4,8 @@ import cn.afterturn.easypoi.excel.annotation.Excel;
 import lombok.Data;
 import org.springframework.stereotype.Component;
 
+import com.baomidou.mybatisplus.annotation.TableField;
+
 import java.util.Date;
 import java.util.HashMap;
 
@@ -32,11 +34,23 @@ public class ImportExcleEntry {
     @Excel(name = "术语英文释义", orderNum = "1")
     private String englishInterpretation;
 
+    @Excel(name = "术语俄文释义", orderNum = "1")
+    private String russianInterpretation;
+
+    @Excel(name = "术语法文释义", orderNum = "1")
+    private String frenchInterpretation;
+
+    @Excel(name = "术语西文释义", orderNum = "1")
+    private String spanishInterpretation;
+
     @Excel(name = "中文术语", orderNum = "1")
     private String entry;
-
-    @Excel(name = "中文术语字符数", orderNum = "1")
     private Integer entryLength;
+    @Excel(name = "中文术语字符数", orderNum = "1")
+    private Integer zhCharLength;
+    //英文术语
+    @Excel(name = "中文术语", orderNum = "1")
+    private String chinese;
     //英文术语
     @Excel(name = "英文术语", orderNum = "1")
     private String english;
@@ -46,7 +60,7 @@ public class ImportExcleEntry {
     private String spanish;
     private Integer spaCharLength;
     @Excel(name = "俄文术语", orderNum = "1")
-    private String russia;
+    private String russian;
     private Integer ruCharLength;
 
     //英文术语
@@ -66,6 +80,15 @@ public class ImportExcleEntry {
     private String DSTerm;
     private int DSLength;
 
+    /*来源表名*/
+    private String srcTabName;
+
+    /*数据库记录ID */
+    private String dbRID;
+
+    /* 词条来源 */
+    private String entrySource;
+
 
     public final static  HashMap<String,String> aliasMap = new HashMap(){{
         put("version","版本");
@@ -75,16 +98,20 @@ public class ImportExcleEntry {
         put("partOfSpeech","词性备注");
         put("chineseInterpretation","术语中文释义");
         put("englishInterpretation","术语英文释义");
-        put("entry","中文术语术语");
-        put("entryLength","中文术语字符数");
+        put("russianInterpretation","术语俄文释义");
+        put("frenchInterpretation","术语法文释义");
+        put("spanishInterpretation","术语西文释义");
+        put("chinese","中文术语术语");
+        put("zhCharLength","中文术语字符数");
         put("english","英文术语术语");
         put("enCharLength","英文术语字符数");
         put("spanish","西文术语术语");
         put("spaCharLength","西文术语字符数");
-        put("russia","俄文术语术语");
+        put("russian","俄文术语术语");
         put("ruCharLength","俄文术语字符数");
         put("french","法文术语术语");
         put("fraCharLength","法文术语字符数");
+        // put("chinese", "中文术语别名");
         put("classfy1","类别1");
         put("classfy2","类别2");
         put("ABTerm","ABB类全驼峰术语");
@@ -96,6 +123,9 @@ public class ImportExcleEntry {
         put("DSTerm","展开（缩写可采用单/多驼峰）术语");
         put("DSLength","展开（缩写可采用单/多驼峰）字符数");
         put("diFileName","回写词典");
+        put("srcTabName", "来源表名");
+        put("dbRID", "数据库记录ID");
+        put("entrySource", "词条来源");
     }};
 
 

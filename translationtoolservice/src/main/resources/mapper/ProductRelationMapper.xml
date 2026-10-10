@@ -24,6 +24,13 @@
         </foreach>
         );
     </delete>
+    <delete id="deleteByEntryID">
+        delete from t_product_relation where entry_id in(
+        <foreach collection="entryID" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </delete>
 
     <insert id="insertList">
         insert into t_product_relation
@@ -45,4 +52,86 @@
             )
         </foreach>
     </insert>
+  <select id="checkExist"  parameterType = "com.shr.translationtoolservice.entity.ProductRelationEntity"  resultType="int">
+    select count(1) from t_product_relation where product_id = #{productRelationEntity.productId,jdbcType=VARCHAR}
+    and task_id = #{productRelationEntity.taskId,jdbcType=VARCHAR} and version_id = #{productRelationEntity.versionId,jdbcType=VARCHAR}
+    and entry_id = #{productRelationEntity.entryId,jdbcType=VARCHAR}
+  </select>
+    <delete id="deleteByVersionID">
+        delete from t_product_relation where version_id in(
+        <foreach collection="idList" item="id" index="index" separator=",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+        );
+    </delete>
+
+    <select id="getProductionRelation" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/>
+        from t_product_relation
+        where 
+        <if test = "productRelationEntity.productId != null and productRelationEntity.productId != ''">
+            product_id = #{productRelationEntity.productId,jdbcType=VARCHAR}
+        </if>
+        <if test = "productRelationEntity.taskId != null and productRelationEntity.taskId != ''">
+            and 
+                task_id = #{productRelationEntity.taskId,jdbcType=VARCHAR} 
+        </if>
+        <if test = "productRelationEntity.versionId != null and productRelationEntity.versionId != ''">
+            and 
+                version_id = #{productRelationEntity.versionId,jdbcType=VARCHAR}
+        </if>
+        <if test = "productRelationEntity.entryId != null and productRelationEntity.entryId != ''">
+            and 
+                entry_id = #{productRelationEntity.entryId,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <select id = "getProductionRelationsByIDs" resultMap = "BaseResultMap">
+        SELECT <include refid="Base_Column_List"/> FROM t_product_relation WHERE entry_id in 
+        <foreach collection = "ids" item = "id" open = "(" close = ")" separator = ",">
+            #{id,jdbcType=VARCHAR}
+        </foreach>
+    </select>
+
+
+    <select id = "selectInfosByProductRelationEntity" resultMap = "BaseResultMap">
+        select 
+            t_product_relation.id as id,
+            t_product_relation.entry_id as entry_id,
+            t_product_relation.version_id as version_id,
+            t_product_relation.product_id as product_id,
+            t_product_relation.task_id as task_id
+        from t_product_relation 
+        inner join t_entry_info on t_entry_info.id = t_product_relation.entry_id
+        <where> 
+            <if test = "entryIDs != null and !entryIDs.isEmpty()">
+                t_entry_info.is_delete = 0
+                and t_product_relation.entry_id in
+                <foreach item = "entryID" collection = "entryIDs" separator = "," open = "(" close = ")">
+                    #{entryID,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+            <if test = "productIDs != null and !productIDs.isEmpty()">
+                and t_product_relation.product_id in
+                <foreach item = "productID" collection = "productIDs" separator = "," open = "(" close = ")">
+                    #{productID,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+            <if test = "taskIDs != null and !taskIDs.isEmpty()">
+                and t_product_relation.task_id in
+                <foreach item = "taskID" collection = "taskIDs" separator = "," open = "(" close = ")">
+                    #{taskID,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+            <if test = "versionIDs != null and !versionIDs.isEmpty()">
+                and t_product_relation.version_id in
+                <foreach item = "versionID" collection = "versionIDs" separator = "," open = "(" close = ")">
+                    #{versionID,jdbcType = VARCHAR}
+                </foreach>
+            </if>
+        </where>    
+        <if test="limit >= 0 and offset >= 0">
+            LIMIT #{limit} OFFSET #{offset}
+        </if>
+    </select>
 </mapper>

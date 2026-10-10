@@ -1,26 +1,42 @@
 package com.shr.translationtoolservice.controller;
 
+import com.google.gson.Gson;
 import com.shr.translationtoolservice.common.HttpResponse;
-import com.shr.translationtoolservice.common.Token;
-import com.shr.translationtoolservice.dao.EntryTempMapper;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.TaskImportEntryEntity.TaskImportEntryVO;
+import com.shr.translationtoolservice.entity.TaskInfoEntity.TaskInfoEntityVO;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
+import com.shr.translationtoolservice.service.TLanguageService;
 import com.shr.translationtoolservice.service.TaskInfoService;
+import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler;
 import com.shr.translationtoolservice.util.CommonUtils;
+import com.shr.translationtoolservice.util.JWTTokenUtils;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler.TASK_STATE;
+
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+
+
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName TaskManageController
@@ -29,7 +45,7 @@ import java.util.Map;
  **/
 
 @RestController
-@RequestMapping("/taskManage")
+    @RequestMapping("/taskManage")
 @Api(tags = "任务管理")
 @Slf4j
 public class TaskManageController extends BaseController {
@@ -38,9 +54,12 @@ public class TaskManageController extends BaseController {
     private TaskInfoService taskInfoService;
     @Autowired
     private CommonUtils commonUtils;
-
     @Autowired
-    private EntryTempMapper entryTempMapper;
+    private BackendTaskInfoHandler backendTaskInfoHandler;
+    @Autowired
+    private BatchInsertEntryHandler batchInsertEntryHandler;
+    @Autowired
+    private TLanguageService languageService;
 
     //查询任务信息
     @PostMapping("/searchTaskInfo")
@@ -129,8 +148,9 @@ public class TaskManageController extends BaseController {
     public HttpResponse<ResponseListModel> getToDoTaskInfo(HttpServletRequest request ,@RequestBody TaskInfoEntity taskInfoEntity,
                                                            @RequestParam(value = "pageIndex", defaultValue = "1") Integer pageIndex,
                                                            @RequestParam(value = "pageSize", defaultValue = "20") Integer pageSize) {
-        ResponseListModel<TaskInfoEntity> result = new ResponseListModel<>();
-        List<TaskInfoEntity> taskInfoEntities = new ArrayList<>();
+        /* 添加codeBranch属性，把view对象修改一下 */
+        ResponseListModel<TaskInfoEntityVO> result = new ResponseListModel<>();
+        List<TaskInfoEntityVO> taskInfoEntities = new ArrayList<>();
         if (commonUtils.checkPage(pageIndex, pageSize)) {
             int offset = (pageIndex - 1) * pageSize;
             taskInfoEntities = taskInfoService.getToDoTaskInfo(offset, pageSize, request,taskInfoEntity);
@@ -217,5 +237,261 @@ public class TaskManageController extends BaseController {
     }
 
 
+    @PostMapping("/createTaskByLang")
+    @ApiOperation("批量创建任务")
+    @CrossOrigin
+    public HttpResponse<String> batchCreateTask(
+        @RequestBody List<TaskInfoVo> taskInfoVos,
+        @RequestParam("ip") String i18nAddress,
+        @RequestParam(name = "link",required = false) String taskDirMapJsonString,
+        @RequestParam("translateTypes[]") List<String> targetLanguageTypes,
+        @RequestParam("parentId") String backendTaskID,
+        HttpServletRequest request
+    ){
+
+        if(taskInfoVos.isEmpty()){
+            return error(null, "没有提供任务, 无法执行");
+        }
+        /** 实际使用用的 */
+        Gson gson = new Gson();
+        Map<String,String> taskDirMap = gson.fromJson(taskDirMapJsonString, Map.class);
+        /* 导出功能做去重校验 */
+        String token = request.getHeader("token");
+        String message = "后台将要执行的任务ID为: " + backendTaskID; 
+        log.info(message);
+        backendTaskInfoHandler.setTaskExecuteState(backendTaskID, TASK_STATE.EXECUTING);
+
+        backendTaskInfoHandler.setEntryImportFromLangDirTaskProductIDs(backendTaskID, taskInfoVos.stream().map(TaskInfoVo::getProductId).collect(Collectors.toList()));
+        log.info("设定后台任务执行状态成功,状态为正在执行,ID: " + backendTaskID);
+        Map<String,Object> otherArgs = new HashMap<>();
+        Collection<String> ignoredFiles = new HashSet<>();
+        taskInfoVos.stream().forEach(new Consumer<TaskInfoVo>() {
+
+            @Override
+            public void accept(TaskInfoVo t) {
+                // TODO Auto-generated method stub
+                ignoredFiles.addAll(t.getIgnore());
+            }
+        });
+        otherArgs.put("ignore_files", ignoredFiles);
+        Thread thread = new Thread() {
+
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                try {
+                    String resultMessage = taskInfoService.createTaskAndCreateEntryByLangDir(i18nAddress, taskInfoVos, taskDirMap, token, targetLanguageTypes,backendTaskID,otherArgs);    
+                    backendTaskInfoHandler.addMessageForTaskID(backendTaskID, resultMessage);   
+                    backendTaskInfoHandler.addMessageForTaskID(backendTaskID,String.format("任务: %s 执行完成", backendTaskID));
+                    log.info("后台任务执行完毕, 修改任务执行状态, ID: " + backendTaskID);
+                    backendTaskInfoHandler.setTaskExecuteState(backendTaskID, TASK_STATE.FINISHED);   
+                    log.info("修改后台任务执行状态成功,状态为执行完成,ID: " + backendTaskID);
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    log.error(e.getMessage(), e);
+                    backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "执行失败,异常信息为: " +  e.getMessage());    
+                    backendTaskInfoHandler.setTaskExecuteState(backendTaskID, TASK_STATE.FAILED);   
+                } finally{
+
+                }
+            }
+            
+        };
+        thread.start();
+        return ok(backendTaskID);
+    }
+
+
+    @PostMapping("/getTRFileListUsingI18nServer")
+    @ApiOperation("获取所有可导入词条的dic文件名")
+    @CrossOrigin
+    public HttpResponse<List<String>> getTRFileListUsingI18nServer(@RequestParam("ip") String  i18nAddress,HttpServletRequest request){
+        try {
+            List<String> trFileListUsingI18nServer = batchInsertEntryHandler.getTRFileListUsingI18nServer(i18nAddress,null);
+            if(trFileListUsingI18nServer == null){
+                return error(null, "获取dic文件列表时出现异常");
+            }
+            return ok(trFileListUsingI18nServer);   
+        } catch (Exception e) {
+            return error(null, e.getMessage());
+        }
+    }
+
+    @PostMapping("/getTSFileListUsingI18nServer")
+    @ApiOperation("获取所有可导入词条的ts文件名")
+    @CrossOrigin
+    public HttpResponse<Set<String>> getTSFileListUsingI18nServer(@RequestParam("ip") String  i18nAddress,@RequestParam("translateTypes[]") List<String> targetLanguageTypes,HttpServletRequest request){
+   
+        try {
+            Set<String> tsFileListUsingI18nServer = batchInsertEntryHandler.getTSFileListUsingI18nServer(i18nAddress, targetLanguageTypes);
+            if(tsFileListUsingI18nServer == null){
+                return error(null, "获取ts文件列表时出现异常");
+            }
+
+            List<TLanguage> tLanguages = languageService.getLanguages(new TLanguage());
+
+            Set<String> tsEntrySources = tsFileListUsingI18nServer.stream().map(new Function<String,String>() {
+
+                @Override
+                public String apply(String fileName) {
+                    // TODO Auto-generated method stub
+                    for (TLanguage tLanguage : tLanguages) {
+                        if (fileName.contains(tLanguage.getCode())) {
+                            return fileName.substring(0, fileName.indexOf("_" + tLanguage.getCode()));
+                        }
+                    }
+                    return fileName;
+                }
+                
+            }).collect(Collectors.toSet());
+        
+            return ok(tsEntrySources);
+        } catch (Exception e) {
+            return error(null, e.getMessage());
+        }
+ 
+    }
+
+    @PostMapping("/getFileListUsingI18nServer")
+    @ApiOperation("获取所有的dic和ts文件名")
+    @CrossOrigin
+    public HttpResponse<List<Map<String,String>>> getFileListUsingI18nServer(
+        @RequestParam("ip") String i18nAddress,
+        @RequestParam("translateTypes[]") List<String> targetLanguageTypes,
+        HttpServletRequest request
+    ){
+        // Map<String,Set<String>> resultMap = new HashMap<>();
+        List<Map<String,String>> resultMapList = new ArrayList<>();
+        try {
+            List<String> trFileListUsingI18nServer = batchInsertEntryHandler.getTRFileListUsingI18nServer(i18nAddress,null);
+            if(trFileListUsingI18nServer == null){
+                return error(null, "获取dic文件列表时出现异常");
+            }  
+            /* 将tr分类，根据db,config,enum,meta,tr */
+            trFileListUsingI18nServer.stream().forEach(new Consumer<String>() {
+
+                @Override
+                public void accept(String t) {
+                    // TODO Auto-generated method stub
+                    Map<String,String> item = new HashMap<>();
+                   if(t.startsWith("db/")){
+                        item.put("link", "db");
+                        item.put("title", t);
+                   }else if(t.startsWith("db/meta/")){
+                        item.put("link", "meta");
+                        item.put("title", t);
+                   }else if(t.startsWith("config/")){
+                        item.put("link", "config");
+                        item.put("title", t);
+                   }else if(t.startsWith("enum/")){
+                        item.put("link", "enum");
+                        item.put("title", t);
+                   }else if(t.startsWith("tr/")){
+                        item.put("link", "tr");
+                        item.put("title", t);
+                   }else{
+                        throw new RuntimeException(String.format("警告, 该dic文件类型无法识别, 其内容为: %s", t));
+                   } 
+                   resultMapList.add(item);
+                }
+                
+            });
+
+            Set<String> tsFileListUsingI18nServer = batchInsertEntryHandler.getTSFileListUsingI18nServer(i18nAddress, targetLanguageTypes);
+            if(tsFileListUsingI18nServer == null){
+                return error(null, "获取ts文件列表时出现异常");
+            }
+
+            List<TLanguage> tLanguages = languageService.getLanguages(new TLanguage());
+
+            Set<String> tsEntrySources = tsFileListUsingI18nServer.stream().map(new Function<String,String>() {
+
+                @Override
+                public String apply(String fileName) {
+                    // TODO Auto-generated method stub
+                    for (TLanguage tLanguage : tLanguages) {
+                        if (fileName.contains(tLanguage.getCode())) {
+                            return fileName.substring(0, fileName.indexOf("_" + tLanguage.getCode()));
+                        }
+                    }
+                    return fileName;
+                }
+                
+            }).collect(Collectors.toSet());
+            tsEntrySources.stream().forEach(new Consumer<String>() {
+
+                @Override
+                public void accept(String t) {
+                    // TODO Auto-generated method stub
+                    Map<String,String> item = new HashMap<>();
+                    item.put("link", "ts");
+                    item.put("title", t);
+                    resultMapList.add(item);
+                }
+
+            });
+            
+            return ok(resultMapList);
+        } catch (Exception e) {
+            return error(null, e.getMessage());
+        }
+    }
+
+    @PostMapping("/importEntryAndDispatchToTasks")
+    @ApiOperation("将不同文件的词条导入给不同的任务")
+    @CrossOrigin
+    public HttpResponse<String> importEntryAndDispatchToTasks(
+        @RequestParam("ip") String i18nAddress,
+        @RequestBody List<TaskImportEntryVO> taskImportEntryVOs,
+        @RequestParam("translateTypes[]") List<String> targetLanguageTypes,
+        HttpServletRequest request
+    ){
+        String token = request.getHeader("token");
+        String backendTaskID = commonUtils.getUUID();
+        String message = "后台将要执行的任务ID为: " + commonUtils.getUUID(); 
+        log.info(message);
+        backendTaskInfoHandler.setTaskExecuteState(backendTaskID, TASK_STATE.EXECUTING);
+        log.info("设定后台任务执行状态成功,状态为正在执行,ID: " + backendTaskID);
+        Thread thread = new Thread() {
+
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                try {
+                    String resultMessage = taskInfoService.createEntryByLangDirForTaskInfos(i18nAddress, taskImportEntryVOs, token, targetLanguageTypes, backendTaskID);
+                    backendTaskInfoHandler.addMessageForTaskID(backendTaskID, resultMessage);   
+                    backendTaskInfoHandler.addMessageForTaskID(backendTaskID,String.format("任务: %s 执行完成", backendTaskID));
+                } catch (Exception e) {
+                    // TODO: handle exception
+                    log.error(e.getMessage(), e);
+                    backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "执行失败,异常信息为: " +  e.getMessage());    
+                } finally{
+                    log.info("后台任务执行完毕, 修改任务执行状态, ID: " + backendTaskID);
+                    backendTaskInfoHandler.setTaskExecuteState(backendTaskID, TASK_STATE.FINISHED);   
+                    log.info("修改后台任务执行状态成功,状态为执行完成,ID: " + backendTaskID);
+                }
+            }
+            
+        };
+        thread.start();
+
+        return ok(backendTaskID);
+        
+    }
+
+    @PostMapping("/getTaskPending")
+    @ApiOperation("统计每个任务中处于各阶段的词条个数")
+    @CrossOrigin
+    public HttpResponse<List<TaskStateEntity>> countEntryTranslateStateForTasks(@RequestBody Set<String> taskIDs){
+        // Set<String> taskIDs = new HashSet<>();
+        try {
+            List<TaskStateEntity> taskStateEntities = taskInfoService.countEntryTranslateStateForTasks(taskIDs);
+            return ok(taskStateEntities);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return error(null,"系统服务异常");
+        }
+
+    }
 
 }

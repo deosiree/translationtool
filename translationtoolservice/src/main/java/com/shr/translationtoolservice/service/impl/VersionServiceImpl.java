@@ -2,6 +2,7 @@ package com.shr.translationtoolservice.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.shr.translationtoolservice.dao.ProductRelationMapper;
 import com.shr.translationtoolservice.dao.ProductTableMapper;
 import com.shr.translationtoolservice.dao.VersionTableMapper;
 import com.shr.translationtoolservice.entity.*;
@@ -39,6 +40,8 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
     @Autowired
     private ProductTableMapper productTableMapper;
 
+    @Autowired
+    private ProductRelationMapper productRelationMapper;
 
 
     @Override
@@ -89,6 +92,9 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
         if (delete < ConstantInterface.DB_SUCCESS_RESULT) {
             return ErrorCodeList.UPDATE_ERROR;
         }
+        //查询productRelation 中versionID在idList中的数据
+        productRelationMapper.deleteByVersionID(idList);
+
         return ConstantInterface.OK_STR;
     }
 
@@ -103,6 +109,7 @@ public class VersionServiceImpl extends ServiceImpl<VersionMapper, VersionEntity
         queryWrapper.eq("is_delete",0);
         queryWrapper.orderByAsc("create_time");
          List<VersionEntity> versionEntities = versionMapper.selectList(queryWrapper);
+
         return versionEntities;
     }
 }

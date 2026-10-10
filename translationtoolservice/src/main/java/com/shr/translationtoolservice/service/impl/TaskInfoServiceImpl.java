@@ -1,23 +1,32 @@
 package com.shr.translationtoolservice.service.impl;
 
-import cn.hutool.http.HttpResponse;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.google.gson.Gson;
 import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
+import com.shr.translationtoolservice.entity.TaskImportEntryEntity.TaskImportEntryVO;
+import com.shr.translationtoolservice.entity.TaskInfoEntity.TaskInfoEntityVO;
+import com.shr.translationtoolservice.entity.DO.TaskStateEntityDO;
 import com.shr.translationtoolservice.entity.vo.TaskInfoVo;
 import com.shr.translationtoolservice.service.EntryInfoService;
 import com.shr.translationtoolservice.service.EntryTempService;
+import com.shr.translationtoolservice.service.TLanguageService;
 import com.shr.translationtoolservice.service.TaskInfoService;
+import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler;
+import com.shr.translationtoolservice.service.entry.BatchInsertEntryHandler.BatchCreateEntryResult;
 import com.shr.translationtoolservice.util.CommonUtils;
 import com.shr.translationtoolservice.util.ExcelUtils;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
+import com.shr.translationtoolservice.util.task.BackendTaskInfoHandler;
+
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.servlet.ServletOutputStream;
@@ -27,6 +36,13 @@ import java.io.IOException;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -67,7 +83,30 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     private EntryInfoService entryInfoService;
 
     @Autowired
+    private TLanguageService languageService;
+
+    @Autowired
     private EntryClassifyMapper entryClassifyMapper;
+
+    @Autowired
+    private ProductRelationMapper productRelationMapper;
+
+    @Autowired
+    private BatchInsertEntryHandler batchInsertEntryHandler;
+
+    @Autowired
+    private BackendTaskInfoHandler backendTaskInfoHandler;
+
+    private Map<String,String> fileNamePrefixMap = new HashMap<>();
+    {
+        fileNamePrefixMap.put("db", "db/");
+        fileNamePrefixMap.put("meta", "db/meta/");
+        fileNamePrefixMap.put("config", "config/");
+        fileNamePrefixMap.put("enum", "enum/");
+        fileNamePrefixMap.put("tr", "tr/");
+        fileNamePrefixMap.put("pt", "pt/");
+        fileNamePrefixMap.put("jk", "jk/");
+    }
 
     @Override
     //获取任务信息
@@ -95,7 +134,7 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
-        public String addTaskInfoList(List<TaskInfoVo> taskInfoVoList, HttpServletRequest request) {
+    public String addTaskInfoList(List<TaskInfoVo> taskInfoVoList, HttpServletRequest request) {
 
         String token = request.getHeader("token");
 
@@ -138,6 +177,53 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         return ConstantInterface.OK_STR;
     }
 
+    @Transactional
+    @Override
+    public List<TaskInfoEntity> addTaskInfoListAndSubmit(List<TaskInfoVo> taskInfoVoList,String token){
+
+        List<String> taskIDs = new ArrayList<>();
+        List<TaskInfoEntity> taskInfoEntities = new ArrayList<>();
+        for (TaskInfoVo taskInfoVo : taskInfoVoList) {
+            TaskInfoEntity taskInfoEntity = new TaskInfoEntity();
+            BeanUtils.copyProperties(taskInfoVo, taskInfoEntity);
+            String id = commonUtils.getUUID();
+            taskInfoEntity.setId(id);
+            //创建人
+            String userName = JWTTokenUtils.getUserName(token);
+            if (StringUtils.isBlank(taskInfoEntity.getCreator())) {
+                taskInfoEntity.setCreator(userName);
+            }
+            //创建部门
+            String department = JWTTokenUtils.getDepartment(token);
+            if (StringUtils.isBlank(taskInfoEntity.getDepartment())) {
+                taskInfoEntity.setDepartment(department);
+            }
+
+            if (Objects.isNull(taskInfoEntity.getUpgrade())) {
+                taskInfoEntity.setUpgrade(0);
+            }
+
+            //创建时间
+            if (Objects.isNull(taskInfoEntity.getCreateTime())) {
+                Date date = new Date(System.currentTimeMillis());
+                taskInfoEntity.setCreateTime(date);
+            }
+            //状态更新导入状态
+            taskInfoEntity.setState("0");
+
+            taskInfoEntity.setIsDelete(0);
+            int insert = taskInfoMapper.insert(taskInfoEntity);
+            if (insert != ConstantInterface.DB_SUCCESS_RESULT) {
+                return taskInfoEntities;
+            }
+            taskInfoEntities.add(taskInfoEntity);
+            taskIDs.add(id);
+            
+        }
+        this.taskSubmission(taskIDs, "0","1");
+
+        return taskInfoEntities;
+    }
 
     @Override
     public String updateTaskInfo(TaskInfoVo taskInfoVo) {
@@ -198,23 +284,28 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
     }
 
     @Override
-    public List<TaskInfoEntity> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
+    public List<TaskInfoEntityVO> getToDoTaskInfo(int offset, Integer pageSize, HttpServletRequest request, TaskInfoEntity taskInfoEntity) {
 
         String token = request.getHeader("token");
         String userName = JWTTokenUtils.getUserName(token);
         List<TaskInfoEntity> taskInfos = taskInfoMapper.getTaskInfoByUserName(userName, offset, pageSize, taskInfoEntity);
+        List<TaskInfoEntityVO> taskInfoVOs = new ArrayList<>();
         for (TaskInfoEntity taskInfo : taskInfos){
-             EntryClassify entryClassify = entryClassifyMapper.getEntryClassfyById(taskInfo.getProductId());
-             if (Objects.nonNull(entryClassify)){
-                 EntryClassify parentClassfy = entryClassifyMapper.getEntryClassfyById(entryClassify.getParentId());
-                 if (Objects.nonNull(parentClassfy)){
-                     taskInfo.setClassifyName(parentClassfy.getTitle());
-                 }
-             }
-
+            TaskInfoEntityVO taskInfoEntityVO = new TaskInfoEntityVO();
+            BeanUtils.copyProperties(taskInfo,taskInfoEntityVO);
+            EntryClassify entryClassify = entryClassifyMapper.getEntryClassfyById(taskInfo.getProductId());
+            if (Objects.nonNull(entryClassify)){
+                EntryClassify parentClassfy = entryClassifyMapper.getEntryClassfyById(entryClassify.getParentId());
+                if (Objects.nonNull(parentClassfy)){
+                    taskInfo.setClassifyName(parentClassfy.getTitle());
+                }
+        
+                taskInfoEntityVO.setCodeBranch(entryClassify.getCodeBranch());
+            }
+            taskInfoVOs.add(taskInfoEntityVO);
         }
 
-        return taskInfos;
+        return taskInfoVOs;
     }
 
     @Override
@@ -442,7 +533,8 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
                 translateEntity.setVersionID(entryTempEntity.getVersionID());
 
                 if (StringUtils.isNotBlank(entryTempEntity.getTranslate())){
-                    translateMapper.insert(translateEntity);
+                    // translateMapper.insert(translateEntity);
+                    translateMapper.insertTranslate(translateEntity);
                 }
 
                 entryInfoService.addTransID(translateEntity, entryInfoEntity);
@@ -505,10 +597,25 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         // 获取被复制的任务
         TaskInfoEntity CopiedTaks = taskInfoMapper.selectById(taskID);
         List<EntryInfoEntity> entryInfoEntities ;
-        List<VersionTableEntity> versionInfoByVersion = versionTableMapper.getVersionInfoByVersionID(CopiedTaks.getVersionId());
         String tableName = "t_entry_info";
-        entryInfoEntities = entryInfoMapper.getEntryByTaskID(taskID,tableName);
-        entryTempService.insertEntry(entryInfoEntities);
+        QueryWrapper<ProductRelationEntity> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("task_id",CopiedTaks.getId());
+        //获取被复制的任务的词条关系
+        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(queryWrapper);
+        if (CollectionUtils.isEmpty(productRelationEntities)){
+            return ErrorCodeList.UPDATE_ERROR;
+        }
+        //插入新任务的词条关系
+        for (ProductRelationEntity productRelationEntity : productRelationEntities){
+            String entryId = productRelationEntity.getEntryId();
+            ProductRelationEntity productRelationEntity1 = new ProductRelationEntity();
+            productRelationEntity1.setId(commonUtils.getUUID());
+            productRelationEntity1.setEntryId(entryId);
+            productRelationEntity1.setTaskId(newId);
+            productRelationEntity1.setVersionId(taskInfoEntity.getVersionId());
+            productRelationEntity1.setProductId(taskInfoEntity.getProductId());
+            productRelationMapper.insert(productRelationEntity1);
+        }
         return taskInfoEntity.getId();
     }
 
@@ -563,6 +670,387 @@ public class TaskInfoServiceImpl extends ServiceImpl<TaskInfoMapper, TaskInfoEnt
         }
         return newTempEntry;
     }
+
+    /**
+     * 提供的tr文件列表是[tr/xxx,enum/xxx,db/xxx,....]
+     * @param taskLangDirMap key: 任务,value: config,db,enum,meta,ts,dic
+     * @param trFileList
+     */
+    private List<String> dispathTRFilesForTask(TaskInfoEntity taskInfoEntity,Map<String,String> taskLangDirMap,List<String> trFileList){
+        String taskName = taskInfoEntity.getName();
+        String searchFileType = taskLangDirMap.get(taskName);   // config,db,enum,meta,ts,dic
+        if(searchFileType == null){
+            log.warn("警告，无法为任务指派要导入的文件的词条类型");
+            return null;
+        }
+        String targetFileNamePrefix = this.fileNamePrefixMap.get(searchFileType);
+        if(targetFileNamePrefix == null){
+            log.warn(String.format("警告: 没有找到对应词条类型: %s 的文件名前缀",searchFileType));
+            return null;
+        }
+        log.debug(String.format("任务: %s将要获取文件类型为: %s的词条",taskName,searchFileType));
+        return trFileList.stream().filter(new Predicate<String>() {
+
+            @Override
+            public boolean test(String t) {
+                if(targetFileNamePrefix.equals("db/")){
+                    return t.startsWith(targetFileNamePrefix) && !t.startsWith("db/meta");
+                }else{
+                    return t.startsWith(targetFileNamePrefix);
+                }
+                
+            }
+            
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 根据预计提供给任务要导入的词条文件来源，结合获取到的ts文件列表，确定任务最终要导入的词条的文件来源
+     * @param taskInfoEntity
+     * @param taskFileNamePrefixMap
+     * @param tsFileList
+     * @return
+     */
+    private List<String> dispatchTSFilesForTask(TaskInfoEntity taskInfoEntity,Map<String,Set<String>> taskFileNamePrefixMap,Set<String> tsFileList){
+
+        String taskName = taskInfoEntity.getName();
+        Set<String> fileNamePrefix = taskFileNamePrefixMap.get(taskName);   // gui_i18n_tool,gui_manager
+        if(fileNamePrefix == null){
+            return null;
+        }
+        List<TLanguage> tLanguages = languageService.getLanguages(new TLanguage());
+
+        return tsFileList.stream().filter(new Predicate<String>() {
+
+            @Override
+            public boolean test(String fileName) {
+                // TODO Auto-generated method stub
+                for (TLanguage tLanguage : tLanguages) {
+                    if (fileName.contains(tLanguage.getCode())) {
+                        return fileNamePrefix.contains(fileName.substring(0, fileName.indexOf("_" + tLanguage.getCode())));
+                    }
+                }
+                return false;
+                
+            }
+            
+        }).collect(Collectors.toList());
+
+    }
+
+    @Transactional
+    @Override
+    public String createTaskAndCreateEntryByLangDir(
+        String i18nAddress,
+        List<TaskInfoVo> taskInfoVos,
+        Map<String,String> taskDirMap,
+        String token,
+        List<String> targetLanguageTypes,
+        String backendTaskID,
+        Map<String,Object> otherArgs
+    ){
+        /* 创建任务成功，到词条导入失败，任务不能提交 */
+        List<TaskInfoEntity> taskInfoEntities = this.addTaskInfoListAndSubmit(taskInfoVos, token);
+        if(taskInfoEntities.size() != taskInfoVos.size()){
+            throw new RuntimeException("创建任务时存在异常");   // 抛异常直接回滚
+        }
+        backendTaskInfoHandler.addMessageForTaskID(backendTaskID, String.format("任务创建成功, 共%s个任务", taskInfoEntities.size()));
+        return this.createEntryByLangDirForTaskInfos(i18nAddress, taskInfoEntities, taskDirMap, token, targetLanguageTypes,backendTaskID,otherArgs);   // 抛异常直接回滚
+    }
+
+    @Transactional
+    @Override
+    public String createEntryByLangDirForTaskInfos(String i18nAddress,List<TaskInfoEntity> taskInfoEntities,Map<String,String> taskDirMap,String token,List<String> targetLanguageTypes,String backendTaskID,Map<String,Object> otherArgs) {
+        // TODO Auto-generated method stub
+        // backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "");
+        /* 分类出TS和TR类任务 */
+        List<TaskInfoEntity> dicTaskInfoList = taskInfoEntities.stream().filter(new Predicate<TaskInfoEntity>() {
+
+            @Override
+            public boolean test(TaskInfoEntity t) {
+                // TODO Auto-generated method stub
+                String taskName = t.getName();
+                if(taskName == null || !taskDirMap.containsKey(taskName)){
+                    return false;
+                }
+                return !taskDirMap.get(taskName).equals("ts");
+            }
+            
+        }).collect(Collectors.toList());
+
+        List<TaskInfoEntity> tsTaskInfoList = taskInfoEntities.stream().filter(new Predicate<TaskInfoEntity>() {
+
+            @Override
+            public boolean test(TaskInfoEntity t) {
+                // TODO Auto-generated method stub
+                String taskName = t.getName();
+                if(taskName == null || !taskDirMap.containsKey(taskName)){
+                    return false;
+                }
+                return taskDirMap.get(taskName).equals("ts");
+            }
+            
+        }).collect(Collectors.toList());
+
+        String userName = JWTTokenUtils.getUserName(token);
+        String department = JWTTokenUtils.getDepartment(token);
+        /* dic的词条 */
+        backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "准备获取dic文件列表");
+        List<String> trFileListUsingI18nServer = batchInsertEntryHandler.getTRFileListUsingI18nServer(i18nAddress, department);
+        if(trFileListUsingI18nServer == null){
+            throw new RuntimeException("获取dic文件列表时出现异常,无法导入dic的词条");
+        }
+        backendTaskInfoHandler.addMessageForTaskID(backendTaskID, String.format("dic文件列表获取成功, 共%s个", String.valueOf(trFileListUsingI18nServer.size())));
+        backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "准备获取ts文件列表");
+        Set<String> tsFileListUsingI18nServer = batchInsertEntryHandler.getTSFileListUsingI18nServer(i18nAddress, targetLanguageTypes);
+        if(tsFileListUsingI18nServer == null){
+            throw new RuntimeException("获取ts文件列表时出现异常,无法导入ts的词条");
+        }
+        backendTaskInfoHandler.addMessageForTaskID(backendTaskID, String.format("ts文件列表获取成功, 共%s个", String.valueOf(trFileListUsingI18nServer.size())));
+
+        Map<TaskInfoEntity,List<String>> taskTRFilesMap = new HashMap<>();  // {{"taskName" : ["tr/xxx","db/xxxx"]},{"taskName2" : ["tr/xxx","db/xxxx",'config/xxx']}}
+        Map<TaskInfoEntity,List<String>> taskTSFilesMap = new HashMap<>();  // {{"taskName": ["gui_i18n_tool","fcwwewe"]},{"taskName2": ["gui_manager"]}}
+        String externalMessage = "";    // 额外的提供给用户的信息
+        Set ignoredFileList = (Set)(otherArgs.get("ignore_files"));     
+        if(!trFileListUsingI18nServer.isEmpty()){
+            for(TaskInfoEntity taskInfoEntity : dicTaskInfoList){
+                List<String> dispathTRFilesForTask = this.dispathTRFilesForTask(taskInfoEntity, taskDirMap, trFileListUsingI18nServer);
+                if(dispathTRFilesForTask == null){
+                    continue;
+                }
+                dispathTRFilesForTask = dispathTRFilesForTask.stream()
+                    .filter(new Predicate<String>() {
+
+                        @Override
+                        public boolean test(String t) {
+                            // TODO Auto-generated method stub
+                            return !ignoredFileList.contains(t);
+                        }
+                        
+                    })
+                    .collect(Collectors.toList());
+                taskTRFilesMap.put(taskInfoEntity, dispathTRFilesForTask);
+            }
+            Set<String> noEntryInsertedFileNames = new HashSet<>();
+            for(Map.Entry<TaskInfoEntity,List<String>> taskTRFileEntry : taskTRFilesMap.entrySet()){
+                /* 每一个任务获取对应的词条 */
+                BatchCreateEntryResult createEntryResult = batchInsertEntryHandler.createEntryFromTRFiles(i18nAddress, taskTRFileEntry.getValue(),taskTRFileEntry.getKey(),targetLanguageTypes,token,backendTaskID);
+                noEntryInsertedFileNames.addAll(createEntryResult.getFileNameForNoEntryInserted());
+                String failedEntryInfoMessages = "";
+                if(!createEntryResult.getFailedEntryInfoEntities().isEmpty()){
+                    /* 处理导入失败的词条 */
+                    List<EntryInfoEntity> failedEntryInfoEntities = createEntryResult.getFailedEntryInfoEntities();
+                    for(EntryInfoEntity entryInfoEntity : failedEntryInfoEntities){
+                        String _message = String.format("词条: entry: %s, tag: %s,comment: %s ,文件名: %s导入失败;", entryInfoEntity.getEntry(),entryInfoEntity.getTag(),entryInfoEntity.getComment(),entryInfoEntity.getEntrySource());
+                        backendTaskInfoHandler.addMessageForTaskID(
+                            backendTaskID,
+                            _message
+                        );
+                        failedEntryInfoMessages += _message;
+                    }
+                }
+                externalMessage += failedEntryInfoMessages;
+            }
+            if(!noEntryInsertedFileNames.isEmpty()){
+                String _message = String.format("没有导入任何词条的dic文件(dic系列)有: %s;", noEntryInsertedFileNames.toString());
+                backendTaskInfoHandler.addMessageForTaskID(backendTaskID, _message);
+                externalMessage += _message;
+            }
+            
+        }else{
+            backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "没有找到可以获取到的dic文件,没有导入dic的词条");
+            log.info("没有找到可以获取到的dic文件,没有导入dic的词条");
+            externalMessage += "没有找到可以获取到的dic文件,没有导入dic的词条;";
+        }
+        if(!tsFileListUsingI18nServer.isEmpty()){
+            List<TLanguage> tLanguages = languageService.getLanguages(new TLanguage());
+
+            Map<String,Set<String>> taskFileNamePrefixMap = new HashMap<>();
+            if(!tsTaskInfoList.isEmpty()){
+                taskFileNamePrefixMap.put(tsTaskInfoList.get(0).getName(),tsFileListUsingI18nServer.stream().map(new Function<String,String>() {
+
+                    @Override
+                    public String apply(String fileName) {
+                        // TODO Auto-generated method stub
+                        for (TLanguage tLanguage : tLanguages) {
+                            if (fileName.contains(tLanguage.getCode())) {
+                                return fileName.substring(0, fileName.indexOf("_" + tLanguage.getCode()));
+                            }
+                        }
+                        return fileName;
+                    }
+                    
+                }).collect(Collectors.toSet()));
+            }
+            
+
+            for(TaskInfoEntity taskInfoEntity : tsTaskInfoList){
+                List<String> dispathTSFilesForTask = this.dispatchTSFilesForTask(taskInfoEntity, taskFileNamePrefixMap, tsFileListUsingI18nServer);
+                if(dispathTSFilesForTask == null){
+                    continue;
+                }
+                taskTSFilesMap.put(taskInfoEntity, dispathTSFilesForTask);
+            }
+            
+            Set<String> noEntryInsertedFileNames = new HashSet<>();
+            for(Map.Entry<TaskInfoEntity,List<String>> taskTSFileEntry : taskTSFilesMap.entrySet()){
+                /* 每一个任务获取对应的词条 */
+                Set<String> entrySources = taskTSFileEntry.getValue().stream().map(new Function<String,String>() {
+
+                    @Override
+                    public String apply(String fileName) {
+                        // TODO Auto-generated method stub
+                        for (TLanguage tLanguage : tLanguages) {
+                            if (fileName.contains(tLanguage.getCode())) {
+                                return fileName.substring(0, fileName.indexOf("_" + tLanguage.getCode()));
+                            }
+                        }
+                        return fileName;
+                    }
+                    
+                }).collect(Collectors.toSet()); //['gui_i18n_tool','gui_manager']
+                Set<String> filteredEntrySources = entrySources.stream().filter(new Predicate<String>() {
+
+                    @Override
+                    public boolean test(String t) {
+                        // TODO Auto-generated method stub
+                        return !ignoredFileList.contains(t);
+                    }
+                    
+                }).collect(Collectors.toSet());
+
+                BatchCreateEntryResult createEntryResult = batchInsertEntryHandler.createEntryFromTSFiles(i18nAddress, new ArrayList<>(filteredEntrySources), taskTSFileEntry.getKey(), targetLanguageTypes, token,backendTaskID); 
+                noEntryInsertedFileNames.addAll(createEntryResult.getFileNameForNoEntryInserted());
+                String failedEntryInfoMessages = "";
+                if(!createEntryResult.getFailedEntryInfoEntities().isEmpty()){
+                    List<EntryInfoEntity> failedEntryInfoEntities = createEntryResult.getFailedEntryInfoEntities();
+                    for(EntryInfoEntity entryInfoEntity : failedEntryInfoEntities){
+                        String _message = String.format("词条: entry: %s, tag: %s,comment: %s ,文件名: %s导入失败", entryInfoEntity.getEntry(),entryInfoEntity.getTag(),entryInfoEntity.getComment(),entryInfoEntity.getEntrySource());
+                        backendTaskInfoHandler.addMessageForTaskID(backendTaskID, _message);
+                        failedEntryInfoMessages += _message;
+                    }
+                }
+                externalMessage += failedEntryInfoMessages;
+            }
+            if(!noEntryInsertedFileNames.isEmpty()){
+                String _message = String.format("没有导入任何词条的dic文件(dic系列)有: %s", noEntryInsertedFileNames.toString());
+                backendTaskInfoHandler.addMessageForTaskID(backendTaskID, _message);
+                externalMessage += _message;
+            }
+        }else{
+            backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "没有找到可以获取的ts文件,没有导入ts词条");
+            log.info("没有找到可以获取的ts文件,没有导入ts词条");
+            externalMessage += "没有找到可以获取的ts文件,没有导入ts词条;";
+        }
+
+        backendTaskInfoHandler.addMessageForTaskID(backendTaskID, "词条导入并存库成功, 并以提交到对应的任务中");
+        return "创建任务成功,词条创建成功, 并以提交到对应任务中" + externalMessage;
+    }
+
+
+
+
+    @Transactional
+    @Override
+    public String createEntryByLangDirForTaskInfos(
+        String i18nAddress,
+        Collection<TaskImportEntryVO>  taskImportEntryVOs,
+        String token,
+        List<String> targetLanguageTypes,
+        String backendTaskID
+    ){
+
+        // Queue<String> responseMessage -
+        ThreadPoolExecutor executor = new ThreadPoolExecutor(5, 10, 2, TimeUnit.SECONDS, new LinkedBlockingDeque<>());
+        // CountDownLatch latch = new CountDownLatch(taskImportEntryVOs.size());
+        Set<String> errorMessages = new HashSet<>();
+        for(TaskImportEntryVO taskImportEntryVO : taskImportEntryVOs){
+            List<TaskInfoVo> taskInfoVos = new ArrayList<>();
+            taskInfoVos.add(taskImportEntryVO.getTaskInfoVO());
+            /* 创建任务并提交 */
+            List<TaskInfoEntity> taskInfoEntities = this.addTaskInfoListAndSubmit(taskInfoVos, token);
+            if(taskInfoEntities.isEmpty()){
+                throw new RuntimeException("任务创建失败: 任务名为: " + taskImportEntryVO.getTaskInfoVO().getName());
+            }
+            TaskInfoEntity taskInfoEntity = taskInfoEntities.get(0);
+            String taskName = taskInfoEntity.getName();
+            List<String> fileNames = taskImportEntryVO.getEntrySources();
+            if(fileNames == null){
+                log.info("任务: " + taskName + "没有要导入的词条文件,仅创建任务");
+                continue;   // 只创建任务, 不导入词条
+            }
+            String fileType = taskImportEntryVO.getFileType();
+            executor.execute(new Runnable(){
+
+                @Override
+                public void run() {
+                    // TODO Auto-generated method stub
+                    try {
+                        List<String> _targetLanguageTypes = targetLanguageTypes;
+                        /* 目标语言: 如果没传参, 用taskVO的，如果有，就用传参的 */
+                        if(_targetLanguageTypes == null){
+                            _targetLanguageTypes = taskImportEntryVO.getTargetLanguageTypes();
+                        }
+                        if(fileType.equals("dic")){
+                            if(_targetLanguageTypes == null){
+                                _targetLanguageTypes = new ArrayList<>();
+                            }
+                            BatchCreateEntryResult createResult = batchInsertEntryHandler.createEntryFromTRFiles(i18nAddress, fileNames, taskInfoEntity, _targetLanguageTypes, token, backendTaskID);
+                            log.info(createResult.getMessage());
+                        }else if(fileType.equals("ts")) {
+                            if(_targetLanguageTypes == null){
+                                log.warn("警告,没有获取到导入的词条对应的文件的语言信息, 无法导入ts文件, 任务名: " + taskName + ",词条来源: " + fileNames.toString());
+                                return;
+                            }
+                            BatchCreateEntryResult entryFromTSFiles = batchInsertEntryHandler.createEntryFromTSFiles(i18nAddress, fileNames, taskInfoEntity, _targetLanguageTypes, token, backendTaskID);
+                            log.info(entryFromTSFiles.getMessage());
+                        }
+                        return;
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                        errorMessages.add(String.format("任务名: %s,词条来源: %s ,出现异常,信息为: %s", taskName,fileNames.toString(),e.getMessage()));
+                    } finally{
+                        // latch.countDown();;
+                    }
+                }
+                
+            });
+        }
+        // try {
+            // if(!latch.await(1, TimeUnit.HOURS)){
+            //     throw new RuntimeException("指定时间内没有成功导入所有词条, 导入失败");
+            // }
+        if(!errorMessages.isEmpty()){
+            throw new RuntimeException("执行失败, 异常信息为: "+ errorMessages.toString());
+        }
+        // } catch (InterruptedException e) {
+        //     // TODO Auto-generated catch block
+        //     log.warn("警告,系统服务异常,线程被interrupted");
+        //     throw new RuntimeException("警告,系统服务异常,线程被interrupted");
+        // }
+
+        return "任务全部完成";
+    }
+
+    @Override
+    public List<TaskStateEntity> countEntryTranslateStateForTasks(Set<String> taskIDs) {
+        // TODO Auto-generated method stub
+        List<TaskStateEntityDO> countEntryTranslateStateForTasks = entryInfoMapper.countEntryTranslateStateForTasks(taskIDs);
+
+        return countEntryTranslateStateForTasks.stream().map(new Function<TaskStateEntityDO,TaskStateEntity>() {
+
+            @Override
+            public TaskStateEntity apply(TaskStateEntityDO taskStateEntityDO) {
+                // TODO Auto-generated method stub
+                TaskStateEntity taskStateEntity = TaskStateEntity.convertFrom(taskStateEntityDO);
+    
+                return taskStateEntity;
+            }
+            
+        }).collect(Collectors.toList());
+    }
+
+
 }
 
 
