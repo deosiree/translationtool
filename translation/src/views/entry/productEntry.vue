@@ -456,7 +456,10 @@
         </div>
       </template>
       <template v-slot:data>
-        <div style="width: 100%; position: absolute">
+        <div
+          class="entry-table-holder"
+          :style="{ '--entry-empty-body-height': `${tableHeight.y}px` }"
+        >
           <a-config-provider :locale="locale">
             <a-table
               bordered
@@ -475,7 +478,11 @@
                   : null
               "
               :row-key="(record) => record.id"
-              :scroll="tableHeight"
+              :scroll="
+                dataSource.length > 0
+                  ? tableHeight
+                  : { x: tableHeight.x }
+              "
               :loading="loading"
               :rowClassName="getRowClassName"
               :pagination="pagination"
@@ -764,6 +771,9 @@
               </template>
             </a-table>
           </a-config-provider>
+          <div v-if="dataSource.length === 0" class="entry-empty-overlay">
+            <a-empty :image="simpleEmptyImage" />
+          </div>
           <!-- <a-pagination
                     style="float:right"
                     v-model:current="pagination.current"
@@ -918,6 +928,7 @@ import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal/index.vue";
 import SecondClassify from "@/views/entry/secondClassify.vue";
 import Dictionary from "@/views/entry/dictionary.vue";
+import Empty from "ant-design-vue/es/empty";
 import { message, Modal } from "ant-design-vue";
 import { defineComponent, ref, createVNode } from "vue";
 import { cloneDeep, iteratee } from "lodash-es";
@@ -1178,6 +1189,14 @@ export default {
     this.applyColumnPreference();
   },
   computed: {
+    /**
+     * 返回与表格默认空态一致的简洁插画。
+     * @param {undefined} [_unused] 计算属性不使用业务输入。
+     * @returns {Object} Ant Design Vue 的简洁空态插画节点。
+     */
+    simpleEmptyImage(_unused) {
+      return Empty.PRESENTED_IMAGE_SIMPLE;
+    },
     editableTextAreaColumns() {
       return [
         ...(this.translateColumn || []),
@@ -2593,6 +2612,37 @@ export default {
   width: 100%;
   height: 100%;
   // border: 1px solid red;
+}
+
+.entry-table-holder {
+  width: 100%;
+  position: absolute;
+}
+
+:deep(.entry-table-holder .ant-table-placeholder > td) {
+  height: var(--entry-empty-body-height);
+  vertical-align: middle;
+}
+
+:deep(.entry-table-holder .ant-table-placeholder .ant-empty) {
+  visibility: hidden;
+}
+
+.entry-empty-overlay {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  bottom: 16px;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+:deep(.entry-empty-overlay .ant-empty) {
+  margin: 0;
 }
 
 .entryDetails {
