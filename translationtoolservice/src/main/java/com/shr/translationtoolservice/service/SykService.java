@@ -7,10 +7,13 @@ import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface SykService {
 
-    List<TranslateEntity> getSykEntry(TranslateEntity translate, Integer pageIndex, Integer pageSize);
+    List<TranslateEntity> getSykEntry(TranslateEntity translate,Set<String> matchList, Integer pageIndex, Integer pageSize);
+
+    List<TranslateEntity> acquireSykSameEntry(TranslateEntity translate,Integer pageIndex, Integer pageSize);
 
     List<TranslateEntity> deleteSykEntry(List<TranslateEntity> translateEntity) throws Exception;
 

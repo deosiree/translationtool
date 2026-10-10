@@ -186,6 +186,7 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
                     userProductEntity.setWrite(0);
                 }
                 //已有进行更新
+                insert += userProductMapper.insert(userProductEntity);
             } else {
                 if (userDetailsVo.getReadState()) {
                     userProductEntity.setRead(1);
@@ -198,7 +199,6 @@ public class ProductServiceImpl extends ServiceImpl<ProductMapper, ProductEntity
                     userProductEntity.setWrite(0);
                 }
             }
-            insert += userProductMapper.insert(userProductEntity);
 
         }
         if (insert < userDetailsVos.size()) {

@@ -7,7 +7,9 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author ：210093
@@ -69,6 +71,7 @@ public class ConstantInterface {
     public static final String DI = "DI";
     public static final String DEFAUT = "DEFAUT";
     public static final String EXCEL = "excel";
+    public static final String XML = "xml";
     public static final String FIELD = "field";
     public static final String ALIAS = "alias";
 
@@ -153,6 +156,7 @@ public class ConstantInterface {
     public static final String RU_TRANS = "俄文翻译";
     public static final String SPA_TRANS = "西文翻译";
     public static final String FRA_TRANS = "法文翻译";
+    public static final String CHN_TRANS = "中文翻译";
 
     public static final String SYK = "shuyuku";
     public static final String YD = "youdao";
@@ -161,6 +165,7 @@ public class ConstantInterface {
     public static final String MD = "module";
     public static final String DEEPL = "deepl";
     public static final String SYNTHESIS = "synthesis";// 综合优先级
+
 
     public static HashMap<String, String> translateMachine() {
         HashMap<String, String> translateMachine = new HashMap<>();
@@ -235,6 +240,7 @@ public class ConstantInterface {
         entryName.put("spanish", SPA_TRANS);
         entryName.put("spanishTranslateState", "西文翻译状态");
         entryName.put("french", FRA_TRANS);
+        entryName.put("chinese", CHN_TRANS);
         entryName.put("frenchTranslateState", "法文翻译状态");
         entryName.put("environmentRemark", "环境备注");
         entryName.put("remark", "备注");
@@ -243,7 +249,8 @@ public class ConstantInterface {
         entryName.put("versionName", "版本名");
         entryName.put("maxLength", "翻译最大长度");
         entryName.put("enCharLength", "英文术语字符数");
-        entryName.put("entryLength", "中文术语字符数");
+        entryName.put("entryLength", "词条字符数");
+        entryName.put("zhCharLength", "中文术语字符数");
         entryName.put("ruCharLength", "俄文术语字符数");
         entryName.put("spaCharLength", "西文术语字符数");
         entryName.put("fraCharLength", "法文术语字符数");
@@ -252,10 +259,18 @@ public class ConstantInterface {
         entryName.put("ruTransId", "俄文翻译id");
         entryName.put("spaTransId", "西文翻译id");
         entryName.put("fraTransId", "法文翻译id");
+        entryName.put("zhTransId", "中文翻译id");
         entryName.put("importType", "导入类型");
         entryName.put("writeType", "回写类型");
-        entryName.put("diFileName", "DI文件名");
+        entryName.put("diFileName", "辞典名称");
         entryName.put("comment", "comment");
+        // 装置部新增加字段
+        entryName.put("srcTabName", "来源表名");
+        entryName.put("dbRID", "数据库记录ID");
+
+        entryName.put("maxChineseLength", "中文字符上限");
+        entryName.put("foreignMaxLength", "外文字符上限");
+
         return entryName;
     }
 
@@ -288,13 +303,15 @@ public class ConstantInterface {
         entryName.put(SPA_TRANS, "spanish");
         entryName.put("西文翻译状态", "spanishTranslateState");
         entryName.put(FRA_TRANS, "french");
+        entryName.put(CHN_TRANS, "chinese");
         entryName.put("法文翻译状态", "frenchTranslateState");
         entryName.put("环境备注", "environmentRemark");
         entryName.put("备注", "remark");
         entryName.put("产品名", "productName");
         entryName.put("版本名", "versionName");
         entryName.put("翻译最大长度", "maxLength");
-        entryName.put("中文术语字符数", "entryLength");
+        entryName.put("词条字符数", "entryLength");
+        entryName.put("中文术语字符数", "zhCharLength");
         entryName.put("英文术语字符数", "enCharLength");
         entryName.put("俄文术语字符数", "ruCharLength");
         entryName.put("西文术语字符数", "spaCharLength");
@@ -304,10 +321,18 @@ public class ConstantInterface {
         entryName.put("俄文翻译id", "ruTransId");
         entryName.put("西文翻译id", "spaTransId");
         entryName.put("法文翻译id", "fraTransId");
+        entryName.put("中文翻译id", "zhTransId");
         entryName.put("导入类型", "importType");
         entryName.put("回写类型", "writeType");
-        entryName.put("DI文件名", "diFileName");
+        entryName.put("辞典名称", "diFileName");
         entryName.put("comment", "comment");
+        entryName.put("词条版本", "entryVersion");
+
+        entryName.put("中文字符上限", "maxChineseLength");
+        entryName.put("外文字符上限", "foreignMaxLength");
+
+        entryName.put("来源表名", "srcTabName");
+        entryName.put("数据库记录ID", "dbRID");
         return entryName;
     }
 
@@ -423,6 +448,68 @@ public class ConstantInterface {
         LANGUAGE_MAP.put("yo", "Yoruba");
         LANGUAGE_MAP.put("zu", "Zulu");
     }
+
+    public static Map<String,String> translateMap(){
+        Map<String,String> getterMap = new HashMap<>(); 
+        getterMap.put("chinese",ConstantInterface.CHINESE);
+        getterMap.put("english",ConstantInterface.ENGLISH);
+        getterMap.put("russian",ConstantInterface.RUSSIAN);
+        getterMap.put("french",ConstantInterface.FRENCH);
+        getterMap.put("spanish",ConstantInterface.SPANISH);
+        return getterMap;
+    }
+
+    public static Map<String,String> translateFieldMap(){
+        Map<String,String> getterMap = new HashMap<>(); 
+        getterMap.put(ConstantInterface.CHINESE,"chinese");
+        getterMap.put(ConstantInterface.ENGLISH,"english");
+        getterMap.put(ConstantInterface.RUSSIAN,"russian");
+        getterMap.put(ConstantInterface.FRENCH,"french");
+        getterMap.put(ConstantInterface.SPANISH,"spanish");
+        return getterMap;
+    }
+
+    public static Map<String,String> entryInfoEntityGetterTranslateMap(){
+        Map<String,String> getterMap = new HashMap<>(); 
+        getterMap.put(ConstantInterface.CHINESE,"getChinese");
+        getterMap.put(ConstantInterface.ENGLISH, "getEnglish");
+        getterMap.put(ConstantInterface.RUSSIAN, "getRussian");
+        getterMap.put(ConstantInterface.FRENCH, "getFrench");
+        getterMap.put(ConstantInterface.SPANISH, "getSpanish");
+        return getterMap;
+    }
+
+    public static Map<String,String> entryInfoEntitySetterTranslateMap(){
+        Map<String,String> languageSetTranslateMethodMap = new HashMap<>(); 
+        languageSetTranslateMethodMap.put(ConstantInterface.CHINESE, "setChinese");
+        languageSetTranslateMethodMap.put(ConstantInterface.ENGLISH, "setEnglish");
+        languageSetTranslateMethodMap.put(ConstantInterface.RUSSIAN, "setRussian");
+        languageSetTranslateMethodMap.put(ConstantInterface.FRENCH, "setFrench");
+        languageSetTranslateMethodMap.put(ConstantInterface.SPANISH, "setSpanish");
+        return languageSetTranslateMethodMap;
+    }
+
+    public static Map<String,String> entryInfoEntitySetTranslateIDMethodMap(){
+        Map<String,String> setTranslateIDMethodMap = new HashMap<>(); 
+        setTranslateIDMethodMap.put(ConstantInterface.CHINESE, "setZhTransId");
+        setTranslateIDMethodMap.put(ConstantInterface.ENGLISH, "setEnTransId");
+        setTranslateIDMethodMap.put(ConstantInterface.RUSSIAN, "setRuTransId");
+        setTranslateIDMethodMap.put(ConstantInterface.SPANISH, "setSpaTransId");
+        setTranslateIDMethodMap.put(ConstantInterface.FRENCH, "setFraTransId");
+        return setTranslateIDMethodMap;
+    }
+
+
+    public static Map<String,String> entryInfoEntityGetTranslateIDMethodMap(){
+        Map<String,String> getTranslateIDMethodMap = new HashMap<>(); 
+        getTranslateIDMethodMap.put(ConstantInterface.CHINESE, "getZhTransId");
+        getTranslateIDMethodMap.put(ConstantInterface.ENGLISH, "getEnTransId");
+        getTranslateIDMethodMap.put(ConstantInterface.RUSSIAN, "getRuTransId");
+        getTranslateIDMethodMap.put(ConstantInterface.SPANISH, "getSpaTransId");
+        getTranslateIDMethodMap.put(ConstantInterface.FRENCH, "getFraTransId");
+        return getTranslateIDMethodMap;
+    }
+
 
 
 }

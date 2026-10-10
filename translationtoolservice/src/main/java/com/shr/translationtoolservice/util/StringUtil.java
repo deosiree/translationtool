@@ -85,4 +85,14 @@ public class StringUtil {
         }
         return builder.toString();
     }
+
+    public static String checkEncoding(String encoding){
+        if(encoding == null){
+            return null;
+        }
+        if(encoding.equals("UTF-8") || encoding.equals("GBK")){
+            return encoding;
+        }
+        return null;
+    }
 }

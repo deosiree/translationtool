@@ -5,13 +5,10 @@ import com.shr.translationtoolservice.dao.*;
 import com.shr.translationtoolservice.entity.*;
 import com.shr.translationtoolservice.entity.vo.SykEntryVO;
 import com.shr.translationtoolservice.service.SykService;
+import com.shr.translationtoolservice.service.analyze.AnalyzeSample;
+import com.shr.translationtoolservice.service.analyze.DefaultTranslateAnalyzer;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
 import com.shr.translationtoolservice.util.AsyncUtils;
-
-import com.shr.translationtoolservice.util.analyze.AnalyzeSample;
-import com.shr.translationtoolservice.util.analyze.impl.DefaultTranslateAnalyzer;
 import com.shr.translationtoolservice.util.JWTTokenUtils;
 import org.junit.platform.commons.util.StringUtils;
 import org.slf4j.Logger;
@@ -22,12 +19,14 @@ import org.springframework.util.CollectionUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.concurrent.Future;
+import java.util.function.Predicate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
@@ -63,9 +62,17 @@ public class SykServiceImpl implements SykService {
 
 
     @Override
-    public List<TranslateEntity> getSykEntry(TranslateEntity translate, Integer pageIndex, Integer pageSize) {
+    public List<TranslateEntity> getSykEntry(TranslateEntity translate,Set<String> matchList, Integer pageIndex, Integer pageSize) {
 
-        return translateMapper.getSykTrans(translate, (pageIndex - 1) * pageSize, pageSize);
+        return translateMapper.getSykTrans(translate,matchList, (pageIndex - 1) * pageSize, pageSize);
+    }
+
+    @Override
+    public List<TranslateEntity> acquireSykSameEntry(TranslateEntity translate,Integer pageIndex, Integer pageSize) {
+        // TODO Auto-generated method stub
+        List<TranslateEntity> translateEntities = translateMapper.checkSykSameEntry(translate, (pageIndex - 1) * pageSize, pageSize);
+        return translateEntities;
+        
     }
 
     @Override
@@ -137,6 +144,9 @@ public class SykServiceImpl implements SykService {
             QueryWrapper<EntryInfoEntity> queryWrapper = new QueryWrapper<>();
             queryWrapper.eq("is_delete", 0);
             switch (translate.getType()){
+                case ConstantInterface.CHINESE:
+                    queryWrapper.eq("zh_trans_id", id);
+                    break;
                 case ConstantInterface.ENGLISH:
                     queryWrapper.eq("en_trans_id", id);
                     break;
@@ -159,7 +169,7 @@ public class SykServiceImpl implements SykService {
                 queryWrapper1.eq("entry_id", entity.getId());
                 List<ProductRelationEntity> productRelationEntitys = productRelationMapper.selectList(queryWrapper1);
 
-
+                /* 过滤掉没有关联产品的词条 */
                 if (!CollectionUtils.isEmpty(productRelationEntitys)) {
                     ProductRelationEntity productRelationEntity ;
                     if (productRelationEntitys.size() > 1) {
@@ -175,18 +185,24 @@ public class SykServiceImpl implements SykService {
                     if (StringUtils.isNotBlank(productRelationEntity.getVersionId())) {
                         sykEntryVO.setVersionName(versionMapper.selectById(productRelationEntity.getVersionId()).getName());
                     }
-
-                    sykEntryVO.setTaskName(taskInfoMapper.selectById(productRelationEntity.getTaskId()).getName());
+                    TaskInfoEntity taskInfo = taskInfoMapper.selectById(productRelationEntity.getTaskId());
+                    if(taskInfo != null)
+                        sykEntryVO.setTaskName(taskInfo.getName());
                     sykEntryVO.setId(entity.getId());
                     sykEntryVO.setEntry(translate.getEntry());
                     sykEntryVO.setTranslate(translate.getTranslate());
                     EntryClassify entryClassfyById = entryClassifyMapper.getEntryClassfyById(productEntity.getId());
+                    /* 过滤掉没有纳入分类的产品的词条 */
+                    if(entryClassfyById == null){
+                        continue;
+                    }
+                    /* 过滤掉术语顶层分类的词条 */
                     EntryClassify entryClassfyByParentId = entryClassifyMapper.getEntryClassfyById(entryClassfyById.getParentId());
                     if(entryClassfyByParentId == null){
                         continue;
                     }
                     sykEntryVO.setClassify(entryClassfyByParentId.getTitle());
-
+                    sykEntryVO.setComment(entity.getComment());
                     sykEntryVO.setAbbr(entity.getAbbr());
                     sykEntryVO.setEntrySource(entity.getEntrySource());
                     sykEntryVO.setDiName(entity.getDiFileName());

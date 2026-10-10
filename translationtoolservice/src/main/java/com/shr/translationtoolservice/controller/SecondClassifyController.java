@@ -5,6 +5,8 @@ import com.shr.translationtoolservice.entity.ResponseListModel;
 import com.shr.translationtoolservice.entity.SecondClassify;
 import com.shr.translationtoolservice.entity.TranslateEntity;
 import com.shr.translationtoolservice.service.SecondClassifyInterface;
+
+import io.micrometer.core.instrument.util.StringUtils;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -44,14 +46,31 @@ public class SecondClassifyController extends BaseController {
     @ApiOperation("新增二级分类")
     @CrossOrigin
     public HttpResponse<String> addSecondClassify(@RequestBody SecondClassify secondClassify, HttpServletRequest request){
-        return checkResult(secondClassifyInterface.addSecondClassify(secondClassify,request));
+
+        String result = secondClassifyInterface.addSecondClassify(secondClassify,request);
+        if(result.equals("二级分类不允许为空")){
+            HttpResponse<String> httpResponse = new HttpResponse<>();
+            httpResponse.setCode(HttpResponse.Type.OK.getVal());
+            httpResponse.setType(HttpResponse.Type.ERROR);
+            httpResponse.setData(result);
+            return httpResponse;
+        }
+        return checkResult(result);
     }
 
     @PostMapping("/updateSecondClassify")
     @ApiOperation("编辑二级分类")
     @CrossOrigin
-    public HttpResponse<Integer> updateSecondClassify(@RequestBody SecondClassify secondClassify){
-        return checkResult(secondClassifyInterface.updateSecondClassify(secondClassify));
+    public HttpResponse<String> updateSecondClassify(@RequestBody SecondClassify secondClassify){
+        String result = secondClassifyInterface.updateSecondClassify(secondClassify);
+        if(result.equals("二级分类不允许为空")){
+            HttpResponse<String> httpResponse = new HttpResponse<>();
+            httpResponse.setCode(HttpResponse.Type.OK.getVal());
+            httpResponse.setType(HttpResponse.Type.ERROR);
+            httpResponse.setData(result);
+            return httpResponse;
+        }
+        return checkResult(result);
     }
 
     @PostMapping("/deleteSecondClassify")
