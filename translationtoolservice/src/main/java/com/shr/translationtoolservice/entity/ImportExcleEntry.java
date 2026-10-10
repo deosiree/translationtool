@@ -34,6 +34,15 @@ public class ImportExcleEntry {
     @Excel(name = "术语英文释义", orderNum = "1")
     private String englishInterpretation;
 
+    @Excel(name = "术语俄文释义", orderNum = "1")
+    private String russianInterpretation;
+
+    @Excel(name = "术语法文释义", orderNum = "1")
+    private String frenchInterpretation;
+
+    @Excel(name = "术语西文释义", orderNum = "1")
+    private String spanishInterpretation;
+
     @Excel(name = "中文术语", orderNum = "1")
     private String entry;
     private Integer entryLength;
@@ -51,7 +60,7 @@ public class ImportExcleEntry {
     private String spanish;
     private Integer spaCharLength;
     @Excel(name = "俄文术语", orderNum = "1")
-    private String russia;
+    private String russian;
     private Integer ruCharLength;
 
     //英文术语
@@ -98,7 +107,7 @@ public class ImportExcleEntry {
         put("enCharLength","英文术语字符数");
         put("spanish","西文术语术语");
         put("spaCharLength","西文术语字符数");
-        put("russia","俄文术语术语");
+        put("russian","俄文术语术语");
         put("ruCharLength","俄文术语字符数");
         put("french","法文术语术语");
         put("fraCharLength","法文术语字符数");

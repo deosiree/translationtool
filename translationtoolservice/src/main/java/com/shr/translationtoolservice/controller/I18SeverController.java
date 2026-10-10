@@ -1880,7 +1880,7 @@ public class I18SeverController extends BaseController {
                 entryInfoEntity.setId(commonUtils.getUUID());
                 entryInfoEntity.setEntry(fieldInfo.getFieldName());
                 entryInfoEntity.setDiFileName("enum/" + fieldInfo.getDb_name());
-                entryInfoEntity.setEntrySource(fieldInfo.getDb_name());
+                entryInfoEntity.setEntrySource(fieldInfo.getCommon());
                 entryInfoEntity.setTag(fieldInfo.getCommon());
                 entryInfoEntity.setUpdateTime(date);
                 entryInfoEntity.setUpdate(userName);

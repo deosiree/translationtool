@@ -386,7 +386,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //翻译如果更新的情况下 查找翻译表存在相同的 挂在已存在的额id 没有新增一个翻译
         updateTrans(entryInfoEntity, department);
 
-        int update = entryInfoMapper.updateEntryInfo(entryInfoEntity);
+        int update = entryInfoMapper.updateEntryInfoForManager(entryInfoEntity);
         if (update < ConstantInterface.DB_SUCCESS_RESULT) {
             log.error(" entryInfoEntity update  error ! ");
             return ErrorCodeList.OPERATE_ERROR;
@@ -2431,6 +2431,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if(sourceMap == null){
             sourceMap = new HashMap<>();
         }
+        addDefaultSource(sourceMap);
         Map<String, List<EntryInfoEntity>> entryMap = new HashMap<>();
         for (EntryInfoEntity entity : entities) {
             if (StringUtils.isNotBlank(entity.getImportType())){
@@ -2446,10 +2447,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         if (CollectionUtils.isEmpty(entryMap)){
             return new ArrayList<>();
         }
-
+        List<String> exceptionMessages = new ArrayList<>();
         List<EntryInfoEntity> allEntrys = new ArrayList<>();
         try {
-            List<EntryInfoEntity> tsnoUsedEntrys =  getTSNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.TS),sourceMap.get(ConstantInterface.TS));
+            List<EntryInfoEntity> tsnoUsedEntrys =  getTSNoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.TS),sourceMap.get(ConstantInterface.TS),exceptionMessages);
             allEntrys.addAll(tsnoUsedEntrys);   
         } catch (Exception e) {
             // TODO: handle exception
@@ -2457,7 +2458,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
         try {
             //查询di 冗余词条
-            List<EntryInfoEntity> dinoUsedEntrys =  getDINoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DI),sourceMap.get(ConstantInterface.DI));   
+            List<EntryInfoEntity> dinoUsedEntrys =  getDINoUsedEntry(i18nUrl,entryMap.get(ConstantInterface.DI),sourceMap.get(ConstantInterface.DI),exceptionMessages);   
             allEntrys.addAll(dinoUsedEntrys);
         } catch (Exception e) {
             // TODO: handle exception
@@ -2498,6 +2499,19 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             
         }).collect(Collectors.toList());
         return fliteredEntryInfoEntities;
+    }
+
+    private void addDefaultSource(Map<String,List<String>> sourceMap){
+        List<String> tsSources = new ArrayList<>();
+        tsSources.add("qt_help");
+        tsSources.add("designer");
+        tsSources.add("assistant");
+        tsSources.add("qtquickcontrols");
+        tsSources.add("qtquickcontrols2");
+        tsSources.add("qtxmlpatterns");
+        tsSources.add("qtbase");
+        sourceMap.put(ConstantInterface.TS, tsSources);
+        return;
     }
 
     private List<EntryInfoEntity> getCONFIGNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> configList) {
@@ -2676,7 +2690,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return noUsedEntrys;
     }
 
-    private List<EntryInfoEntity> getDINoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> diList) {
+    private List<EntryInfoEntity> getDINoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities, List<String> diList,List<String> exceptionMessages) {
+        if(exceptionMessages == null){
+            throw new NullPointerException("exceptionMessages是null");
+        }
         List<EntryInfoEntity> diSourceEntrys = new ArrayList<>();
         Set<String> fileSet = new HashSet<>();
         if ( CollectionUtils.isEmpty(entryInfoEntities)){
@@ -2687,8 +2704,9 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         }
         //去除白名单中的词条
         for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())){
-                if (entryInfoEntity.getImportType().equals(ConstantInterface.DI) && !diList.contains(entryInfoEntity.getEntrySource())){
+            String entrySource = entryInfoEntity.getEntrySource();
+            if (StringUtils.isNotBlank(entrySource)){
+                if (entryInfoEntity.getImportType().equals(ConstantInterface.DI) && !entrySource.endsWith(".xlsx") && !diList.contains(entrySource)){
                     diSourceEntrys.add(entryInfoEntity);
                     fileSet.add(entryInfoEntity.getEntrySource());
                 }
@@ -2701,7 +2719,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //查找i18n 词条
         List<EntryInfoEntity> diEntry = new ArrayList<>();
         try {
-            diEntry = diUtils.getDiEntry(i18nUrl,fileSet, "", "", "", "", "");
+            DiEntryResult diEntryResult = diUtils.getDiEntry(i18nUrl,fileSet, "", "", "", "", "");
+            diEntry.addAll(diEntryResult.getResult());
+            exceptionMessages.addAll(diEntryResult.getExceptionMessage());
+
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -2741,7 +2762,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return noUsedEntrys;
     }
 
-    private List<EntryInfoEntity> getTSNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities,  List<String> tsList) {
+    private List<EntryInfoEntity> getTSNoUsedEntry(String i18nUrl, List<EntryInfoEntity> entryInfoEntities,  List<String> tsList,List<String> exceptionMessages) {
         List<EntryInfoEntity> tsSourceEntrys = new ArrayList<>();
         Set<String> fileSet = new HashSet<>();
         if ( CollectionUtils.isEmpty(entryInfoEntities)){
@@ -2766,7 +2787,10 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         //查找i18n 词条
         List<EntryInfoEntity> i18ntsEntry = new ArrayList<>();
         try {
-            i18ntsEntry = tsUtils.getTsEntry(i18nUrl,fileSet, "", "", "", "", "英文");
+            // i18ntsEntry = tsUtils.getTsEntry(i18nUrl,fileSet, "", "", "", "", "英文");
+            TsEntryResult tsEntryResult = tsUtils.getTsEntry(i18nUrl,fileSet, "", "", "", "", "英文");
+            i18ntsEntry.addAll(tsEntryResult.getResult());
+            exceptionMessages.addAll(tsEntryResult.getExceptionMessage());
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -2807,6 +2831,21 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return noUsedEntrys;
     }
 
+
+    private <E> void constructExceptionMessage(List<String> exceptionMessage,Map<Exception, Set<E>> exceptionCollection){
+        constructExceptionMessage(exceptionMessage, exceptionCollection,null,null);
+    }
+
+    private <E> void constructExceptionMessage(List<String> exceptionMessage,Map<Exception, Set<E>> exceptionCollection,String prefix,String suffix){
+        for(Map.Entry<Exception,Set<E>> entry : exceptionCollection.entrySet()){
+            if(entry.getKey() instanceof i18nServerConnectException){
+                exceptionMessage.add("i18n服务连接异常, 检测i18n服务是否开启");
+            }else{
+                exceptionMessage.add((prefix != null ? prefix : "") + entry.getKey().toString() + ": " + entry.getValue().toString() + (suffix != null ? suffix : ""));
+            }
+        }
+        return;
+    }
 
     @Override
     public  List<SourceEntryVO> getEntrysourceListByClassfy(String classfyID,String i18nUrl, String token,List<String> exceptionMessage) {
@@ -2878,19 +2917,23 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             Set<String> dbfileSet = new HashSet<>();
             for (EntryInfoEntity entryInfoEntity : entryByTaskID) {
                 if (StringUtils.isNotBlank(entryInfoEntity.getEntrySource())) {
-                    if (entryInfoEntity.getImportType().equals(ConstantInterface.TS)) {
+                    String importType = entryInfoEntity.getImportType();
+                    if(importType == null){
+                        continue;
+                    }
+                    if (importType.equals(ConstantInterface.TS)) {
                         tsEntryList.add(entryInfoEntity.getEntry());
                         tsfileSet.add(entryInfoEntity.getEntrySource());
-                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.DI)) {
+                    } else if (importType.equals(ConstantInterface.DI)) {
                         diEntryList.add(entryInfoEntity.getEntry());
                         difileSet.add(entryInfoEntity.getEntrySource());
-                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.ENUM)) {
+                    } else if (importType.equals(ConstantInterface.ENUM)) {
                         enumEntryList.add(entryInfoEntity.getEntry());
                         enumfileSet.add(entryInfoEntity.getEntrySource());
-                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.CONFIG)) {
+                    } else if (importType.equals(ConstantInterface.CONFIG)) {
                         configEntryList.add(entryInfoEntity.getEntry());
                         configfileSet.add(entryInfoEntity.getEntrySource());
-                    } else if (entryInfoEntity.getImportType().equals(ConstantInterface.DB)) {
+                    } else if (importType.equals(ConstantInterface.DB)) {
                         dbEntryList.add(entryInfoEntity.getEntry());
                         dbfileSet.add(entryInfoEntity.getEntrySource());
                     }
@@ -2909,15 +2952,30 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             List<EntryInfoEntity> configEntry = new ArrayList<>();
             List<EntryInfoEntity> dbEntry = new ArrayList<>();
             try {
-                tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                enumEntry = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
-                configEntry = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                TsEntryResult<String> tsEntryResult = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());  
+                DiEntryResult<String> diEntryResult = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                DiEntryResult<String> enumEntryResult = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                DiEntryResult<String> configEntryResult = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                // 存放正常获取的信息
+                tsEntry.addAll(tsEntryResult.getResult());
+                diEntry.addAll(diEntryResult.getResult());
+                enumEntry.addAll(enumEntryResult.getResult());
+                configEntry.addAll(configEntryResult.getResult());
+                // 存放异常信息
+                constructExceptionMessage(exceptionMessage, tsEntryResult.getExceptionCollection());
+                constructExceptionMessage(exceptionMessage, diEntryResult.getExceptionCollection());
+                constructExceptionMessage(exceptionMessage, enumEntryResult.getExceptionCollection());
+                constructExceptionMessage(exceptionMessage, configEntryResult.getExceptionCollection());
+                // tsEntry = tsUtils.getTsEntry(i18nUrl,tsfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());                
+                // diEntry = diUtils.getDiEntry(i18nUrl,difileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                // enumEntry = diUtils.getEnumEntry(i18nUrl,enumfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
+                // configEntry = diUtils.getConfigEntry(i18nUrl,configfileSet, taskID, userName, productEntity.getId(), versionId, taskInfoEntity.getTranslateType());
 
             } catch (Exception e) {
                 e.printStackTrace();
                 log.error(e.getMessage());
-                return null;
+                // return null;
+                throw new RuntimeException(e);
             }
             //合并ts和di词条
             List<EntryInfoEntity> allEntry = new ArrayList<>();

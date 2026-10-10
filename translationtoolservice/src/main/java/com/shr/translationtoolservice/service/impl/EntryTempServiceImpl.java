@@ -689,8 +689,8 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                     "AuditSuggest  , t3.translate_state as " + tLanguage.getEnglish() +
                     "TranslateState ,t3.translate as " + tLanguage.getEnglish() +
                     " from  t_product_relation t1  join  t_entry_info t2 on t1.entry_id = t2.id left JOIN t_translate t3 ON  t2." +
-                    tLanguage.getTbCode() + "_trans_id = t3.id   where ( t3.translate_state in ( " + transState + ")  " + s + ") and  t1.task_id = '" + taskID + "' " + entryStateSql + entrySql;
-
+                    tLanguage.getTbCode() + "_trans_id = t3.id   where ( t3.translate_state in ( " + transState + ")  " + s + ") and  t1.task_id = '" + taskID + "' " + entryStateSql + entrySql
+                    + " and t2.is_delete = 0";
 
             entryInfoEntities = entryInfoMapper.getTransStateEntry(sql);
         }

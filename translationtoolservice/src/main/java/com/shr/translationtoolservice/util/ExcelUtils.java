@@ -15,6 +15,7 @@ import com.shr.translationtoolservice.dao.VersionMapper;
 import com.shr.translationtoolservice.entity.*;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
@@ -30,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -517,7 +519,7 @@ public class ExcelUtils {
      * @throws Exception
      */
     public void checkFile(String fileName) throws Exception {
-        if (!StringUtils.isEmpty(fileName) && !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls"))) {
+        if (!StringUtils.isEmpty(fileName) && !(fileName.endsWith(".xlsx") || fileName.endsWith(".xls") || fileName.endsWith(".csv"))) {
             throw new Exception("不是Excel文件！");
         }
     }
@@ -652,6 +654,7 @@ public class ExcelUtils {
                             headName.equals("西文术语") ||
                             headName.equals("俄文术语") ||
                             headName.equals("中文术语") ||
+                            headName.equals("法文术语") ||
                             headName.equals("ABB类全驼峰") ||
                             headName.equals("展开（缩写采用单驼峰,首字母大写）") ||
                             headName.equals("单多驼峰搭配下划线（继保类似）") ||

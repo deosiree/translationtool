@@ -1075,9 +1075,6 @@ public class EntryInfoController extends BaseController {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        responseListModel.setList(sourceEntryVOS);
-        responseListModel.setTotalNum(sourceEntryVOS.size());
-        return checkResult(responseListModel);
     }
 
     @PostMapping("/getEntrysourceListByClassfy")

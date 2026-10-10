@@ -11,6 +11,10 @@
         <result property="entryLength" column="entry_length" jdbcType="INTEGER"/>
         <result property="chineseInterpretation" column="chinese_interpretation" jdbcType="VARCHAR"/>
         <result property="englishInterpretation" column="english_interpretation" jdbcType="VARCHAR"/>
+        <result property="russianInterpretation" column="russian_interpretation" jdbcType="VARCHAR"/>
+        <result property="frenchInterpretation" column="french_interpretation" jdbcType="VARCHAR"/>
+        <result property="spanishInterpretation" column="spanish_interpretation" jdbcType="VARCHAR"/>
+
         <result property="entrySource" column="entry_source" jdbcType="VARCHAR"/>
         <result property="entryState" column="entry_state" jdbcType="INTEGER"/>
         <result property="update" column="update" jdbcType="VARCHAR"/>
@@ -66,6 +70,9 @@
 
         <result property="classfy1" column="classfy1" jdbcType="VARCHAR"/>
         <result property="classfy2" column="classfy2" jdbcType="VARCHAR"/>
+
+        <result property="srcTabName" column="source_table" jdbcType = "VARCHAR"/>
+        <result property="dbRID" column="db_record_id" jdbcType="VARCHAR"/>
     </resultMap>
 
     <resultMap id="replicateCheckVOResultMap" type="com.shr.translationtoolservice.entity.vo.EntryInfoReplicateCheckVO">
@@ -112,24 +119,27 @@
     <sql id="Base_Column_List">
         id,abbr,entry,
         entry_length,chinese_interpretation,english_interpretation,
+        russian_interpretation,french_interpretation,spanish_interpretation,
         entry_source,entry_state,`update`,
         update_time,version_id,entry_label,tag,
         part_of_speech,classify_id,remark,
         task_id,en_trans_id,ru_trans_id,zh_trans_id,
         fra_trans_id,spa_trans_id,is_public,
         is_delete,import_type,write_type,entry_version_type,parent_id,
-        di_file_name,classfy1,classfy2,comment
+        di_file_name,classfy1,classfy2,comment,source_table,db_record_id
     </sql>
     <sql id="Base_t2_Column_List">
         t2.id,t2.abbr,t2.entry,
         t2.entry_length,t2.chinese_interpretation,t2.english_interpretation,
+        t2.russian_interpretation,t2.french_interpretation,t2.spanish_interpretation,
         t2.entry_source,t2.entry_state,t2.`update`,
         t2.update_time,t2.version_id,t2.entry_label,t2.tag,
         t2.part_of_speech,t2.classify_id,t2.remark,
         t2.task_id,t2.en_trans_id,t2.ru_trans_id,t2.zh_trans_id,
         t2.fra_trans_id,t2.spa_trans_id,t2.is_public,t2.comment,
         t2.is_delete,t2.import_type,t2.write_type,t2.entry_version_type,
-        t2.di_file_name,t1.product_id,t2.entry_version,t2.classfy1,t2.classfy2
+        t2.di_file_name,t1.product_id,t2.entry_version,t2.classfy1,t2.classfy2,
+        t2.source_table,t2.db_record_id
     </sql>
     <select id="getEntryByVersion" resultMap="BaseResultMap">
         select distinct<include refid="Base_t2_Column_List"/>,
@@ -216,6 +226,13 @@
         </if>
         <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
+        </if>
+
+        <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+            and t2.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+            and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
         </if>
 
         <if test="limit >= 0 and offset >= 0">
@@ -306,6 +323,13 @@
         </if>
         <if test="entryInfoEntity.comment != null and entryInfoEntity.comment != '' ">
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
+        </if>
+
+        <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+            and t2.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+            and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
         </if>
     </select>
 
@@ -598,6 +622,13 @@
             and t2.comment  like CONCAT('%',#{entryInfoEntity.comment,jdbcType=VARCHAR},'%')
         </if>
 
+        <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+            and t2.source_table  like CONCAT('%',#{entryInfoEntity.srcTabName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+            and t2.db_record_id  like CONCAT('%',#{entryInfoEntity.dbRID,jdbcType=VARCHAR},'%')
+        </if>
+
     </select>
 
     <select id="getEntryByAbbr"
@@ -626,6 +657,12 @@
         chinese_interpretation,
 
         english_interpretation,
+
+        russian_interpretation,
+
+        french_interpretation,
+
+        spanish_interpretation,
 
         entry_source,
 
@@ -690,6 +727,12 @@
             #{entryInfoEntity.chineseInterpretation,jdbcType=VARCHAR},
 
             #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.russianInterpretation,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.frenchInterpretation,jdbcType=VARCHAR},
+
+            #{entryInfoEntity.spanishInterpretation,jdbcType=VARCHAR},
 
             #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
 
@@ -763,6 +806,15 @@
             <if test="entryInfoEntity.englishInterpretation != null and entryInfoEntity.englishInterpretation  != ''">
                 english_interpretation,
             </if>
+            <if test="entryInfoEntity.russianInterpretation != null and entryInfoEntity.russianInterpretation  != ''">
+                russian_interpretation,
+            </if>
+            <if test="entryInfoEntity.frenchInterpretation != null and entryInfoEntity.frenchInterpretation  != ''">
+                french_interpretation,
+            </if>
+            <if test="entryInfoEntity.spanishInterpretation != null and entryInfoEntity.spanishInterpretation  != ''">
+                spanish_interpretation,
+            </if>
             <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource  != ''">
                 entry_source,
             </if>
@@ -823,6 +875,13 @@
             <if test="entryInfoEntity.comment != null  and entryInfoEntity.comment   != ''">
                 comment,
             </if>
+
+            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                source_table,
+            </if>
+            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                db_record_id,
+            </if>
         </trim>
         <trim prefix="values (" suffix=")" suffixOverrides=",">
             <if test="entryInfoEntity.id != null and entryInfoEntity.id   != ''">
@@ -842,6 +901,15 @@
             </if>
             <if test="entryInfoEntity.englishInterpretation != null and entryInfoEntity.englishInterpretation   != ''">
                 #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.russianInterpretation != null and entryInfoEntity.russianInterpretation   != ''">
+                #{entryInfoEntity.russianInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.frenchInterpretation != null and entryInfoEntity.frenchInterpretation   != ''">
+                #{entryInfoEntity.frenchInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.spanishInterpretation != null and entryInfoEntity.spanishInterpretation   != ''">
+                #{entryInfoEntity.spanishInterpretation,jdbcType=VARCHAR},
             </if>
             <if test="entryInfoEntity.entrySource != null and entryInfoEntity.entrySource   != ''">
                 #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
@@ -903,6 +971,12 @@
             <if test="entryInfoEntity.comment != null and entryInfoEntity.comment   != ''">
                 #{entryInfoEntity.comment,jdbcType=VARCHAR},
             </if>
+            <if test="entryInfoEntity.srcTabName != null and entryInfoEntity.srcTabName != ''">
+                #{entryInfoEntity.srcTabName,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.dbRID != null and entryInfoEntity.dbRID != '' ">
+                #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
+            </if>
         </trim>
     </insert>
 
@@ -921,6 +995,15 @@
             </if>
             <if test="entryInfoEntity.englishInterpretation != null  and entryInfoEntity.englishInterpretation != ''">
                 english_interpretation = #{entryInfoEntity.englishInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.russianInterpretation != null  and entryInfoEntity.russianInterpretation != ''">
+                russian_interpretation = #{entryInfoEntity.russianInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.frenchInterpretation != null  and entryInfoEntity.frenchInterpretation != ''">
+                french_interpretation = #{entryInfoEntity.frenchInterpretation,jdbcType=VARCHAR},
+            </if>
+            <if test="entryInfoEntity.spanishInterpretation != null  and entryInfoEntity.spanishInterpretation != ''">
+                spanish_interpretation = #{entryInfoEntity.spanishInterpretation,jdbcType=VARCHAR},
             </if>
             <if test="entryInfoEntity.entrySource != null  and entryInfoEntity.entrySource != ''">
                 entry_source = #{entryInfoEntity.entrySource,jdbcType=VARCHAR},
@@ -1422,6 +1505,13 @@
             and t1.task_id = #{entryInfoEntity.taskId,jdbcType=VARCHAR}
         </if>
 
+        <if test="entryInfoEntity.srcTabName != null">
+            and t2.source_table = #{entryInfoEntity.srcTabName,jdbcType=VARCHAR}
+        </if>
+        <if test="entryInfoEntity.dbRID != null">
+            and t2.db_record_id = #{entryInfoEntity.dbRID,jdbcType=VARCHAR}
+        </if>
+
     </select>
 
     <select id="getTransByID" resultType="string">
@@ -1536,6 +1626,9 @@
         ${tbl}.entry_length,
         ${tbl}.chinese_interpretation,
         ${tbl}.english_interpretation,
+        ${tbl}.russian_interpretation,
+        ${tbl}.spanish_interpretation,
+        ${tbl}.french_interpretation,
         ${tbl}.entry_source,
         ${tbl}.entry_state,
         ${tbl}.`update`,
@@ -1560,7 +1653,9 @@
         ${tbl}.di_file_name,
         ${tbl}.classfy1,
         ${tbl}.classfy2,
-        ${tbl}.comment
+        ${tbl}.comment,
+        ${tbl}.source_table,
+        ${tbl}.db_record_id
     </sql>
 
 
