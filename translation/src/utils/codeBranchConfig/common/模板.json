@@ -1,0 +1,37 @@
+[
+  {
+    "title": "",
+    "link": "",
+    "description": "前端JavaScript由于安全限制无法直接访问服务器文件系统，得每次读取本地文件"
+  },
+  {
+    "title": "db/secinfo",
+    "link": "db",
+    "description": "数据库-元数据"
+  },
+    {
+    "title": "db/meta/secinfo",
+    "link": "meta",
+    "description": "数据库-对象数据"
+  },
+    {
+    "title": "enum/secinfo",
+    "link": "enum",
+    "description": "枚举"
+  },
+    {
+    "title": "config/calc_editor",
+    "link": "config",
+    "description": "配置文件"
+  },
+    {
+    "title": "tr/public",
+    "link": "tr",
+    "description": "工具-tr"
+  },
+  {
+    "title": "apitesttool",
+    "link": "ts",
+    "description": "工具ts"
+  }
+]

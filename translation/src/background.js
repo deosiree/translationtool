@@ -234,7 +234,7 @@ function setWindowsEnvironmentVariables(javaPath) {
 app.on('before-quit', () => {
   if (jarProcess) {
     jarProcess.kill();  // 关闭 JAR 进程
-    console.log('JAR process killed');
+    // console.log('JAR process killed');
   }
 });
 

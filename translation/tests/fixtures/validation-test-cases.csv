@@ -1,0 +1,10 @@
+词条,英文翻译,英文释义,一级分类,翻译最大长度,tag,comment,abbr
+Hello world,Hello world,用例说明见comment列,,,tag-ok,OK-001-基准-弹窗保存应通过,OK
+Press %1 to continue,Press % 1 to continue,用例说明见comment列,,,tag-sp1,SPECIAL-001-词条%1翻译%空格1-特殊字符应失败,SP1
+Press %1 to continue,Press %1 to continue,用例说明见comment列,,,tag-sp0,SPECIAL-002-对照组-特殊字符应通过,SP0
+Slot %1 then %2 end,Slot %1 only,用例说明见comment列,,,tag-sp2,SPECIAL-003-缺%2-特殊字符应失败,SP2
+No placeholder entry,Still no % 1 here,用例说明见comment列,,,tag-sp3,SPECIAL-004-对照组-无%1通常不拦特殊字符,SP3
+Length limit row,AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA,用例说明见comment列,,20,tag-long1,LONG-001-maxLength20超长80字符-长度应失败,L80
+Length limit CN,测试测试测试测试测试测试测试测试测试测试测试,用例说明见comment列,,20,tag-long2,LONG-002-maxLength20约22中文44字节-长度应失败,L22
+Empty english,,用例说明见comment列,,,tag-empty,EMPTY-001-翻译为空-长度特殊字符可能不拦,EMP
+Edit UI sample,Line1%nLine2%nLine3,用例说明见comment列,,,tag-ui,UI-001-双击编辑测TextArea换行不超5行,UI1

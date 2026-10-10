@@ -106,6 +106,8 @@ import {
 } from "@/http/api/versionTable";
 import Pagination from "@/components/page/pagination.vue"
 import SearchForm from '@/components/search/searchForm.vue'
+import { setModalAriaHidden } from "@/utils/domUtils";
+import { addProperty, updateProperty } from "@/http/api/property";
 export default {
     components:{
         PlusOutlined,
@@ -118,7 +120,6 @@ export default {
     data() {
         return{
             name:"repository",
-            user:{},
             selectedRowKeys:[],
             tableHeight:{ x:'100%',y: 0 },
             columns:[
@@ -229,7 +230,7 @@ export default {
             }
             let data = {
                 version: this.search.version,
-                department: this.user.department
+                department: this.$store.state.user?.department
             }
             getVersionTableByCondition(params,data).then((res) => {
                 this.pagination.total = res.data.totalNum
@@ -347,6 +348,7 @@ export default {
         },
         detail(record){
             this.detailVisible = true
+            setModalAriaHidden(this, document);
             this.$refs.detail.init(record.version)
         },
         detailClose(){

@@ -1,199 +1,464 @@
 //引入request.js文件
-import request from "../request";
- 
+import request, { requestMultipart, requestDeduped } from "../request";
+import {
+  entryImportExcle as entryImportExcle_mock,
+  entryImportExcle_v2 as entryImportExcle_v2_mock,
+  entryValidate_v2 as entryValidate_v2_mock,
+  createEntrysourceListByClassfyTaskMock, // Import the new mock
+  asyncEntryImportExcle as asyncEntryImportExcle_mock,
+  getEntryImportExcleTaskState as getEntryImportExcleTaskState_mock,
+  getEntryImportExcleTaskStateResult as getEntryImportExcleTaskStateResult_mock,
+  getClassTreeMock,
+} from "./mock/entryManage";
+
+// 查询分类中新增的词条来源
+export function getEntrysourceListByClassfy(params) {
+  return request({
+    url: "/entryInfo/getEntrysourceListByClassfy",
+    // url: "https://apifoxmock.com/m1/5916202-5603218-default/entryInfo/getEntrysourceListByClassfy/",
+    method: "POST",
+    params,
+  });
+}
+
+// 创建更新词条任务
+export function createEntrysourceListByClassfyTask(params) {
+  // console.log("创建更新词条任务params", params);
+  // 兼容“真实接口 / Mock”两套实现：通过 params.__mock 显式切换
+  if (params && params.__mock) {
+    return createEntrysourceListByClassfyTaskMock(params);
+  }
+  return request({
+    url: "/entryInfo/getEntrysourceListByClassfy",
+    method: "POST",
+    params,
+  });
+}
+
+// 更新来源中新增的词条来源
+export function updateEntryByClassfy(data) {
+  return request({
+    url: "/entryInfo/updateEntryByClassfy",
+    // url: "https://apifoxmock.com/m1/5916202-5603218-default/entryInfo/updateEntryByClassfy",
+    method: "POST",
+    data,
+  });
+}
+
+// 查询来源中新增的词条
+export function updateEntryByEntrySource(params) {
+  return request({
+    url: "/entryInfo/updateEntryByEntrySource",
+    method: "POST",
+    params,
+  });
+}
+
+// 校验未使用的词条
+export function checkNotUseEntry(params) {
+  return request({
+    url: "/entryInfo/checkNotUseEntry",
+    method: "POST",
+    params,
+    data: {}
+  });
+}
+
 // 查询分类树
 export function getClassTree(params) {
-    return request({
-        url: "/entryInfo/getClassTree",
-        method: "POST", 
-        params
-    });
+  // 兼容“真实接口 / Mock”两套实现：通过 params.__mock 显式切换
+  if (params && params.__mock) {
+    return getClassTreeMock(params);
+  }
+  return request({
+    url: "/entryInfo/getClassTree",
+    method: "POST",
+    params,
+  });
 }
 
 // 词条分类新增
 export function addEntryClassfy(data) {
-    return request({
-        url: "/entryInfo/addEntryClassfy",
-        method: "POST", 
-        data
-    });
+  return request({
+    url: "/entryInfo/addEntryClassfy",
+    method: "POST",
+    data
+  });
 }
 
 // 词条分类删除
 export function deleteEntryClassfy(data) {
-    return request({
-        url: "/entryInfo/deleteEntryClassfy",
-        method: "POST", 
-        data
-    });
+  return request({
+    url: "/entryInfo/deleteEntryClassfy",
+    method: "POST",
+    data
+  });
 }
 
 // 词条分类编辑
 export function updateEntryClassfy(data) {
-    return request({
-        url: "/entryInfo/updateEntryClassfy",
-        method: "POST", 
-        data
-    });
+  return request({
+    url: "/entryInfo/updateEntryClassfy",
+    method: "POST",
+    data
+  });
 }
 
 // 获取版本词条
-export function getEntryByVersion(data,params) {
-    return request({
-        url: "/entryInfo/getEntryByVersion",
-        method: "POST", 
-        data,
-        params
-    });
+export function getEntryByVersion(data, params) {
+  return request({
+    url: "/entryInfo/getEntryByVersion",
+    method: "POST",
+    data,
+    params
+  });
 }
 
 // 删除版本词条
-export function deleteEntryInfo(data,params) {
-    return request({
-        url: "/entryInfo/deleteEntryInfo",
-        method: "POST", 
-        data,
-        params
-    });
+export function deleteEntryInfo(data, params) {
+  return request({
+    url: "/entryInfo/deleteEntryInfo",
+    method: "POST",
+    data,
+    params
+  });
 }
 
 // 编辑词条
-export function updateEntryInfo(data,params) {
-    return request({
-        url: "/entryInfo/updateEntryInfo",
-        method: "POST", 
-        data,
-        params
-    });
+export function updateEntryInfo(data, params) {
+  return request({
+    url: "/entryInfo/updateEntryInfo",
+    method: "POST",
+    data,
+    params
+  });
+}
+
+/**
+ * 批量编辑词条（per-row 结果：data.list[{ id, success, message }] + data.totalNum）
+ * @param {Array} data - EntryInfoEntity 数组
+ * @param {Object} [params] - URL 参数，如 { notes }
+ */
+export function updateEntryInfoList(data, params) {
+  return request({
+    url: "/entryInfo/updateEntryInfoList",
+    method: "POST",
+    data,
+    params
+  });
+}
+
+// 禁用词条
+export function forbiddenEntryInfo(data) {
+  return request({
+    url: "/entryInfo/forrbiddenEntry",
+    method: "POST",
+    data
+  });
 }
 
 // 查询公共库数据
-export function getPublicEntry(data,params) {
-    return request({
-        url: "/entryInfo/getPublicEntry",
-        method: "POST", 
-        params,
-        data
-    });
+export function getPublicEntry(data, params) {
+  return request({
+    url: "/entryInfo/getPublicEntry",
+    method: "POST",
+    params,
+    data
+  });
 }
 
 // 修改公共库数据
 export function updatePublicEntry(data) {
-    return request({
-        url: "/entryInfo/updatePublicEntry",
-        method: "POST", 
-        data
-    });
+  return request({
+    url: "/entryInfo/updatePublicEntry",
+    method: "POST",
+    data
+  });
 }
 
 // 删除公共库数据
 export function deletePublicEntry(data) {
-    return request({
-        url: "/entryInfo/deletePublicEntry",
-        method: "POST", 
-        data
-    });
+  return request({
+    url: "/entryInfo/deletePublicEntry",
+    method: "POST",
+    data
+  });
 }
 
 // 编辑翻译
 export function updateTranslation(data) {
-    return request({
-        url: "/entryInfo/updateTranslation",
-        method: "POST", 
-        data
-    });
+  return request({
+    url: "/entryInfo/updateTranslation",
+    method: "POST",
+    data
+  });
 }
 
 // 辅助翻译
 export function translate(params) {
-    return request({
-        url: "/entryInfo/translate",
-        method: "POST", 
-        params
-    });
+  return request({
+    url: "/entryInfo/translate",
+    method: "POST",
+    params
+  });
 }
 
 // 版本导出
 export function versionExport(params) {
-    return request({
-        url: "/entryInfo/versionExport",
-        method: "POST", 
-        responseType: 'blob',
-        params
-    });
+  return request({
+    url: "/entryInfo/versionExport",
+    method: "POST",
+    responseType: 'blob',
+    params
+  });
 }
 
 
 // 词条生成版本
-export function createVersionByEntry(params,data) {
-    return request({
-        url: "/entryInfo/createVersionByEntry",
-        method: "POST", 
-        params,
-        data
-    });
+export function createVersionByEntry(params, data) {
+  return request({
+    url: "/entryInfo/createVersionByEntry",
+    method: "POST",
+    params,
+    data
+  });
 }
 
 // 新增单个词条
 export function addSingleEntry(data) {
-    return request({
-        url: "/entryInfo/addSingleEntry",
-        method: "POST", 
-        data
-    });
+  return request({
+    url: "/entryInfo/addSingleEntry",
+    method: "POST",
+    data
+  });
 }
 
-// 查询分类限制字符串长度
+// 查询分类限制字符串长度（只读，并发去重）
 export function getClassfy(params) {
-    return request({
-        url: "/entryInfo/getClassfy",
-        method: "POST", 
-        params
-    });
+  return requestDeduped({
+    url: "/entryInfo/getClassfy",
+    method: "POST",
+    params
+  });
 }
 
 // 关系表新增
 export function addProductRelation(data) {
-    return request({
-        url: "/entryInfo/addProductRelation",
-        method: "POST", 
-        data
-    });
+  return request({
+    url: "/entryInfo/addProductRelation",
+    method: "POST",
+    data
+  });
 }
 
 // 词条管理中  词条翻译回写
-export function writeBack(params,data) {
-    return request({
-        url: "/entryInfo/setInfo",
-        method: "POST", 
-        params,
-        data
-    });
+export function writeBack(params, data) {
+  return request({
+    url: "/entryInfo/setInfo",
+    method: "POST",
+    params,
+    data
+  });
 }
 
-export function entryImportExcle(data) {
-    return request({
-        url: "/entryInfo/entryImportExcle",
-        method: "POST", 
-        data
-    });
+// 更新翻译
+export function entryImportExcle(params, data) {
+  // 兼容“真实接口 / Mock”两套实现：通过 params.__mock 显式切换
+  if (params && params.__mock) {
+    return entryImportExcle_mock(params, data);
+  }
+  return requestMultipart({
+    url: "/entryInfo/entryImportExcle",
+    method: "POST",
+    params,
+    data,
+  });
+}
+
+// 更新翻译（v3 异步版本，仅翻译字段）
+// 后端接口：/entryInfo/asyncEntryImportExcle
+// 语义：仅负责“提交任务”，不直接返回失败词条结果
+export function asyncEntryImportExcle(params, data) {
+  return requestMultipart({
+    url: "/entryInfo/asyncEntryImportExcle",
+    // // 临时直接指向 Apifox 本地 Mock 接口
+    // url: "http://127.0.0.1:4523/m1/5916202-5603218-default/entryInfo/asyncEntryImportExcle",
+    method: "POST",
+    params,
+    data,
+  });
+}
+
+// 更新翻译 (v2版本 - 新API)
+// 当前使用 Mock 接口，未来切换到真实 API 时，只需取消注释下面的代码并注释掉 Mock 调用即可
+export function entryImportExcle_v2(params, data) {
+  // 兼容“真实接口 / Mock”两套实现：通过 params.__mock 显式切换
+  if (params && params.__mock) {
+    return entryImportExcle_v2_mock(params, data);
+  }
+  return requestMultipart({
+    url: "/entryInfo/entryImportExcle_v2",
+    method: "POST",
+    params,
+    data,
+  });
+}
+
+// 校验词条 (v2版本 - 新API)
+export function entryValidate_v2(params, data) {
+  // 支持 mock：可通过 params.mockType 控制返回类型（success/warning/fail）
+  if (params && params.mockType) {
+    // eslint-disable-next-line no-console
+    console.log(params.mockType, "mock的校验结果", entryValidate_v2_mock(params, data, params.mockType));
+    return entryValidate_v2_mock(params, data, params.mockType);
+  }
+  // TODO: 切换到真实 API 时，取消注释下面的代码，并注释掉 Mock 调用
+  return requestMultipart({
+    url: "/entryInfo/checkBeforeUpdateTranslationByFile",
+    method: "POST",
+    params: { ...params, mockType: undefined }, // 移除 mockType 参数
+    data,
+  });
+}
+
+// ==================== entryImportExcle 异步任务查询相关（v3） ====================
+
+// 查询当前用户在指定语种下的更新任务状态
+// 后端根据 header 中的 token + transType 维度维护任务状态
+export function getEntryImportExcleTaskState(params) {
+  return request({
+    url: "/backendInfo/getEntryImportExcleTaskState",
+    // // 临时直接指向 Apifox 本地 Mock 接口
+    // url: "http://127.0.0.1:4523/m1/5916202-5603218-default/backendInfo/getEntryImportExcleTaskState",
+    method: "POST",
+    params,
+  });
+}
+
+// 查询当前用户在指定语种下的更新任务结果
+export function getEntryImportExcleTaskStateResult(params) {
+  return request({
+    url: "/backendInfo/getEntryImportExcleTaskStateResult",
+    // // 临时直接指向 Apifox 本地 Mock 接口
+    // url: "http://127.0.0.1:4523/m1/5916202-5603218-default/backendInfo/getEntryImportExcleTaskStateResult",
+    method: "POST",
+    params,
+  });
+}
+
+// 读取 Excel 文件为dataSource
+export function entryReadExcel(data) {
+  return requestMultipart({
+    url: "/entryInfo/parseFileToEntryInfos",
+    method: "POST",
+    data,
+  });
+}
+
+// 去重导出
+export function exportDeduplicatedData(params, data) {
+  return request({
+    url: "/entryInfo/makeGroupForEntryInfos",
+    method: "POST",
+    params,
+    data: data
+  });
 }
 
 // 翻译导入
 export function workImportExcleTrans(data) {
-    return request({
-        url: "/entryInfo/workImportExcleTrans",
-        method: "POST",
-        data:data
-    });
+  return requestMultipart({
+    url: "/entryInfo/workImportExcleTrans",
+    method: "POST",
+    data: data
+  });
 }
 
 // 获取分类词条
-export function getEntryByClassfy(params,data) {
-    return request({
-        url: "/entryInfo/getEntryByClassfy",
-        method: "POST",
-        params,
-        data
-    });
+export function getEntryByClassfy(params, data) {
+  return request({
+    url: "/entryInfo/getEntryByClassfy",
+    method: "POST",
+    params,
+    data
+  });
+}
+
+// 版本归档-拷贝分类(分支新建前的旧版本方案，弃用)
+export function copyEntryClassify(params) {
+  return request({
+    url: "/entryInfo/copyEntryClassify",
+    method: "POST",
+    params
+  });
+}
+
+// 分支新建-批量新增产品（基于lang文档传递对应的6个新建产品的信息-前端行为）
+export function createProductByLang(data) {
+  return request({
+    url: "/entryInfo/createProductByLang",
+    method: "POST",
+    data
+  });
+}
+
+// 查询指定产品的词条来源
+export function getEntrySourcesByClassify(params) {
+  return request({
+    url: "/entryInfo/getEntrySourcesByClassify",
+    method: "POST",
+    params
+  });
+}
+
+// 查询指定产品的辞典名称
+export function getWriteFileNamesByClassify(params) {
+  return request({
+    url: "/entryInfo/getWriteFileNamesByClassify",
+    method: "POST",
+    params
+  });
+}
+
+
+// 分支新建-查询lang文档中的文件名称（词条来源全集=已导入的+未导入的）
+export function getSourceByLang() {
+  return Promise.resolve({
+    code: 200,
+    message: "成功",
+    data: {
+      list: [
+        "tr/public", "tr/public1", "tr/public2", "tr/public3", "tr/public4", "tr/public5"
+      ]
+    }
+  });
+  // return request({
+  //   url: "/entryInfo/getSourceByLang",
+  //   method: "POST",
+  //   data
+  // });
+}
+
+// 更新词条信息（支持更新所有属性列）
+// @param {Object} params - URL参数，包含columnName[]数组
+// @param {FormData} data - FormData，包含file（Excel/CSV文件）
+export function updateEntryInfosByFile(params, data) {
+  return requestMultipart({
+    url: "/entryInfo/updateEntryInfosByFile",
+    method: "POST",
+    params,
+    data,
+  });
+}
+
+// 词条管理-已选词条：预翻译（与工作台 /workbench/preTranslate 的区别：传翻译语种 translateType，不传任务ID）
+// @param {Object} params - URL参数：{ translateType: 语种名, priority: 翻译优先级 }
+// @param {Array} data - 已选词条数组
+export function preTranslateEntry(params, data) {
+  return request({
+    url: "/entryInfo/preTranslate",
+    method: "POST",
+    params,
+    data,
+  });
 }

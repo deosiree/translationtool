@@ -1,22 +1,22 @@
 <template>
   <a-config-provider :locale="locale">
     <electronTitle />
-    <router-view/>
+    <router-view />
   </a-config-provider>
 </template>
 <script>
 import electronTitle from './components/title/electronTitle';
 import zhCN from 'ant-design-vue/es/locale/zh_CN';
 export default {
-    name: '',
-    components: {
-      electronTitle
-    },
-    data(){
-      return{
-        locale:zhCN
-      }
+  name: '',
+  components: {
+    electronTitle
+  },
+  data() {
+    return {
+      locale: zhCN,
     }
+  },
 }
 </script>
 
@@ -32,5 +32,4 @@ export default {
   overflow: hidden;
   white-space: pre-wrap;
 }
-
 </style>

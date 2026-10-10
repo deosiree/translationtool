@@ -1,32 +1,31 @@
-let root={ path: '/translate', name: 'translate', component: () => import('@/views/layout/layout.vue'),
-  children: []
-};
-//绑定动态路由
-export function initRouter(menuList){
-  //循环数据库的菜单
-  for(var menu of menuList){
-    //没有数据的不绑定
-    if(menu.component == "" || menu.component == null){
-      continue;
+// 绑定动态路由（仅返回 children，避免覆盖静态 /translate 路由）
+export function initRouter(menuList) {
+  const children = []
+
+  // 循环数据库的菜单
+  for (const menu of menuList) {
+    // 没有组件的不绑定
+    if (menu.component === '' || menu.component === null) {
+      continue
     }
-    if(menu.children.length > 0){
-      let temp = {
+
+    if (menu.children && menu.children.length > 0) {
+      children.push({
         path: menu.url,
         name: menu.name,
         component: loadComponent(menu.component),
-        children: []
-      }
-      root.children.push(temp)
-      initRouter(menu.children)
-    }else{
-      root.children.push({
+        children: initRouter(menu.children),
+      })
+    } else {
+      children.push({
         path: menu.url,
         name: menu.name,
         component: loadComponent(menu.component),
-      });
+      })
     }
   }
-  return root
+
+  return children
 }
 
 //路由的插件

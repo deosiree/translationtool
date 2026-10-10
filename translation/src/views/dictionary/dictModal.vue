@@ -23,6 +23,7 @@
                     v-model:value="dict.type"
                     :options="dictTypes"
                     placeholder="请选择"
+                    allowClear
                     ></a-select>
                 </a-form-item>
                 <a-form-item label="辞典名称" name="name"
@@ -95,6 +96,11 @@ export default {
         handleOK(){
             this.okLoading = true
             this.$refs.dictRef.validate().then(() => {
+                if (this.currentIP === null || this.currentIP === undefined || this.currentIP === "") {
+                    message.info("请选择IP！")
+                    this.okLoading = false
+                    return
+                }
 
                 let params = {
                     dicName: this.dict.type === 'other' ? this.dict.name : this.dict.type + '/' + this.dict.name,
@@ -106,7 +112,7 @@ export default {
                     this.$emit('modalOK')
                     this.okLoading = false
                 }).catch((err) => {
-                    message.error("创建失败！")
+                    message.error("创建失败！",err.message)
                     this.okLoading = false
                 })
             }).catch(err => {

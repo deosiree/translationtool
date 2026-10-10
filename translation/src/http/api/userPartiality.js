@@ -4,7 +4,8 @@ import request from "../request";
 export function queryUserPartiality(params) {
     return request({
         url:"/userPartiality/queryUserPartiality",
-        method: "POST"
+        method: "POST",
+        params,
     });
 }
 

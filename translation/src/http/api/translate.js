@@ -1,6 +1,6 @@
 import request from "../request";
 
-// 查询翻译语言
+// 查询翻译语种
 export function getLanguage(data) {
     return request({
         url:"/translate/getLanguage",

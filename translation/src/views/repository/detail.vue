@@ -57,10 +57,9 @@ export default {
             dataSource: [],
             columns: [
                 {title: "序号",dataIndex: 'index',align:'center',width:70,customRender: (text, record, index, column) => {
-                    return text.index + 1
+                    return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
                 },fixed: 'left'},
                 {title: '版本',dataIndex: 'version',align:'center',width:150,fixed: 'left'},
-                {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150,fixed: 'left'},
                 {title: '创建日期',dataIndex: 'createTime',align:'center',width:150,},
                 {title: '创建人',dataIndex: 'creator',align:'center',width:150,},
                 {title: '词性备注',dataIndex: 'partOfSpeech',align:'center',width:150,},
@@ -86,6 +85,7 @@ export default {
                     {title: '法文术语',dataIndex: 'french',align:'center',width:200,ellipsis: true,},
                     {title: '法文字符数',dataIndex: 'frenchLength',align:'center',width:150,},
                 ]},
+                {title: 'Abbr',dataIndex: 'abbr',align:'center',width:150},// ,fixed: 'left'
             ],
             pagination:{
                 total: 0,
@@ -108,7 +108,7 @@ export default {
             this.$emit("detailClose")
         },
         ok(){
-            console.log(this.version)
+            // console.log(this.version)
              this.$emit("detailClose")
         },
         // 初始化

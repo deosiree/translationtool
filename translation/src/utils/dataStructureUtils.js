@@ -1,0 +1,214 @@
+/**
+ * 数据结构处理工具函数
+ * 包含数组过滤、树形数据处理等函数
+ */
+import commonParam from "@/constants/commonParam.js";
+
+/**
+ * 将标签列表转换为值列表
+ * @param {Array} labelList - 标签列表
+ * @param {Array} allList - 所有列表
+ * @returns {Array} 值列表
+ */
+export function mapLabelToValue(labelList, allList) {
+  const valueList = allList.filter(item => labelList.includes(item.label)).map(item => item.value);
+  return valueList;
+}
+
+/**
+ * 将值列表转换为标签列表
+ * @param {Array} valueList - 值列表
+ * @param {Array} allList - 所有列表
+ * @returns {Array} 标签列表
+ */
+export function mapValueToLabel(valueList, allList) {
+  const labelList = allList.filter(item => valueList.includes(item.value)).map(item => item.label);
+  return labelList;
+}
+
+/**
+ * 将值列表转换为名称列表
+ * @param {Array} valueList - 值列表
+ * @param {Array} allList - 所有列表
+ * @returns {Array} 名称列表
+ */
+export function mapValueToName(valueList, allList) {
+  const nameList = allList.filter(item => valueList.includes(item.value)).map(item => item.name);
+  return nameList;
+}
+
+/**
+ * 将语种 wire 值映射为展示用稳定中文名（如 russian → 俄文）
+ * @description 用于通知、日志等展示场景；若已是中文名则原样返回；无法识别时回退原值。
+ * languageList 为空时回退到 commonParam.languageList。
+ * @param {string|string[]} wire - 语种 wire 值（如 english）或中文名，或它们的数组
+ * @param {Array<{name:string,value:string}>} [languageList] - 语种列表（含 name/value）
+ * @returns {string|string[]} 对应的稳定中文名（输入为数组时返回同长度数组）
+ * @example
+ * transMapWire2Stable('russian', languageList) // '俄文'
+ * transMapWire2Stable(['english', 'russian'], languageList) // ['英文', '俄文']
+ * transMapWire2Stable('俄文', languageList) // '俄文'
+ */
+export function transMapWire2Stable(wire, languageList) {
+  const list =
+    Array.isArray(languageList) && languageList.length > 0
+      ? languageList
+      : commonParam?.languageList || [];
+  const resolveOne = (item) => {
+    if (item == null || item === "") return item;
+    const key = String(item);
+    const keyLower = key.toLowerCase();
+    const hit = list.find((lang) => {
+      if (!lang) return false;
+      if (lang.value === item || lang.name === item) return true;
+      return (
+        String(lang.value).toLowerCase() === keyLower ||
+        String(lang.name).toLowerCase() === keyLower
+      );
+    });
+    return hit ? hit.name : item;
+  };
+  if (Array.isArray(wire)) {
+    return wire.map(resolveOne);
+  }
+  return resolveOne(wire);
+}
+
+/**
+ * 根据节点key获取状态路径
+ * @description 递归遍历树形数据结构，查找指定key的节点并返回从根节点到该节点的完整路径
+ * @param {Array} treeData - 树形数据数组，每个节点包含key、title和可选的children属性
+ * @param {string|number} targetKey - 要查找的目标节点的key值
+ * @param {Array} path - 可选参数，当前路径数组，默认为空数组
+ * @returns {Array|null} 找到目标节点时返回包含路径title的数组，未找到时返回null
+ * @example
+ * // 示例树结构
+ * const tree = [
+ *   { key: '1', title: '根节点', children: [
+ *     { key: '2', title: '子节点1' },
+ *     { key: '3', title: '子节点2', children: [
+ *       { key: '4', title: '孙节点1' }
+ *     ]}
+ *   ]}
+ * ];
+ * // 获取key为'4'的节点路径
+ * const path = getPathByKey(tree, '4'); // 返回 ['根节点', '子节点2', '孙节点1']
+ */
+export function getPathByKey(treeData, targetKey, path = []) {
+  for (const node of treeData) {
+    // 创建当前路径副本并添加当前节点
+    const currentPath = [...path, node.title];
+
+    // 如果找到目标节点，返回完整路径
+    if (node.key === targetKey) {
+      return currentPath;
+    }
+
+    // 如果当前节点有子节点，递归搜索
+    if (node.children && node.children.length > 0) {
+      const foundPath = getPathByKey(
+        node.children,
+        targetKey,
+        currentPath
+      );
+      if (foundPath) {
+        return foundPath;
+      }
+    }
+  }
+  // 未找到目标节点
+  return null;
+}
+
+/**
+ * 从 filterSource 中移除 arr 中的数据
+ * @param {Array} filterSource - 需要过滤的源数组，每个对象必须有一个唯一的 id 属性
+ * @param {Array} arr - 包含要移除的对象数组，每个对象必须有一个唯一的 id 属性
+ * @returns {Array} - 过滤后的数组
+ */
+export function filter_arr(filterSource, arr) {
+  filterSource = filterSource.filter((item) => {
+    return !arr.some(
+      (arrItem) => arrItem.id === item.id
+    );
+  });
+  return filterSource;
+}
+
+/**
+ * 从 filterSource 中移除 arr 中的数据
+ * @param {Array} filterSource - 需要过滤的源数组，每个元素是一个唯一的键值,代表id属性
+ * @param {Array} arr - 包含要移除的对象数组，每个元素是一个唯一的键值,代表id属性
+ * @returns {Array} - 过滤后的数组
+ */
+export function filter_arr_keys(filterSource, arr) {
+  filterSource = filterSource.filter((key) => {
+    return !arr.some(
+      (arrItem) => arrItem.id === key
+    );
+  });
+  return filterSource;
+}
+
+/**
+ * 两个数组取交集
+ * @param {Array} nums1 - 第一个数组
+ * @param {Array} nums2 - 第二个数组
+ * @return {Array} - 交集数组
+ */
+export function intersection(nums1, nums2) {
+  if (nums1.length === 0) {
+    return nums2;
+  }
+  if (nums2.length === 0) {
+    return nums1;
+  }
+  let a = new Set(nums1);
+  let b = new Set(nums2);
+  let arr = Array.from(new Set([...b].filter((x) => a.has(x))));
+  return arr;
+}
+
+/**
+ * 判断选择的属性是否都是翻译语种
+ * @param {Array<string>} selectedFields - 选中的字段列表，可能是name或value
+ * @param {Object} commonParam - commonParam对象，包含langNameList和langValList
+ * @returns {boolean} 如果所有选中的字段都是翻译语种，返回true；否则返回false
+ * @example
+ * // 使用name判断
+ * isAllTranslationFields(['英文', '俄文'], { langNameList: ['英文', '俄文', '西文'], langValList: ['english', 'russian', 'spanish'] })
+ * // 返回: true
+ * 
+ * // 使用value判断
+ * isAllTranslationFields(['english', 'russian'], { langNameList: ['英文', '俄文'], langValList: ['english', 'russian'] })
+ * // 返回: true
+ * 
+ * // 混合字段
+ * isAllTranslationFields(['english', 'tag'], { langNameList: ['英文'], langValList: ['english'] })
+ * // 返回: false
+ */
+export function isAllTranslationFields(selectedFields, commonParam) {
+  if (!selectedFields || !Array.isArray(selectedFields) || selectedFields.length === 0) {
+    return false;
+  }
+  
+  if (!commonParam) {
+    console.warn('isAllTranslationFields: commonParam参数为空');
+    return false;
+  }
+  
+  const langNameList = commonParam.langNameList || [];
+  const langValList = commonParam.langValList || [];
+  
+  if (!Array.isArray(langNameList) && !Array.isArray(langValList)) {
+    console.warn('isAllTranslationFields: commonParam缺少有效的langNameList或langValList');
+    return false;
+  }
+  
+  const translationFields = new Set([
+    ...(Array.isArray(langNameList) ? langNameList : []),
+    ...(Array.isArray(langValList) ? langValList : [])
+  ]);
+  
+  return selectedFields.every(field => translationFields.has(field));
+}
