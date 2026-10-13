@@ -57,9 +57,16 @@
   >
     <template #headerCell="{ title, column }">
       <!-- 列头：colValue 有值时省略号 + Tooltip -->
-      <CellOverflowTooltip v-if="column.colValue" :content="title">
+      <a-tooltip v-if="column.dataIndex === 'maxLength'">
+        <template #title>
+          译文字符数上限，最多可输入相应数量的字或字母；空格也计数，首尾空格不忽略。
+        </template>
+        <span>{{ title }} <InfoCircleOutlined /></span>
+      </a-tooltip>
+      <CellOverflowTooltip v-else-if="column.colValue" :content="title">
         {{ title }}
       </CellOverflowTooltip>
+      <span v-else>{{ title }}</span>
     </template>
     <template #bodyCell="{ column, text, record }">
       <!-- entry：词条原文 -->

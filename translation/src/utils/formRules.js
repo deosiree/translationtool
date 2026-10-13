@@ -52,6 +52,30 @@ export function byteLen(str) {
   return n;
 }
 
+/** 统计译文 Unicode 码点数，保留并计入首尾空格。
+ * @param {string|null|undefined} str - 待统计译文
+ * @returns {number} Unicode 码点数量
+ */
+export function characterLength(str) {
+  if (str == null) return 0;
+  return Array.from(String(str)).length;
+}
+
+/** 按实际字符数检查译文长度。
+ * @param {string|null|undefined} text
+ * @param {number|null|undefined} max
+ * @returns {string|null}
+ */
+export function checkTranslationLen(text, max) {
+  if (max == null || max === "" || Number(max) <= 0) return null;
+  const lim = Number(max);
+  if (!Number.isFinite(lim)) return null;
+  if (characterLength(text) > lim) {
+    return `${MSG_LEN}${lim}`;
+  }
+  return null;
+}
+
 /**
  * 从文本提取占位符序列。长匹配优先：[{}]、(*.后缀)、%n/{n}、{}。
  * @param {string|null|undefined} text
@@ -228,7 +252,7 @@ export const RULES = [
     key: "toLong",
     label: "校验字符长度",
     tooltip:
-      "按字节检查译文长度，超出分类上限则不通过\n1英文字符 = 1字节\n1中文字符 = 2字节\n1俄文字符 = 3字节",
+      "按译文字符数检查，超过分类上限则不通过。\n字符数就是译文里最多能写几个字或字母。\n普通汉字、字母、空格都计 1 个，首尾空格也计入。",
     message: MSG_LEN,
     checked: true,
     targets: ["translate"],
@@ -315,7 +339,7 @@ export function checkTranslateSide({
   methods = [],
 }) {
   if (methods.includes("toLong")) {
-    const err = checkLen(translate, maxLength);
+    const err = checkTranslationLen(translate, maxLength);
     if (err) return err;
   }
   if (methods.includes("special")) {

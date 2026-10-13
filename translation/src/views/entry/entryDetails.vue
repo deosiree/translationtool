@@ -252,7 +252,7 @@ import { cloneDeep } from 'lodash-es';
 import Modal from '@/components/modal/index.vue';
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN';
 // import common from "./common.js";
-import { byteLength } from "@/utils/validationUtils";
+import { characterLength } from "@/utils/formRules";
 import { message} from 'ant-design-vue';
 import {
     updateEntry,
@@ -348,17 +348,21 @@ export default {
         key.unbind('enter')
     },
     methods: {
-        // 翻译字节数校验
+        /** 校验译文字符数上限，首尾空格也计入。
+         * @param {Object} rule - 表单校验规则
+         * @param {string|null|undefined} value - 当前译文
+         * @param {Function} callback - 表单校验回调（兼容旧接口）
+         * @returns {Promise<void>} 校验结果
+         */
         checkField(rule, value,callback){
-            let byteLimit = this.byteLimit[this.record.classifyId]
+            let characterLimit = this.byteLimit[this.record.classifyId]
             // console.log((new TextEncoder).encode(value).length)
             if(value === null || value === '' || value === undefined){
                 return Promise.resolve();
             }
-            // let length = common.byteLength(value)
-            let length = byteLength(value)
-            if ( length > byteLimit) {
-                return Promise.reject('最大字节数为'+byteLimit);
+            let length = characterLength(value)
+            if ( length > characterLimit) {
+                return Promise.reject('最大字符数为'+characterLimit);
             } 
             return Promise.resolve();
         },

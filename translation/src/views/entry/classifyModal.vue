@@ -13,11 +13,23 @@
         <a-form-item v-if="modalTitle === '编辑分类'&&$currentDepartment && $currentDepartment.ops.has('needBranch')" label="批量修改分支" name="codeBranchs">
           <a-input v-model:value="classify.codeBranch" placeholder="批量修改其中所有产品的归档分支" style="width:100%"></a-input>
         </a-form-item>
-        <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="中文限制字符数" name="maxByte">
-          <a-input-number v-model:value="classify.maxByte" placeholder="请输入中文限制字符数" style="width:100%"></a-input-number>
+        <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" name="maxByte">
+          <template #label>
+            <span>中文原文限制长度</span>
+            <a-tooltip title="限制词条中文原文的长度；当前按旧规则加权统计（中文字符计 2，俄文字母计 3，其他字符计 1），首尾空格不计。">
+              <InfoCircleOutlined style="margin-left: 4px; color: #00000066" />
+            </a-tooltip>
+          </template>
+          <a-input-number v-model:value="classify.maxByte" placeholder="请输入中文原文限制长度" style="width:100%"></a-input-number>
         </a-form-item>
-        <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" label="外文限制字符数" name="foreignMaxByte">
-          <a-input-number v-model:value="classify.foreignMaxByte" placeholder="请输入外文限制字符数" style="width:100%"></a-input-number>
+        <a-form-item v-if="modalTitle === '添加模块' || modalTitle === '编辑模块'" name="foreignMaxByte">
+          <template #label>
+            <span>译文限制字符数</span>
+            <a-tooltip title="限制译文最多可输入多少个字或字母；每个普通字符和空格计 1 个，首尾空格也计入。">
+              <InfoCircleOutlined style="margin-left: 4px; color: #00000066" />
+            </a-tooltip>
+          </template>
+          <a-input-number v-model:value="classify.foreignMaxByte" placeholder="请输入译文限制字符数" style="width:100%"></a-input-number>
         </a-form-item>
       </a-form>
     </div>
@@ -29,9 +41,11 @@ import { addEntryClassfy, updateEntryClassfy } from "@/http/api/entryManage";
 import { addProduct, updateProduct } from "@/http/api/product";
 import { message } from "ant-design-vue";
 import { v4 as uuidv4 } from "uuid";
+import { InfoCircleOutlined } from "@ant-design/icons-vue";
 export default {
   components: {
     Modal,
+    InfoCircleOutlined,
   },
   emits: ["classifyClose"],
   props: {

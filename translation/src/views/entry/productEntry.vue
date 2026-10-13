@@ -142,7 +142,15 @@
             >
               <template #label>
                 <span>长度</span>
-                <a-tooltip title="翻译最大长度过滤：限制最大字节长度小于(不等于)输入的值；注意：中文、俄文等外文1字符=2字节；特殊字符=1字节">
+                <a-tooltip>
+                  <template #title>
+                    <div>筛选译文字节数大于输入值的记录。</div>
+                    <div>常见 UTF-8 参考（估算）：</div>
+                    <div>英文基础字母、数字：1 字符约 1 字节</div>
+                    <div>俄文常见字母：1 字符约 2 字节</div>
+                    <div>中文常用汉字：1 字符约 3 字节</div>
+                    <div>实际字节数取决于具体字符，标点、重音字母等可能不同。</div>
+                  </template>
                   <InfoCircleOutlined style="margin-left: 4px; color: #00000066" />
                 </a-tooltip>
               </template>
@@ -492,9 +500,16 @@
               @change="handleTableChange"
             >
               <template #headerCell="{ title, column }">
-                <CellOverflowTooltip v-if="column.colValue" :content="title">
+                <a-tooltip v-if="column.dataIndex === 'maxLength'">
+                  <template #title>
+                    译文字符数上限，最多可输入相应数量的字或字母；空格也计数，首尾空格不忽略。
+                  </template>
+                  <span>{{ title }} <InfoCircleOutlined /></span>
+                </a-tooltip>
+                <CellOverflowTooltip v-else-if="column.colValue" :content="title">
                   {{ title }}
                 </CellOverflowTooltip>
+                <span v-else>{{ title }}</span>
               </template>
               <template #bodyCell="{ column, record, text }">
                 <template v-if="column.dataIndex === 'entry'">

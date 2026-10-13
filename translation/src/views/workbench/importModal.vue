@@ -499,7 +499,16 @@
                     </a-form-item>
                   </a-col>
                   <a-col :span="8">
-                    <a-form-item label="翻译最大长度">
+                    <a-form-item>
+                      <template #label>
+                        <span>翻译最大长度</span>
+                        <a-tooltip>
+                          <template #title>
+                            译文字符数上限，最多可输入相应数量的字或字母；空格也计数，首尾空格不忽略。
+                          </template>
+                          <InfoCircleOutlined style="margin-left: 4px; color: #00000066" />
+                        </a-tooltip>
+                      </template>
                       <a-input-number
                         v-model:value="dataLibrary.maxLength"
                         style="width: 100%"

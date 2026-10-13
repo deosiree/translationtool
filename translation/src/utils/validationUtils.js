@@ -13,6 +13,7 @@ import { withLoading } from "@/composables/useLoading";
 import {
   byteLen,
   checkLen,
+  checkTranslationLen,
   checkPlace,
   checkTranslateSide,
   MSG_LEN,
@@ -330,6 +331,14 @@ function msgToLong(maxLength) {
   return `${MSG_LEN}${maxLength}`;
 }
 
+/** 创建表单长度与译文规则校验器。
+ * @param {Object} record - 当前记录
+ * @param {Object} vm - 表格 Vue 实例
+ * @param {string} colName - 长度上限字段
+ * @param {string} language - 翻译列名；词条列不传
+ * @param {string[]} [verifyMethods] - 本次启用的校验规则
+ * @returns {(rule:Object,value:any)=>Promise<void>}
+ */
 export function validateRefRules(record, vm, colName, language,
   verifyMethods) {
   return async (rule, value) => {
@@ -401,7 +410,10 @@ export async function verifyArray_workbench_page(pagination, language, vm,
  * 纯判定：按 methods 分成 accept/error，无 UI 副作用
  * 与 openFailRows 拆开，避免「bulk 按全开规则失败、红字按勾选通过」的分裂态
  * 若行仍在编辑态，展示值取 editableData（含空串），否则 dataSource
- * @param {string[]} [methods] toLong / special；未传则 getMethods(vm)
+ * @param {Object} vm - 含编辑态数据和校验选项的 Vue 实例
+ * @param {Object[]} array - 本次待校验的记录
+ * @param {string} language - 当前翻译列
+ * @param {string[]} [methods] - toLong / special 等规则；未传则 getMethods(vm)
  * @returns {Promise<{acceptIds:Set, errorIds:Set, toLongIds:Set, specialIds:Set}>}
  */
 export async function classifyArr(vm, array, language, methods) {
@@ -436,7 +448,7 @@ export async function classifyArr(vm, array, language, methods) {
       continue;
     }
     arr.errorIds.add(record.id);
-    if (m.includes("toLong") && checkLen(data.translate, data.maxLength)) {
+    if (m.includes("toLong") && checkTranslationLen(data.translate, data.maxLength)) {
       arr.toLongIds.add(record.id);
     } else if (m.includes("special") && checkPlace(data.entry, data.translate)) {
       arr.specialIds.add(record.id);
@@ -548,7 +560,7 @@ export async function verifyRecord_entry(vm, record, colList,
       }
       else {
         const maxLength = getMaxLength(record, vm, "foreignMaxByte");
-        if (checkLen(record[col], maxLength)) {
+        if (checkTranslationLen(record[col], maxLength)) {
           flag = false;// xx翻译长度超限
         }
       }
