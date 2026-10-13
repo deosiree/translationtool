@@ -364,7 +364,10 @@ public class BatchInsertEntryHandler {
                 // entryInfoEntity.setUpdate(userName);
                 // entryInfoEntities.add(entryInfoEntity);
             }
-            DICDictionaryVOConverter dicDictionaryVOConverter = new DICDictionaryVOConverter(dicRelPath, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, languageList.stream().collect(Collectors.toSet()), userName, dicRelPath);
+            /* 避免dic词条无法用词条更新抽取 */
+            String entrySource = dicRelPath.startsWith("tr/") ? "pt/" + dicRelPath.substring("tr/".length(), dicRelPath.length()) : dicRelPath;
+            
+            DICDictionaryVOConverter dicDictionaryVOConverter = new DICDictionaryVOConverter(entrySource, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, languageList.stream().collect(Collectors.toSet()), userName, dicRelPath);
             // entryInfoEntities.addAll(convertFromDictionaryVOToDICEntry(dictionaryVOs, dicRelPath, dicRelPath, taskInfoEntity, userName, languageList));
             entryInfoEntities.addAll(entryImportProcessor.convertToEntryInfos(dicDictionaryVOConverter, dictionaryVOs));
 
