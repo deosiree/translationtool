@@ -141,7 +141,7 @@
               name="customCheckTransLength"
             >
               <template #label>
-                <span>长度</span>
+                <span>字节限制</span>
                 <a-tooltip>
                   <template #title>
                     <div>筛选译文字节数大于输入值的记录。</div>
@@ -157,7 +157,7 @@
               <a-input-number
                 v-model:value="search.customCheckTransLength"
                 :min="1"
-                placeholder="请输入最大长度"
+                placeholder="请输入翻译的字节限制"
                 style="width: 186px"
               />
             </a-form-item>

@@ -456,7 +456,7 @@ const entry_searchConditionList = [
   { label: "翻译状态", value: "translateState", index: 8, visible: false },
   { label: "翻译结果", value: "translate", index: 9, visible: true },
   // { label: '翻译过滤', value: 'filter_translate', index: 10 },
-  { label: "翻译最大长度过滤", value: "customCheckTransLength", index: 10, visible: false },
+  { label: "翻译字节限制", value: "customCheckTransLength", index: 10, visible: false },
   { label: "Comment", value: "comment", index: 11, visible: false },
   { label: "辞典名称", value: "diFileName", index: 12, visible: false },
   { label: "开始时间", value: "startTime", index: 13, visible: false },
