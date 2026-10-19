@@ -799,9 +799,10 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
                             }else if (!CollectionUtils.isEmpty(childList)){
                                  syncChildrenTrans(entryInfoEntity, childList,translateType);
                             }
-    
-    
-                           entryInfoMapper.updateById(entryInfoEntity);
+                            /* 修改时间为当地时间 */
+                            entryInfoEntity.setUpdateTime(localTimeUtils.getBeijingTime());
+                            
+                            entryInfoMapper.updateById(entryInfoEntity);
                         } catch (Exception e) {
                             // TODO: handle exception
                             log.error(e.getMessage());
