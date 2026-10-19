@@ -223,45 +223,22 @@ public class EntryTempServiceImpl extends ServiceImpl<EntryTempMapper, EntryTemp
     }
 
     @Override
-    public String deleteEntryInfoByID(List<String> entryIDs,String productID,String versionID) {
+    public String deleteEntryInfoByIDs(List<String> entryIDs, String productID, String versionID,String taskID) {
 
-        HashMap<String, Object> map = new HashMap();
-        for (String entryID : entryIDs) {
-            map.put("entry_id", entryID);
-            if (StringUtils.isNotBlank(productID)) {
-                map.put("product_id", productID);
-            }
-            if (StringUtils.isNotBlank(versionID)) {
-                map.put("version_id", versionID);
-            }
-        }
+        // // 1.删除当前产品版本下的关联信息
+        if(!entryIDs.isEmpty()){
+            int result = productRelationMapper.deleteByCondition(entryIDs, productID, versionID, taskID);
 
-        // 1.删除当前产品版本下的关联信息
-        productRelationMapper.deleteByMap(map);
-        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().eq("entry_id", entryIDs));
-        // 2.删除完后用entryID查询关联表是否有被关联的词条，如果没有则词条表删除
-        if (CollectionUtils.isEmpty(productRelationEntities)) {
             entryInfoMapper.deleteBatchIds(entryIDs);
         }
+
         return ConstantInterface.OK_STR;
     }
     @Override
     public String deleteEntryInfoByTaskID(List<String> entryIDs,String taskID) {
 
-        HashMap<String, Object> map = new HashMap();
-        for (String entryID : entryIDs) {
-            map.put("entry_id", entryID);
-            map.put("task_id", taskID);
-        }
+        return deleteEntryInfoByIDs(entryIDs, null, null , taskID);
 
-        // 1.删除当前产品版本下的关联信息
-        productRelationMapper.deleteByMap(map);
-        List<ProductRelationEntity> productRelationEntities = productRelationMapper.selectList(new QueryWrapper<ProductRelationEntity>().eq("entry_id", entryIDs));
-        // 2.删除完后用entryID查询关联表是否有被关联的词条，如果没有则词条表删除
-        if (CollectionUtils.isEmpty(productRelationEntities)) {
-            entryInfoMapper.deleteBatchIds(entryIDs);
-        }
-        return ConstantInterface.OK_STR;
     }
     @Override
     public int getEntryTempByTaskIDTotal(String taskID) {

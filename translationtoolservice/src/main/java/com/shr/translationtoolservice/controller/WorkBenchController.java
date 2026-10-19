@@ -206,11 +206,16 @@ public class WorkBenchController extends BaseController {
     @ApiOperation("删除词条")
     @CrossOrigin
     @Transactional
-    public HttpResponse<String> deleteEntryInfoByID(@RequestBody List<String> entryID,
-                                                    @RequestParam("productID") String productID,
-                                                    String versionID) {
+    public HttpResponse<String> deleteEntryInfoByID(
+        @RequestBody List<String> entryID,
+        @RequestParam(name =  "productID", required = false) String productID,
+        @RequestParam(name = "versionID", required = false) String versionID) {
 
-        String result = entryTempService.deleteEntryInfoByID(entryID,productID,versionID);
+        if(entryID.isEmpty()){
+            return checkResult(ConstantInterface.OK_STR);
+        }
+                                                                         
+        String result = entryTempService.deleteEntryInfoByIDs(entryID, productID, versionID, null);
 
         return checkResult(result);
     }

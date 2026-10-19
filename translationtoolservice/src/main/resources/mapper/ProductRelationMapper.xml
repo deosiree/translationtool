@@ -32,6 +32,30 @@
         );
     </delete>
 
+    <delete id="deleteByCondition">
+        delete from t_product_relation
+        
+        <where>
+            entry_id in(
+            <foreach collection="entryIDs" item="id" index="index" separator=",">
+                #{id,jdbcType=VARCHAR}
+            </foreach>
+            )
+            <if test = "productID != null and !productID.isEmpty()">
+                and product_id = #{productID}
+            </if>
+
+            <if test = "versionID != null and !versionID.isEmpty()">
+                and version_id = #{versionID}
+            </if>
+
+            <if test = "taskID != null and !taskID.isEmpty()">
+                and task_id = #{taskID}
+            </if>
+        </where>
+        
+    </delete>
+
     <insert id="insertList">
         insert into t_product_relation
         (
