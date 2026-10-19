@@ -1008,6 +1008,7 @@ import {
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { normalizeEditableRow } from "@/utils/dataUtils";
+import { normalizeOptionalID } from "@/utils/idUtils";
 import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import {
@@ -1026,6 +1027,22 @@ import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constant
 import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
+
+/**
+ * 解析产品或模块节点关联的产品 ID，过滤空值与字符串 null。
+ * @param {Object} node 当前词条树节点。
+ * @returns {string|number|undefined} 有效产品 ID；缺失时返回 undefined。
+ */
+function resolveRequestProductID(node) {
+  const productID =
+    node?.type === "module"
+      ? node.parentId
+      : node?.type === "product"
+        ? node.key
+        : undefined;
+  return normalizeOptionalID(productID);
+}
+
 export default {
   components: {
     CustomModal,
@@ -1485,18 +1502,22 @@ export default {
       }
       return className;
     },
-    // 查询产品的所有版本
+    /**
+     * 根据当前产品查询所有版本。
+     * @param {Object} searchparams 初始化查询选项。
+     * @returns {void}
+     */
     getProductVersion(searchparams = { isInit: false, accurate: [] }) {
       if (Object.keys(this.product).length === 0) {
         return;
       }
-      let params = {
-        versionName: "",
-        productID:
-          this.product.type === "module"
-            ? this.product.parentId
-            : this.product.key,
-      };
+      const productID = resolveRequestProductID(this.product);
+      if (productID === undefined) {
+        this.productVersions = [];
+        this.currentVersion = null;
+        return;
+      }
+      const params = { versionName: "", productID };
       getVersionByName(params).then((res) => {
         this.productVersions = res.data.list;
         // // 当前产品版本设置为第一个版本
@@ -1543,9 +1564,10 @@ export default {
       }
     },
     /**
-     * 条件查询：根据一级分类（即状态树key）获取词条
-     * isInit：是否是点击状态树的首次（部门级不用查询）；
-     * accurate：是否全量查询
+     * 根据当前分类和筛选条件查询词条。
+     * @param {boolean} [isInit=false] 是否为首次点击状态树。
+     * @param {Array} [accurate=[]] 全量查询条件。
+     * @returns {void}
      */
     getEntryByClassfy(isInit = false, accurate = []) {
       if (isInit) {
@@ -1590,10 +1612,8 @@ export default {
       // data.entry = data.entry.replace(/\\n/g, '\n')
       // console.log("data:", data);
       if (!this.currentVersion) {
-        data.productID =
-          this.product.type === "module"
-            ? this.product.parentId
-            : this.product.key;
+        const productID = resolveRequestProductID(this.product);
+        if (productID !== undefined) data.productID = productID;
       } else {
         data.versionID = this.currentVersion;
       }
@@ -2216,6 +2236,11 @@ export default {
       }
     },
     // 选择全部词条
+    /**
+     * 查询当前筛选下的全部词条并合并到已选列表。
+     * @param {void} none 本方法不接收参数。
+     * @returns {void}
+     */
     selectAllEntry() {
       // 获取所有的词条
       if (Object.keys(this.product).length === 0) {
@@ -2243,10 +2268,8 @@ export default {
         data.customCheckTransLength = this.search.customCheckTransLength;
       }
       if (!this.currentVersion) {
-        data.productID =
-          this.product.type === "module"
-            ? this.product.parentId
-            : this.product.key;
+        const productID = resolveRequestProductID(this.product);
+        if (productID !== undefined) data.productID = productID;
       } else {
         data.versionID = this.currentVersion;
       }
@@ -2301,6 +2324,11 @@ export default {
       this.batchSelectFlag = false;
     },
     //新增词条
+    /**
+     * 在当前产品下新增一条本地编辑行。
+     * @param {void} none 本方法不接收参数。
+     * @returns {void}
+     */
     addEntry() {
       if (
         Object.keys(this.product).length === 0 ||
@@ -2318,12 +2346,10 @@ export default {
         maxByte: this.product.type === "module" ? this.product.maxByte : "",
         foreignMaxByte: this.product.type === "module" ? this.product.foreignMaxByte : "",
         versionID: this.currentVersion,
-        productID:
-          this.product.type === "module"
-            ? this.product.parentId
-            : this.product.key,
         entryVersion: 0,
       };
+      const productID = resolveRequestProductID(this.product);
+      if (productID !== undefined) newData.productID = productID;
       // console.log(newData)
       // 设置校验规则
       // if (newData.maxLength != "") {

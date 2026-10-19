@@ -108,6 +108,7 @@ import { forbiddenEntryInfo } from "@/http/api/entryManage.js";
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
 import { pageChange as pageChangeUtil } from "@/utils/selectionUtils";
+import { normalizeOptionalID } from "@/utils/idUtils";
 import { applyTable } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { loading, isLoading } from "@/composables/useLoading";
@@ -342,7 +343,11 @@ export default {
         },
       });
     },
-    // 删除词条
+    /**
+     * 按产品和版本分组删除已选词条，缺少产品 ID 时省略该请求参数。
+     * @param {void} none 本方法不接收参数。
+     * @returns {void}
+     */
     deleteEntrys() {
       Modal.confirm({
         title: "是否确定删除?",
@@ -351,54 +356,49 @@ export default {
         cancelText: "否",
         style: { top: "30%" },
         onOk: () => {
-          const seen = {};
+          const seen = new Map();
           this.dataSource.forEach((item) => {
-            let key = "";
-            if (item.versionID) key = `${item.productID}--${item.versionID}`;
-            else key = `${item.productID}`;
-            if (!seen[key]) {
-              seen[key] = [];
+            const productID = normalizeOptionalID(item.productID);
+            const versionID = normalizeOptionalID(item.versionID);
+            const key = JSON.stringify([productID ?? null, versionID ?? null]);
+            if (!seen.has(key)) {
+              seen.set(key, { productID, versionID, ids: [] });
             }
-            seen[key].push(item.id);
+            seen.get(key).ids.push(item.id);
           });
 
           // 存储删除成功和失败的信息
           let totalDeleted = 0;
-          let failedProducts = {};
+          let failedProducts = [];
           let promises = [];
 
           // 遍历seen对象，并调用接口
-          for (const [combinedKey, ids] of Object.entries(seen)) {
-            const [productID, versionID] = combinedKey.split("--");
-            let params = {};
-            if (versionID == null || versionID == "")
-              params = { productID: productID };
-            else
-              params = {
-                versionID: versionID,
-                productID: productID,
-              };
+          for (const { productID, versionID, ids } of seen.values()) {
+            const params = {};
+            if (versionID !== undefined) params.versionID = versionID;
+            if (productID !== undefined) params.productID = productID;
             const promise = deleteEntryInfoByID(params, ids)
               .then(() => {
                 totalDeleted += ids.length; // 累计成功条数
               })
               .catch((error) => {
-                failedProducts[combinedKey] = {
+                failedProducts.push({
+                  productID,
+                  versionID,
                   count: ids.length,
                   reason: error.message || "未知错误",
-                }; // 记录失败信息
+                }); // 记录失败信息
               });
             promises.push(promise);
           }
 
           Promise.allSettled(promises).then(() => {
             let messageText = `总共删除了 ${totalDeleted} 条词条!`;
-            if (Object.keys(failedProducts).length > 0) {
+            if (failedProducts.length > 0) {
               messageText += "\n以下产品有词条删除失败：\n";
-              for (const [combinedKey, info] of Object.entries(
-                failedProducts
-              )) {
-                const [productID, versionID] = combinedKey.split("-");
+              for (const info of failedProducts) {
+                const productID = info.productID ?? "未关联产品";
+                const versionID = info.versionID ?? "无";
                 messageText += `产品ID: ${productID}, 版本ID: ${versionID}, 失败数量: ${info.count}, 原因: ${info.reason}\n`;
               }
               message.info(messageText);

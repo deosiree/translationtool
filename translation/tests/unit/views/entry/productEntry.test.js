@@ -25,7 +25,7 @@ vi.mock('@/http/api/entryManage', () => ({
   getEntryByClassfy: getEntryByClassfyMock,
   getEntrySourcesByClassify: vi.fn(() => Promise.resolve({ data: [] })),
   getWriteFileNamesByClassify: vi.fn(() => Promise.resolve({ data: [] })),
-  deleteEntryInfo: vi.fn(),
+  deleteEntryInfo: vi.fn(() => Promise.resolve({})),
   updatePublicEntry: vi.fn(),
   addSingleEntry: vi.fn(),
   updateEntryInfoList: vi.fn(),
@@ -97,7 +97,8 @@ vi.mock('ant-design-vue', () => ({
   notification: {},
 }))
 
-import { updateEntryInfoList } from '@/http/api/entryManage'
+import { deleteEntryInfo, updateEntryInfoList } from '@/http/api/entryManage'
+import { getVersionByName } from '@/http/api/productVersion'
 import { EDIT_NOTES } from '@/constants/editNotes.js'
 import { Modal } from 'ant-design-vue'
 
@@ -976,5 +977,125 @@ describe('ProductEntry - 保存确认与 notes 兜底', () => {
     wrapper.vm.confirmSave([])
     expect(Modal.confirm).not.toHaveBeenCalled()
     expect(updateEntryInfoList).not.toHaveBeenCalled()
+  })
+})
+
+describe('ProductEntry - 缺失产品 ID 的请求参数', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  it('分类下删除词条后的列表刷新不发送 productID', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+    wrapper.vm.product = { type: 'classify', key: 'classify-id-1' }
+    wrapper.vm.productVersions = [{ id: null, tableName: 't_entry_info' }]
+    wrapper.vm.currentVersion = null
+    wrapper.vm.selectedRowKeys = ['entry-id-1']
+    getEntryByClassfyMock.mockClear()
+    deleteEntryInfo.mockClear()
+
+    wrapper.vm.deleteEntry()
+    await Promise.resolve()
+    await nextTick()
+
+    expect(deleteEntryInfo).toHaveBeenCalledWith(['entry-id-1'], {
+      tableName: 't_entry_info',
+    })
+    const [, refreshData] = getEntryByClassfyMock.mock.calls.at(-1)
+    expect(refreshData).not.toHaveProperty('productID')
+  })
+
+  it('分类下全量查询不发送 productID', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+    wrapper.vm.product = { type: 'classify', key: 'classify-id-1' }
+    wrapper.vm.currentVersion = null
+    getEntryByClassfyMock.mockClear()
+
+    wrapper.vm.selectAllEntry()
+    await nextTick()
+
+    const [, queryData] = getEntryByClassfyMock.mock.calls.at(-1)
+    expect(queryData).not.toHaveProperty('productID')
+  })
+
+  it('产品和模块查询继续发送有效产品 ID', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+
+    for (const [product, expectedProductID] of [
+      [{ type: 'product', key: 'product-id-2' }, 'product-id-2'],
+      [{ type: 'module', key: 'module-id-2', parentId: 'product-id-3' }, 'product-id-3'],
+    ]) {
+      wrapper.vm.product = product
+      wrapper.vm.currentVersion = null
+      getEntryByClassfyMock.mockClear()
+
+      wrapper.vm.getEntryByClassfy()
+
+      const [, queryData] = getEntryByClassfyMock.mock.calls.at(-1)
+      expect(queryData.productID).toBe(expectedProductID)
+    }
+  })
+
+  it('产品 ID 为 null、空串或字符串 null 时省略字段', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+
+    for (const productID of [undefined, null, '', 'null']) {
+      wrapper.vm.product = { type: 'product', key: productID }
+      wrapper.vm.currentVersion = null
+      getEntryByClassfyMock.mockClear()
+
+      wrapper.vm.getEntryByClassfy()
+
+      const [, queryData] = getEntryByClassfyMock.mock.calls.at(-1)
+      expect(queryData).not.toHaveProperty('productID')
+    }
+  })
+
+  it('缺少产品 ID 时不查询版本，新增行省略 productID', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+    wrapper.vm.product = { type: 'classify', key: 'classify-id-1' }
+    getVersionByName.mockClear()
+
+    wrapper.vm.getProductVersion()
+    await Promise.resolve()
+
+    expect(getVersionByName).not.toHaveBeenCalled()
+
+    wrapper.vm.createClose()
+    expect(getVersionByName).not.toHaveBeenCalled()
+
+    wrapper.vm.product = { type: 'product', key: 'null', title: '测试产品' }
+    wrapper.vm.getRowClassify2Option = vi.fn()
+    wrapper.vm.addEntry()
+
+    expect(wrapper.vm.dataSource.at(-1)).not.toHaveProperty('productID')
+  })
+
+  it('版本查询与新增行继续保留有效产品 ID', async () => {
+    wrapper = mountProductEntry()
+    await nextTick()
+    wrapper.vm.product = { type: 'product', key: 'product-id-4', title: '测试产品' }
+    getVersionByName.mockClear()
+
+    wrapper.vm.getProductVersion()
+    await Promise.resolve()
+
+    expect(getVersionByName).toHaveBeenCalledWith({
+      versionName: '',
+      productID: 'product-id-4',
+    })
+
+    wrapper.vm.getRowClassify2Option = vi.fn()
+    wrapper.vm.addEntry()
+
+    expect(wrapper.vm.dataSource.at(-1).productID).toBe('product-id-4')
   })
 })
