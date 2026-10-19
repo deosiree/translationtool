@@ -69,10 +69,10 @@
     <template #leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
       <a-button
+        v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
         type="primary"
         ghost
         @click="placeOnFile"
-        v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
         >归档</a-button
       >
       <a-button
@@ -98,6 +98,12 @@
         name="custom-validation"
         :model="ipModal"
       >
+        <p v-if="optionFlag === 0" style="margin: 0 0 12px; color: #666">
+          将所选词条译文回写到指定 IP 服务器，不结束当前任务。
+        </p>
+        <p v-else style="margin: 0 0 12px; color: #666">
+          词条审核和目标语种翻译审核通过后，将译文回写到指定 IP 服务器并结束当前任务。
+        </p>
         <a-form-item
           label="IP"
           name="ip"
@@ -598,7 +604,7 @@ export default {
     placeOnFile2() {
       Modal.confirm({
         title: "是否结束任务？",
-        content: '词条状态将更新为"已归档"',
+        content: '词条状态将更新为"已归档"，不会回写词条到服务器。',
         icon: createVNode(ExclamationCircleOutlined),
         okText: "是",
         cancelText: "否",

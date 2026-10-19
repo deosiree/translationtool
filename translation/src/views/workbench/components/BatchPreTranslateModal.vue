@@ -86,6 +86,9 @@
               </a-form-item>
             </a-col>
           </a-row>
+          <p v-if="model.stages.archive" style="margin: 0 0 12px; color: #666">
+            “归档”只将任务词条回写到指定 IP 服务器；“归档并结束任务”会在回写后将任务标为已归档。
+          </p>
 
           <a-row :gutter="16" align="top">
             <a-col :span="8">

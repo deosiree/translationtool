@@ -3,6 +3,7 @@
   <CustomModal modalTitle="回写" modalWidth="500px" :modalVisible="visible" @handleClose="handleClose"
     @handleOK="handleOK" @afterClose="afterClose">
     <div style="width:100%;height:100%">
+      <p style="margin: 0 0 12px; color: #666">将所选词条译文写入指定 IP 服务器，不会改变任务状态。</p>
       <a-spin :spinning="writeBackLoading">
         <a-form :model="writeBack" autocomplete="off" ref="writeBackForm" :label-col="{ span: 4 }">
           <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">

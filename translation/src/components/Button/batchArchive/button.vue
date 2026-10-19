@@ -54,7 +54,7 @@ export default {
     overTask() {
       Modal.confirm({
         title: "是否批量结束任务？",
-        content: '词条状态将更新为"已归档"',
+        content: '词条状态将更新为"已归档"，不会回写词条到服务器。',
         icon: createVNode(ExclamationCircleOutlined),
         okText: "是",
         cancelText: "否",
