@@ -30,14 +30,14 @@
             <img src="../../assets/icon/closeModel.png" class='close' @click="cancel" title="关闭"/>
         </div>
         <div class="modalContent" ref="contentRef" :style="computedContentStyle">
-            <a-spin :spinning="spinning" :tip="loadingTip">
+            <a-spin :spinning="contentLoading" :tip="contentLoadingTip">
                 <slot v-if="collapsed" />
             </a-spin>
         </div>
         <template #footer>
             <slot name="leftBottomBtn"/>
             <a-button key="back" @click="cancel" v-if="showCancel">{{cancelText}}</a-button>
-            <a-button key="submit" type="primary" @click="ok" v-if="showOk" :loading="okLoading">{{okText}}</a-button>
+            <a-button key="submit" type="primary" @click="ok" v-if="showOk" :loading="okLoading" :disabled="okDisabled">{{okText}}</a-button>
         </template>
         <template #modalRender="{ originVNode }">
             <div :style="{transform: `translate(${transformX}px, ${transformY}px)`,}">
@@ -103,6 +103,18 @@ export default {
             type: Boolean,
             default: false
         },
+        contentLoading: {
+            type: Boolean,
+            default: false
+        },
+        contentLoadingTip: {
+            type: String,
+            default: ''
+        },
+        okDisabled: {
+            type: Boolean,
+            default: false
+        },
         fullFlag:{
             type: Boolean,
             default: false
@@ -119,8 +131,6 @@ export default {
             fullScreen: false,
             oldWidth:"",
             width:"",
-            spinning: false,
-            loadingTip:"",
             
             startX: 0,
             startY: 0,

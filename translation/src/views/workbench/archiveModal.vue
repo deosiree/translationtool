@@ -28,27 +28,87 @@
         ref="archiveTable"
       >
         词条：
-        <a-input v-model:value="keyWords" style="width:300px" size="small" placeholder='请输入词条搜索' />
-        <span style="margin-left:10px">词条状态：</span>
-        <EntryStateSelect :entryState="entryState" @update:entryState="entryState = $event" :size="'small'" :style="'width: 300px'" />
-        <span style="margin-left:10px">翻译状态：</span>
-        <TransStateSelect :translateState="translateState" @update:translateState="translateState = $event" :size="'small'" :style="'width: 300px'" />
-        <a-button type="primary" size="small" style="margin-left:8px" @click="getTaskEntry">查询</a-button>
-        <a-button v-if="canShowDelete" type="primary" size="small" danger style="margin-left:8px" @click="deleteTaskEntry">删除</a-button>
+        <a-input
+          v-model:value="keyWords"
+          style="width: 300px"
+          size="small"
+          placeholder="请输入词条搜索"
+        />
+        <span style="margin-left: 10px">词条状态：</span>
+        <EntryStateSelect
+          :entryState="entryState"
+          @update:entryState="entryState = $event"
+          :size="'small'"
+          :style="'width: 300px'"
+        />
+        <span style="margin-left: 10px">翻译状态：</span>
+        <TransStateSelect
+          :translateState="translateState"
+          @update:translateState="translateState = $event"
+          :size="'small'"
+          :style="'width: 300px'"
+        />
+        <a-button
+          type="primary"
+          size="small"
+          style="margin-left: 8px"
+          @click="getTaskEntry"
+          >查询</a-button
+        >
+        <a-button
+          v-if="canShowDelete"
+          type="primary"
+          size="small"
+          danger
+          style="margin-left: 8px"
+          @click="deleteTaskEntry"
+          >删除</a-button
+        >
       </PipelinePanel>
     </div>
     <template #leftBottomBtn>
       <a-button @click="handleClose">取消</a-button>
-      <a-button type="primary" ghost @click="placeOnFile" v-if="$currentDepartment && $currentDepartment.ops.has('needIP')">归档</a-button>
-      <a-button type="primary" ghost @click="placeOnFile2">结束任务</a-button>
+      <a-button
+        type="primary"
+        ghost
+        @click="placeOnFile"
+        v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
+        >归档</a-button
+      >
+      <a-button
+        type="primary"
+        ghost
+        @click="placeOnFile2"
+        >结束任务</a-button
+      >
     </template>
   </PipeShell>
-  <CustomModal :visible="ipSelectModal" :okloading="writeBackLoading" modalTitle="回写服务器" @handleClose="ipSelectClose" @handleOK="ipSelectOK"
-    @afterClose="ipSelectAfterClose">
-    <div style="width:100%;height:100%">
-      <a-form ref="ipModal" name="custom-validation" :model="ipModal">
-        <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
-          <a-select v-model:value="ipModal.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
+  <CustomModal
+    :visible="ipSelectModal"
+    :content-loading="writeBackLoading"
+    :ok-disabled="writeBackLoading"
+    modalTitle="回写服务器"
+    @handleClose="ipSelectClose"
+    @handleOK="ipSelectOK"
+    @afterClose="ipSelectAfterClose"
+  >
+    <div style="width: 100%; height: 100%">
+      <a-form
+        ref="ipModal"
+        name="custom-validation"
+        :model="ipModal"
+      >
+        <a-form-item
+          label="IP"
+          name="ip"
+          :rules="[{ required: true, message: '请选择IP!' }]"
+        >
+          <a-select
+            v-model:value="ipModal.ip"
+            :options="ipOptions"
+            placeholder="请选择IP"
+            allowClear
+          ></a-select>
         </a-form-item>
       </a-form>
     </div>
@@ -66,7 +126,11 @@ import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
 import { formatEntryText, formatCellText } from "@/components/table/cellText";
 import "@/assets/style/common.less";
 import { cloneDeep, iteratee } from "lodash-es";
-import { getEntryInfoList, getI18nAdress, deleteEntryInfoByTaskID } from "@/http/api/workbench";
+import {
+  getEntryInfoList,
+  getI18nAdress,
+  deleteEntryInfoByTaskID,
+} from "@/http/api/workbench";
 import { updateTaskInfo } from "@/http/api/task";
 import { setInfo } from "@/http/api/i18Server";
 import {
@@ -76,10 +140,13 @@ import {
   SettingOutlined,
 } from "@ant-design/icons-vue";
 import { message, Modal } from "ant-design-vue";
-import commonParam, { workbenchParams } from "@/constants/commonParam.js";
-import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
+import commonParam, { workbenchParams , wbAllCols, wbPresets } from "@/constants/commonParam.js";
+import {
+  applyTable,
+  syncColumnsFromPref as applyTableColumnsFromPref,
+} from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
-import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
+
 import {
   handleTableChange as tableHandleTableChange,
   handleReset as tableHandleReset,
@@ -91,9 +158,7 @@ import {
   handleFilterSearch,
   resetOnClose,
 } from "@/views/workbench/composables/filterClear";
-import {
-  PipelinePanel,
-} from "@/views/workbench/components";
+import { PipelinePanel } from "@/views/workbench/components";
 import {
   selectAllEntry as selectAllEntryUtil,
   clearAllEntry as clearAllEntryUtil,
@@ -101,7 +166,12 @@ import {
 } from "@/utils/selectionUtils";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
-import { loading, startLoading, endLoading, resetLoading } from "@/composables/useLoading";
+import {
+  loading,
+  startLoading,
+  endLoading,
+  resetLoading,
+} from "@/composables/useLoading";
 import { defineComponent, ref, createVNode } from "vue";
 export default {
   setup() {
@@ -440,13 +510,7 @@ export default {
     },
     // 列头自定义筛选 + 保存 Ant clearFilters
     handleSearch(selectedKeys, confirm, dataIndex, clearFilters) {
-      handleFilterSearch(
-        selectedKeys,
-        confirm,
-        dataIndex,
-        clearFilters,
-        this
-      );
+      handleFilterSearch(selectedKeys, confirm, dataIndex, clearFilters, this);
     },
     // 列筛选重置
     handleReset(clearFilters) {
@@ -492,8 +556,12 @@ export default {
     clearAllEntry() {
       clearAllEntryUtil(this);
     },
-    // 归档  回写数据
-    writeBackFun() {
+    /**
+     * 将当前选中的词条回写到已选服务器。
+     * @param {void} none 本方法不接收参数。
+     * @returns {Promise<void>} 回写成功或失败处理完成后结束。
+     */
+    async writeBackFun() {
       if (this.selectedRows.length === 0) {
         message.info("请选择词条");
         return;
@@ -506,18 +574,15 @@ export default {
         isComment: 0,
         i18nUrl: this.ipModal.ip,
       };
-      setInfo(params, this.selectedRows)
-        .then((res) => {
-          message.success("归档成功！");
-          this.selectedRowKeys = [];
-          this.selectedRows = [];
-          this.ipSelectModal = false;
-          this.writeBackLoading = false;
-        })
-        .catch((err) => {
-          message.error("归档失败！", err.message);
-          this.writeBackLoading = false;
-        });
+      try {
+        await setInfo(params, this.selectedRows);
+        message.success("归档成功！");
+        this.selectedRowKeys = [];
+        this.selectedRows = [];
+        this.ipSelectModal = false;
+      } catch (err) {
+        message.error("归档失败！", err.message);
+      }
     },
     // 归档按钮点击事件
     placeOnFile() {
@@ -552,47 +617,51 @@ export default {
       resetLoading();
       this.ipModal.ip = null;
     },
-    ipSelectOK() {
+    /**
+     * 校验回写服务器并完成当前归档模式，始终覆盖完整异步操作显示 loading。
+     * @param {void} none 本方法不接收参数。
+     * @returns {Promise<void>} 校验和归档请求全部结束后完成。
+     */
+    async ipSelectOK() {
+      if (this.writeBackLoading) return;
       this.writeBackLoading = true;
-      this.$refs.ipModal
-        .validate()
-        .then(() => {
-          if (this.optionFlag === 0) {
-            // 归档
-            this.writeBackFun();
-          } else if (this.optionFlag === 1) {
-            // 归档并结束任务+回写
-            endLoading();
-            this.task.state = "6";
-            // this.task.endTime = common.getCurrentFormattedTime();
-            this.task.endTime = getCurrentFormattedTime();
-            updateTaskInfo(this.task).then((res) => {
+      try {
+        await this.$refs.ipModal.validate();
+        if (this.optionFlag === 0) {
+          await this.writeBackFun();
+        } else if (this.optionFlag === 1) {
+          endLoading();
+          this.task.state = "6";
+          this.task.endTime = getCurrentFormattedTime();
+          const params = {
+            taskID: this.task.id,
+            translateType: this.task.translateType,
+            isTag: 0,
+            isComment: 0,
+            i18nUrl: this.ipModal.ip,
+          };
+          const taskUpdate = updateTaskInfo(this.task)
+            .then(() => {
               message.success("已归档！");
               this.$emit("refresh");
+            })
+            .catch((err) => {
+              message.error(err.message);
             });
-            // 回写数据
-            let params = {
-              taskID: this.task.id,
-              translateType: this.task.translateType,
-              isTag: 0,
-              isComment: 0,
-              i18nUrl: this.ipModal.ip,
-            };
-            setInfo(params, [])
-              .then((res) => {
-                this.ipSelectModal = false;
-              })
-              .catch((err) => {
-                message.error(err.message);
-              });
-          }
-        })
-        .catch((err) => {
-          message.error(err.message);
-        })
-        .finally(() => {
-          this.writeBackLoading = false;
-        });
+          const archiveWriteBack = setInfo(params, [])
+            .then(() => {
+              this.ipSelectModal = false;
+            })
+            .catch((err) => {
+              message.error(err.message);
+            });
+          await Promise.all([taskUpdate, archiveWriteBack]);
+        }
+      } catch (err) {
+        message.error(err.message);
+      } finally {
+        this.writeBackLoading = false;
+      }
     },
     ipSelectClose() {
       this.ipSelectModal = false;
@@ -632,7 +701,6 @@ export default {
   align-items: flex-start;
   gap: 16px;
   align-self: stretch;
-
 }
 .ant-table-cell .ant-form-item {
   margin-bottom: 0%;
