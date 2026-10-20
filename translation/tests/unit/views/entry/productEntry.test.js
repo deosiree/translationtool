@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import ProductEntry from '@/views/entry/productEntry.vue'
 import ColumnFilter from '@/components/ColumnFilter/ColumnFilter.vue'
@@ -18,6 +18,7 @@ const getEntryByClassfyMock = vi.hoisted(() =>
 )
 
 import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
+import { createDeferred } from '../../testUtils/deferred'
 import { message } from 'ant-design-vue'
 
 vi.mock('@/http/api/entryManage', () => ({
@@ -97,8 +98,9 @@ vi.mock('ant-design-vue', () => ({
   notification: {},
 }))
 
-import { deleteEntryInfo, updateEntryInfoList } from '@/http/api/entryManage'
+import { deleteEntryInfo, getEntryByClassfy, updateEntryInfoList } from '@/http/api/entryManage'
 import { getVersionByName } from '@/http/api/productVersion'
+import { checkNotUseEntry, getCheckNotUseEntry } from '@/http/api/check'
 import { EDIT_NOTES } from '@/constants/editNotes.js'
 import { Modal } from 'ant-design-vue'
 
@@ -956,6 +958,9 @@ describe('ProductEntry - 保存确认与 notes 兜底', () => {
     wrapper = mountProductEntry()
     wrapper.vm.dataSource = [{ id: 'e1', entry: '断路器' }]
     wrapper.vm.editableData = { e1: { id: 'e1', entry: '断路器', english: 'breaker' } }
+    wrapper.vm.selectEntry = [{ id: 'e1', entry: '断路器', english: 'old' }]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = ['e1']
     wrapper.vm.rules = {}
     wrapper.vm.rowClassify2Option = {}
     wrapper.vm.getEntryByClassfy = vi.fn()
@@ -970,6 +975,8 @@ describe('ProductEntry - 保存确认与 notes 兜底', () => {
       notes: EDIT_NOTES,
     })
     expect(wrapper.vm.editableData.e1).toBeUndefined()
+    expect(wrapper.vm.selectEntry).toEqual([row])
+    expect(wrapper.vm.selectedRows).toBe(wrapper.vm.selectEntry)
   })
 
   it('confirmSave：空列表不弹确认', () => {
@@ -977,6 +984,75 @@ describe('ProductEntry - 保存确认与 notes 兜底', () => {
     wrapper.vm.confirmSave([])
     expect(Modal.confirm).not.toHaveBeenCalled()
     expect(updateEntryInfoList).not.toHaveBeenCalled()
+  })
+
+  it('203 部分成功时只用成功提交行更新已选清单', async () => {
+    const oldSuccessEntry = {
+      id: 'e1',
+      entry: '断路器',
+      english: 'old breaker',
+      cachedOnly: true,
+    }
+    const oldFailedEntry = {
+      id: 'e2',
+      entry: '接触器',
+      english: 'old contactor',
+    }
+    const savedEntry = {
+      id: 'e1',
+      entry: '断路器',
+      english: 'circuit breaker',
+    }
+    const failedSubmission = {
+      id: 'e2',
+      entry: '接触器',
+      english: 'contactor',
+    }
+    updateEntryInfoList.mockResolvedValueOnce({
+      code: 203,
+      data: {
+        list: [
+          { id: 'e1', success: true, message: 'OK' },
+          { id: 'e2', success: false, message: '落库失败' },
+        ],
+        totalNum: 2,
+      },
+    })
+
+    wrapper = mountProductEntry()
+    wrapper.vm.dataSource = [oldSuccessEntry, oldFailedEntry]
+    wrapper.vm.selectEntry = [oldSuccessEntry, oldFailedEntry]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = wrapper.vm.selectEntry.map((item) => item.id)
+    wrapper.vm.getEntryByClassfy = vi.fn()
+
+    await wrapper.vm.saveRows([savedEntry, failedSubmission])
+
+    expect(wrapper.vm.selectEntry).toEqual([savedEntry, oldFailedEntry])
+    expect(wrapper.vm.selectedRows).toBe(wrapper.vm.selectEntry)
+    expect(wrapper.vm.selectedRowKeys).toEqual(['e1', 'e2'])
+    expect(wrapper.vm.dataSource).toEqual([savedEntry, oldFailedEntry])
+    expect(message.warning).toHaveBeenCalledWith(
+      '有 1 条保存失败：e2: 落库失败'
+    )
+  })
+
+  it('批量保存请求失败时不改动已选清单', async () => {
+    const cachedEntry = { id: 'e1', entry: '断路器', english: 'old breaker' }
+    updateEntryInfoList.mockRejectedValueOnce(new Error('请求失败'))
+
+    wrapper = mountProductEntry()
+    wrapper.vm.selectEntry = [cachedEntry]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = ['e1']
+
+    await wrapper.vm.saveRows([
+      { ...cachedEntry, english: 'circuit breaker' },
+    ])
+
+    expect(wrapper.vm.selectEntry).toEqual([cachedEntry])
+    expect(wrapper.vm.selectedRows).toBe(wrapper.vm.selectEntry)
+    expect(wrapper.vm.selectedRowKeys).toEqual(['e1'])
   })
 })
 
@@ -1097,5 +1173,1258 @@ describe('ProductEntry - 缺失产品 ID 的请求参数', () => {
     wrapper.vm.addEntry()
 
     expect(wrapper.vm.dataSource.at(-1).productID).toBe('product-id-4')
+  })
+})
+
+describe('ProductEntry - 查询响应竞态', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  /**
+   * 挂载产品词条表并等待组件初始化完成。
+   * @returns {Promise<any>} 初始化完成后的当前测试组件。
+   */
+  async function mountReadyEntry() {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    message.error.mockClear()
+    return wrapper
+  }
+
+  it('较晚返回的最新筛选结果保留在表格中', async () => {
+    await mountReadyEntry()
+    const olderRequest = createDeferred()
+    const latestRequest = createDeferred()
+    getEntryByClassfyMock
+      .mockReturnValueOnce(olderRequest.promise)
+      .mockReturnValueOnce(latestRequest.promise)
+
+    wrapper.vm.search.entry = '旧条件'
+    wrapper.vm.getEntryByClassfy()
+    wrapper.vm.search.entry = '新条件'
+    wrapper.vm.getEntryByClassfy()
+
+    latestRequest.resolve({ data: { list: [{ id: 'latest' }], totalNum: 1 } })
+    await flushPromises()
+    olderRequest.resolve({ data: { list: [{ id: 'stale' }], totalNum: 1 } })
+    await flushPromises()
+
+    expect(wrapper.vm.dataSource).toMatchObject([{ id: 'latest' }])
+    expect(wrapper.vm.pagination.total).toBe(1)
+    expect(wrapper.vm.loading).toBe(false)
+  })
+
+  it('版本切换、分页和刷新使用同一最新查询版本', async () => {
+    await mountReadyEntry()
+    const initialQuery = createDeferred()
+    const versionQuery = createDeferred()
+    const pageQuery = createDeferred()
+    const refreshQuery = createDeferred()
+    getEntryByClassfyMock
+      .mockReturnValueOnce(initialQuery.promise)
+      .mockReturnValueOnce(versionQuery.promise)
+      .mockReturnValueOnce(pageQuery.promise)
+      .mockReturnValueOnce(refreshQuery.promise)
+
+    wrapper.vm.getEntryByClassfy()
+    wrapper.vm.changeVersion('version-2')
+    wrapper.vm.pageChange(2, 20)
+    wrapper.vm.refreshTable()
+    refreshQuery.resolve({ data: { list: [{ id: 'latest' }], totalNum: 1 } })
+    await flushPromises()
+    pageQuery.resolve({ data: { list: [{ id: 'stale-page' }], totalNum: 1 } })
+    versionQuery.resolve({ data: { list: [{ id: 'stale-version' }], totalNum: 1 } })
+    initialQuery.resolve({ data: { list: [{ id: 'stale-initial' }], totalNum: 1 } })
+    await flushPromises()
+
+    expect(wrapper.vm.dataSource).toMatchObject([{ id: 'latest' }])
+    expect(wrapper.vm.pagination.current).toBe(2)
+    expect(wrapper.vm.currentVersion).toBe('version-2')
+    expect(wrapper.vm.loading).toBe(false)
+  })
+
+  it('过期查询错误不提示，也不清除最新请求的 loading', async () => {
+    await mountReadyEntry()
+    const olderRequest = createDeferred()
+    const latestRequest = createDeferred()
+    getEntryByClassfyMock
+      .mockReturnValueOnce(olderRequest.promise)
+      .mockReturnValueOnce(latestRequest.promise)
+
+    wrapper.vm.getEntryByClassfy()
+    wrapper.vm.search.entry = '新条件'
+    wrapper.vm.getEntryByClassfy()
+    olderRequest.reject(new Error('旧查询失败'))
+    await flushPromises()
+
+    expect(message.error).not.toHaveBeenCalled()
+    expect(wrapper.vm.loading).toBe(true)
+
+    latestRequest.resolve({ data: { list: [{ id: 'latest' }], totalNum: 1 } })
+    await flushPromises()
+    expect(wrapper.vm.dataSource).toMatchObject([{ id: 'latest' }])
+    expect(wrapper.vm.loading).toBe(false)
+  })
+
+  it('初始化只发起一次词条表查询', async () => {
+    await mountReadyEntry()
+    wrapper.vm.product = { type: 'product', key: 'product-id-init', title: '测试产品' }
+    wrapper.vm.selectFirstClassify = vi.fn().mockResolvedValue()
+    wrapper.vm.getI18nAdress = vi.fn().mockResolvedValue()
+    getEntryByClassfyMock.mockClear()
+
+    await wrapper.vm.init()
+    await flushPromises()
+
+    expect(getEntryByClassfyMock).toHaveBeenCalledTimes(1)
+    expect(getVersionByName).toHaveBeenCalledWith({
+      versionName: '',
+      productID: 'product-id-init',
+    })
+  })
+
+  it.each([
+    ['完成状态', 1],
+    ['待启动状态', 0],
+  ])('忽略过期冗余校验%s响应，不覆盖列表或启动任务', async (label, state) => {
+    await mountReadyEntry()
+    const statusRequest = createDeferred()
+    const latestListRequest = createDeferred()
+    getCheckNotUseEntry.mockReturnValueOnce(statusRequest.promise)
+    getEntryByClassfyMock.mockReturnValueOnce(latestListRequest.promise)
+    wrapper.vm.search.i18nURL = 'http://i18n.test'
+
+    wrapper.vm.getCheckNotUseEntry()
+    wrapper.vm.getEntryByClassfy()
+    latestListRequest.resolve({
+      data: { list: [{ id: 'latest' }], totalNum: 1 },
+    })
+    await flushPromises()
+    statusRequest.resolve({
+      data: { state, list: [{ id: 'stale' }], totalNum: 1 },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.dataSource).toMatchObject([{ id: 'latest' }])
+    expect(checkNotUseEntry).not.toHaveBeenCalled()
+  })
+})
+
+describe('ProductEntry - 全选加载状态', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  it('并发全选请求全部结束后才显示已选数量并关闭 loading', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    const firstRequest = createDeferred()
+    const secondRequest = createDeferred()
+    getEntryByClassfyMock
+      .mockReturnValueOnce(firstRequest.promise)
+      .mockReturnValueOnce(secondRequest.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品' }
+    wrapper.vm.selectEntry = [{ id: 'existing' }]
+
+    wrapper.vm.selectAllEntry()
+    wrapper.vm.selectAllEntry()
+    await nextTick()
+
+    expect(wrapper.vm.selectAllLoading).toBe(true)
+
+    firstRequest.resolve({ data: { list: [{ id: 'first' }], totalNum: 1 } })
+    await flushPromises()
+    expect(wrapper.vm.selectAllLoading).toBe(true)
+
+    secondRequest.resolve({ data: { list: [{ id: 'second' }], totalNum: 1 } })
+    await flushPromises()
+    expect(wrapper.vm.selectAllLoading).toBe(false)
+    expect(wrapper.vm.selectEntry).toHaveLength(3)
+  })
+
+  it('全选请求失败后恢复已选数量并关闭 loading', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    const failedRequest = createDeferred()
+    getEntryByClassfyMock.mockReturnValueOnce(failedRequest.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品' }
+    wrapper.vm.selectEntry = [{ id: 'existing' }]
+
+    wrapper.vm.selectAllEntry()
+    await nextTick()
+
+    expect(wrapper.vm.selectAllLoading).toBe(true)
+
+    failedRequest.reject(new Error('全选请求失败'))
+    await flushPromises()
+
+    expect(wrapper.vm.selectAllLoading).toBe(false)
+    expect(wrapper.vm.selectEntry).toHaveLength(1)
+  })
+})
+
+describe('ProductEntry - 选择范围', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  it('表格保留全局已选键，当前数据只命中自身已选行', () => {
+    wrapper = mountProductEntry()
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品一' }
+    wrapper.vm.dataSource = [
+      { id: 'current-id', productID: 'product-1' },
+      { id: 'unselected-id', productID: 'product-1' },
+    ]
+    wrapper.vm.selectEntry = [
+      { id: 'other-product-id', productID: 'product-2' },
+      { id: 'current-id', productID: 'product-1' },
+    ]
+    wrapper.vm.selectedRowKeys = wrapper.vm.selectEntry.map((item) => item.id)
+
+    expect(wrapper.vm.selectedRowKeys).toEqual([
+      'other-product-id',
+      'current-id',
+    ])
+    expect(
+      wrapper.vm.dataSource
+        .filter((item) => wrapper.vm.selectedRowKeys.includes(item.id))
+        .map((item) => item.id)
+    ).toEqual(['current-id'])
+  })
+
+  it('查询变化和切换产品后保留全局键，当前数据按 ID 显示勾选', () => {
+    wrapper = mountProductEntry()
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品一' }
+    wrapper.vm.dataSource = [
+      { id: 'product-1-current', productID: 'product-1' },
+      { id: 'product-1-unselected', productID: 'product-1' },
+    ]
+    wrapper.vm.selectEntry = [
+      { id: 'product-1-current', productID: 'product-1' },
+      { id: 'product-1-previous-query', productID: 'product-1' },
+      { id: 'product-2-current', productID: 'product-2' },
+    ]
+    wrapper.vm.selectedRowKeys = wrapper.vm.selectEntry.map((item) => item.id)
+
+    expect(wrapper.vm.selectedRowKeys).toEqual([
+      'product-1-current',
+      'product-1-previous-query',
+      'product-2-current',
+    ])
+
+    wrapper.vm.dataSource = [
+      { id: 'product-1-new-query', productID: 'product-1' },
+    ]
+    expect(
+      wrapper.vm.dataSource.filter((item) =>
+        wrapper.vm.selectedRowKeys.includes(item.id)
+      )
+    ).toEqual([])
+
+    wrapper.vm.product = { type: 'product', key: 'product-2', title: '产品二' }
+    wrapper.vm.dataSource = [
+      { id: 'product-2-current', productID: 'product-2' },
+    ]
+
+    expect(wrapper.vm.selectedRowKeys).toEqual([
+      'product-1-current',
+      'product-1-previous-query',
+      'product-2-current',
+    ])
+    expect(
+      wrapper.vm.dataSource
+        .filter((item) => wrapper.vm.selectedRowKeys.includes(item.id))
+        .map((item) => item.id)
+    ).toEqual(['product-2-current'])
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
+      'product-1-current',
+      'product-1-previous-query',
+      'product-2-current',
+    ])
+  })
+
+  it('上级分类全选按词条 ID 去重并以新查询对象覆盖旧值', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockResolvedValueOnce({
+      data: {
+        list: [
+          { id: 'shared-entry', entry: '分类查询值', classfy1: '分类 A' },
+          { id: 'classify-only', entry: '分类独有' },
+        ],
+        totalNum: 2,
+      },
+    })
+    wrapper.vm.product = { type: 'classify', key: 'classify-a', title: '分类 A' }
+    wrapper.vm.selectEntry = [
+      { id: 'shared-entry', entry: '产品缓存值', staleField: true },
+      { id: 'product-only', entry: '产品独有' },
+    ]
+
+    wrapper.vm.selectAllEntry()
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry).toHaveLength(3)
+    expect(
+      wrapper.vm.selectEntry.find((entry) => entry.id === 'shared-entry')
+    ).toEqual({
+      id: 'shared-entry',
+      entry: '分类查询值',
+      classfy1: '分类 A',
+    })
+    expect(wrapper.vm.selectedRowKeys).toEqual([
+      'shared-entry',
+      'product-only',
+      'classify-only',
+    ])
+  })
+
+  it('当前产品取勾后按全局已选清单重算计数并移除陈旧产品项', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const productA = { type: 'classify', key: 'category-a', title: '分类 A' }
+    const productB = { type: 'product', key: 'product-b', title: '产品 B' }
+    const selectedA = [
+      { id: 'a-1', productID: 'product-a' },
+      { id: 'a-2', productID: 'product-a' },
+    ]
+    const selectedB = [
+      { id: 'b-1', productID: 'product-b' },
+      { id: 'b-2', productID: 'product-b' },
+      { id: 'b-3', productID: 'product-b' },
+      { id: 'b-4', productID: 'product-b' },
+    ]
+    const newAEntries = [
+      { id: 'a-3', productID: 'product-a' },
+      { id: 'a-4', productID: 'product-a' },
+      { id: 'a-5', productID: 'product-a' },
+    ]
+
+    wrapper.vm.product = productA
+    await flushPromises()
+    wrapper.vm.selectEntry = [...selectedA, ...selectedB]
+    wrapper.vm.syncSelectedProducts()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock
+      .mockResolvedValueOnce({ data: { list: newAEntries, totalNum: 3 } })
+      .mockResolvedValueOnce({ data: { list: newAEntries, totalNum: 3 } })
+
+    wrapper.vm.selectAllEntry()
+    await flushPromises()
+    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(5)
+    expect(wrapper.vm.selectedProducts.products.get('product-b')).toBe(4)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(9)
+
+    wrapper.vm.onSelectAll(false, [], [])
+    await flushPromises()
+    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(2)
+    expect(wrapper.vm.selectedProducts.products.get('product-b')).toBe(4)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(6)
+
+    wrapper.vm.product = productB
+    await flushPromises()
+    wrapper.vm.updateSelectedEntries(selectedB)
+    expect(wrapper.vm.selectedProducts.products.has('product-a')).toBe(false)
+    expect(wrapper.vm.selectedProducts.products.get('product-b')).toBe(4)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(4)
+    expect(wrapper.vm.selectedRowKeys).toEqual(selectedB.map((entry) => entry.id))
+  })
+
+  it('较早的全选响应不能覆盖较新查询结果中的同 ID 词条', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品一' }
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    const olderRequest = createDeferred()
+    const newerRequest = createDeferred()
+    getEntryByClassfyMock
+      .mockReturnValueOnce(olderRequest.promise)
+      .mockReturnValueOnce(newerRequest.promise)
+
+    wrapper.vm.selectAllEntry()
+    wrapper.vm.search.entry = '新查询'
+    wrapper.vm.selectAllEntry()
+
+    newerRequest.resolve({
+      data: { list: [{ id: 'shared-entry', entry: '新查询值' }] },
+    })
+    await flushPromises()
+    olderRequest.resolve({
+      data: { list: [{ id: 'shared-entry', entry: '旧查询值' }] },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry).toEqual([
+      { id: 'shared-entry', entry: '新查询值' },
+    ])
+  })
+
+  it('全量选择请求晚于保存响应时保留成功保存的新词条对象', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品一' }
+    await flushPromises()
+    const oldEntry = {
+      id: 'saved-entry',
+      productID: 'product-1',
+      entry: '断路器',
+      english: 'old value',
+    }
+    const savedEntry = { ...oldEntry, english: 'saved value' }
+    const pendingSelection = createDeferred()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingSelection.promise)
+    updateEntryInfoList.mockResolvedValueOnce({
+      code: 200,
+      data: {
+        list: [{ id: savedEntry.id, success: true, message: 'OK' }],
+        totalNum: 1,
+      },
+    })
+    wrapper.vm.dataSource = [oldEntry]
+    wrapper.vm.selectEntry = [oldEntry]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = [oldEntry.id]
+    wrapper.vm.getEntryByClassfy = vi.fn()
+
+    wrapper.vm.selectAllEntry()
+    await nextTick()
+    await wrapper.vm.saveRows([savedEntry])
+    pendingSelection.resolve({ data: { list: [oldEntry], totalNum: 1 } })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry).toEqual([savedEntry])
+    expect(wrapper.vm.selectedRowKeys).toEqual([savedEntry.id])
+  })
+
+  it('取勾响应晚于产品切换时同步历史产品计数', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const productA = {
+      type: 'product',
+      key: 'product-a',
+      title: '产品 A',
+      children: [],
+    }
+    const productB = {
+      type: 'product',
+      key: 'product-b',
+      title: '产品 B',
+      children: [],
+    }
+    wrapper.vm.product = productA
+    wrapper.vm.selectEntry = [
+      { id: 'a-1', productID: 'product-a' },
+      { id: 'a-2', productID: 'product-a' },
+    ]
+    wrapper.vm.syncSelectedProducts()
+
+    const pendingClear = createDeferred()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingClear.promise)
+    wrapper.vm.clearCurrentQuerySelection()
+    await nextTick()
+
+    wrapper.vm.product = productB
+    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(2)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
+
+    pendingClear.resolve({
+      data: {
+        list: [
+          { id: 'a-1', productID: 'product-a' },
+          { id: 'a-2', productID: 'product-a' },
+        ],
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry).toEqual([])
+    expect(wrapper.vm.selectedProducts.products.has('product-a')).toBe(false)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(0)
+  })
+
+  it('切回原产品后取勾按当前全局清单同步产品计数', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const productA = { type: 'product', key: 'product-a', title: '产品 A' }
+    const productB = { type: 'product', key: 'product-b', title: '产品 B' }
+    const remainingEntry = { id: 'a-2', productID: 'product-a' }
+    wrapper.vm.product = productA
+    wrapper.vm.selectEntry = [
+      { id: 'a-1', productID: 'product-a' },
+      remainingEntry,
+    ]
+    wrapper.vm.syncSelectedProducts()
+
+    const pendingClear = createDeferred()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingClear.promise)
+    wrapper.vm.clearCurrentQuerySelection()
+    wrapper.vm.onSelect(remainingEntry, true)
+    wrapper.vm.product = productB
+    wrapper.vm.product = productA
+
+    pendingClear.resolve({
+      data: {
+        list: [
+          { id: 'a-1', productID: 'product-a' },
+          remainingEntry,
+        ],
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry).toEqual([remainingEntry])
+    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(1)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
+  })
+
+  it('普通查询表头取勾只移除当前查询结果', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockResolvedValueOnce({
+      data: { list: [{ id: 'matched', productID: 'product-id-1' }] },
+    })
+    wrapper.vm.selectEntry = [
+      { id: 'matched', productID: 'product-id-1' },
+      { id: 'other-query', productID: 'product-id-1' },
+      { id: 'other-product', productID: 'product-id-2' },
+    ]
+
+    wrapper.vm.onSelectAll(false, [], [])
+    await flushPromises()
+
+    expect(getEntryByClassfyMock).toHaveBeenCalledWith(
+      expect.objectContaining({ pageIndex: -1, pageSize: -1 }),
+      expect.any(Object),
+    )
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
+      'other-query',
+      'other-product',
+    ])
+  })
+
+  it('冗余校验表头取勾只移除当前完整结果集', async () => {
+    wrapper = mountProductEntry()
+    wrapper.vm.lastSearchType = 'checkNotUseEntry'
+    wrapper.vm.dataSource = [
+      { id: 'redundant-current', productID: 'product-id-1' },
+    ]
+    wrapper.vm.selectEntry = [
+      { id: 'redundant-current', productID: 'product-id-1' },
+      { id: 'other-query', productID: 'product-id-1' },
+      { id: 'other-product', productID: 'product-id-2' },
+    ]
+
+    wrapper.vm.onSelectAll(false, [], wrapper.vm.dataSource)
+    await nextTick()
+
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
+      'other-query',
+      'other-product',
+    ])
+  })
+
+  it('全局取消清空跨产品清单并使未完成全选请求失效', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    const pendingRequest = createDeferred()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingRequest.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品一' }
+    wrapper.vm.selectEntry = [
+      { id: 'existing', productID: 'product-2' },
+    ]
+    wrapper.vm.selectedProducts = {
+      products: new Map([['product-2', 1]]),
+      totalNum: 1,
+    }
+    wrapper.vm.dataSource = [{ id: 'pending-page-entry', productID: 'product-1' }]
+
+    wrapper.vm.selectAllEntry()
+    expect(wrapper.vm.tableSelectedRowKeys).toContain('pending-page-entry')
+    wrapper.vm.cancelSelection()
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain('pending-page-entry')
+    pendingRequest.resolve({
+      data: { list: [{ id: 'late', productID: 'product-1' }] },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry).toEqual([])
+    expect(wrapper.vm.selectedRows).toEqual([])
+    expect(wrapper.vm.selectedRowKeys).toEqual([])
+    expect(wrapper.vm.selectedProducts.products.size).toBe(0)
+    expect(wrapper.vm.selectAllLoading).toBe(false)
+  })
+
+  it('全选请求期间翻页后立即勾选新页，并在结果返回后同步全局清单', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const pageOneEntry = { id: 'page-one', productID: 'product-a' }
+    const pageTwoEntry = { id: 'page-two', productID: 'product-a' }
+    const pendingSelection = createDeferred()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingSelection.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+    wrapper.vm.dataSource = [pageOneEntry]
+
+    wrapper.vm.onSelectAll(true, [], [pageOneEntry])
+    await nextTick()
+
+    expect(wrapper.vm.selectAllLoading).toBe(true)
+    expect(wrapper.vm.loading).toBe(false)
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(pageOneEntry.id)
+
+    wrapper.vm.pageChange(2, 20, null)
+    wrapper.vm.dataSource = [pageTwoEntry]
+    await nextTick()
+
+    expect(wrapper.vm.pagination.current).toBe(2)
+    expect(wrapper.vm.tableSelectedRowKeys).toEqual(
+      expect.arrayContaining([pageOneEntry.id, pageTwoEntry.id]),
+    )
+    expect(wrapper.vm.selectedRowKeys).not.toContain(pageTwoEntry.id)
+
+    pendingSelection.resolve({ data: { list: [pageOneEntry, pageTwoEntry] } })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual(
+      expect.arrayContaining([pageOneEntry.id, pageTwoEntry.id]),
+    )
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(pageTwoEntry.id)
+    expect(wrapper.vm.selectAllLoading).toBe(false)
+  })
+
+  it('待全选投影只作用于原查询范围', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const pendingSelection = createDeferred()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingSelection.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+    wrapper.vm.selectAllEntry()
+    wrapper.vm.dataSource = [{ id: 'next-page-entry', productID: 'product-a' }]
+
+    expect(wrapper.vm.tableSelectedRowKeys).toContain('next-page-entry')
+
+    wrapper.vm.search.entry = '另一个查询条件'
+    await nextTick()
+
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain('next-page-entry')
+
+    pendingSelection.resolve({ data: { list: [] } })
+    await flushPromises()
+  })
+
+  it('待全选投影在请求失败后消失并保留原全局清单', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const originalEntry = { id: 'already-selected', productID: 'product-b' }
+    const pendingSelection = createDeferred()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingSelection.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+    wrapper.vm.selectEntry = [originalEntry]
+    wrapper.vm.dataSource = [{ id: 'temporary-entry', productID: 'product-a' }]
+
+    wrapper.vm.selectAllEntry()
+
+    expect(wrapper.vm.tableSelectedRowKeys).toContain('temporary-entry')
+    expect(wrapper.vm.selectAllLoading).toBe(true)
+
+    pendingSelection.reject(new Error('全选失败'))
+    await flushPromises()
+
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain('temporary-entry')
+    expect(wrapper.vm.selectEntry).toEqual([originalEntry])
+    expect(wrapper.vm.selectAllLoading).toBe(false)
+    expect(message.error).toHaveBeenCalledWith('全选失败')
+  })
+
+  it('全选和取勾交叠时按请求及单行操作顺序投影当前页勾选', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const row = { id: 'overlap-entry', productID: 'product-a' }
+    const pendingClear = createDeferred()
+    const pendingSelection = createDeferred()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock
+      .mockReturnValueOnce(pendingClear.promise)
+      .mockReturnValueOnce(pendingSelection.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+    wrapper.vm.dataSource = [row]
+    wrapper.vm.selectEntry = [row]
+
+    wrapper.vm.clearCurrentQuerySelection()
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain(row.id)
+
+    wrapper.vm.selectAllEntry()
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
+
+    wrapper.vm.onSelect(row, false)
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain(row.id)
+
+    wrapper.vm.onSelect(row, true)
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
+
+    pendingSelection.resolve({ data: { list: [row] } })
+    await flushPromises()
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
+
+    pendingClear.resolve({ data: { list: [row] } })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toContain(row.id)
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
+  })
+
+  it('异步取勾立即更新表格投影但不触发表格 loading，且按钮 loading 保持到响应结束', async () => {
+    wrapper = mountProductEntry(undefined, {
+      stubs: {
+        DataBox: {
+          template:
+            '<div><slot name="operate" /><slot name="data" /></div>',
+        },
+      },
+    })
+    await flushPromises()
+    const productA = { type: 'product', key: 'product-a', title: '产品 A' }
+    const productB = { type: 'product', key: 'product-b', title: '产品 B' }
+    const pendingClear = createDeferred()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingClear.promise)
+    wrapper.vm.product = productA
+    wrapper.vm.dataSource = [{ id: 'shared-id' }, { id: 'not-selected' }]
+    wrapper.vm.selectEntry = [
+      { id: 'shared-id', productID: 'product-a' },
+      { id: 'next-page-id', productID: 'product-a' },
+      { id: 'other-product-id', productID: 'product-b' },
+    ]
+
+    wrapper.vm.clearCurrentQuerySelection()
+    const pendingClearScope = wrapper.vm.selectAllPendingRequests[0].scopeKey
+    await nextTick()
+
+    expect(wrapper.vm.loading).toBe(false)
+    expect(wrapper.vm.selectAllLoading).toBe(true)
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
+      'shared-id',
+      'next-page-id',
+      'other-product-id',
+    ])
+    expect(wrapper.vm.tableSelectedRowKeys).toEqual([
+      'next-page-id',
+      'other-product-id',
+    ])
+
+    wrapper.vm.dataSource = [{ id: 'next-page-id' }]
+    await nextTick()
+    expect(wrapper.vm.tableSelectedRowKeys).toEqual([
+      'shared-id',
+      'other-product-id',
+    ])
+    expect(
+      wrapper.vm.tableSelectedRowKeys.filter((id) =>
+        wrapper.vm.dataSource.some((entry) => entry.id === id),
+      ),
+    ).toEqual([])
+
+    wrapper.vm.product = productB
+    wrapper.vm.dataSource = [
+      { id: 'shared-id' },
+      { id: 'other-product-id' },
+    ]
+    await nextTick()
+    expect(wrapper.vm.product.key).toBe('product-b')
+    expect(wrapper.vm.getCurrentSelectionScopeKey()).not.toBe(
+      wrapper.vm.selectAllPendingRequests[0].scopeKey,
+    )
+    expect(wrapper.vm.tableSelectedRowKeys).toContain('shared-id')
+    expect(wrapper.vm.tableSelectedRowKeys).toContain('other-product-id')
+
+    wrapper.vm.product = productA
+    wrapper.vm.dataSource = [{ id: 'shared-id' }]
+    await nextTick()
+    const pendingClearRequest = wrapper.vm.selectAllPendingRequests[0]
+    expect(
+      {
+        action: pendingClearRequest.action,
+        scopeMatches:
+          wrapper.vm.getCurrentSelectionScopeKey() === pendingClearScope,
+        visibleIds: wrapper.vm.dataSource.map((entry) => entry.id),
+        includedIds: pendingClearRequest.includedIds,
+        selectedIds: wrapper.vm.selectEntry.map((entry) => entry.id),
+      },
+    ).toEqual({
+      action: 'deselect',
+      scopeMatches: true,
+      visibleIds: ['shared-id'],
+      includedIds: [],
+      selectedIds: ['shared-id', 'next-page-id', 'other-product-id'],
+    })
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain('shared-id')
+
+    pendingClear.resolve({
+      data: {
+        list: [
+          { id: 'shared-id', productID: 'product-a' },
+          { id: 'next-page-id', productID: 'product-a' },
+        ],
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
+      'other-product-id',
+    ])
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
+    expect(wrapper.vm.selectAllLoading).toBe(false)
+    expect(wrapper.vm.loading).toBe(false)
+  })
+
+  it('工具栏显示取消选择按钮，空列表时禁用，有选择时清空全局清单', async () => {
+    wrapper = mountProductEntry(undefined, {
+      stubs: {
+        DataBox: {
+          template: '<div><slot name="operate" /><slot name="data" /></div>',
+        },
+        'a-button': {
+          props: ['disabled'],
+          template: '<button :disabled="disabled"><slot /></button>',
+        },
+      },
+    })
+    await nextTick()
+    const cancelButton = () =>
+      wrapper.findAll('button').find((button) => button.text() === '取消选择')
+
+    expect(cancelButton()).toBeDefined()
+    expect(cancelButton().element.disabled).toBe(true)
+
+    wrapper.vm.selectEntry = [{ id: 'selected', productID: 'product-id-1' }]
+    await nextTick()
+    expect(cancelButton().element.disabled).toBe(false)
+    await cancelButton().trigger('click')
+
+    expect(wrapper.vm.selectEntry).toEqual([])
+  })
+
+  /**
+   * 验证工具栏按钮层级和全选 loading 的展示状态。
+   * @param {void} none - 无参数。
+   * @returns {Promise<void>} 页面状态断言完成后结束。
+   */
+  it('全选 loading 在已选词条按钮内显示 spinner 且保持文案占位', async () => {
+    const storeMock = createUserStoreMock()
+    storeMock.$currentDepartment = { ops: new Set(['needIP', 'fileUpdate']) }
+    wrapper = mountProductEntry(storeMock, {
+      stubs: {
+        DataBox: {
+          template: '<div><slot name="operate" /></div>',
+        },
+        'a-button': {
+          props: ['type', 'disabled'],
+          template: '<button type="button" :data-button-type="type" :disabled="disabled" v-bind="$attrs"><slot name="icon" /><slot /></button>',
+        },
+        BackFillModal_v3: {
+          props: {
+            buttonType: { type: String, default: 'primary' },
+            buttonTitle: { type: String, default: '导入' },
+          },
+          template: '<button :data-button-type="buttonType">{{ buttonTitle }}</button>',
+        },
+        ColumnFilter: {
+          props: {
+            buttonType: { type: String, default: 'primary' },
+            buttonText: { type: String, default: '展示列' },
+          },
+          template: '<button class="column-filter-button" :data-button-type="buttonType">{{ buttonText }}</button>',
+        },
+        GitCommitButton: {
+          props: ['buttonClass', 'buttonTitle'],
+          template: '<button :class="buttonClass">{{ buttonTitle }}</button>',
+        },
+        'a-badge': {
+          props: ['count'],
+          template: '<div><span v-if="count" class="badge-count">{{ count }}</span><slot /></div>',
+        },
+      },
+    })
+    await flushPromises()
+    wrapper.vm.admin = true
+    await nextTick()
+
+    wrapper.vm.selectEntry = [{ id: 'selected-entry' }]
+    await nextTick()
+
+    /**
+     * 查找已选词条按钮。
+     * @param {void} none - 无参数。
+     * @returns {any} 已选词条按钮包装器。
+     */
+    const selectedButton = () =>
+      wrapper.find('.entry-toolbar-selected-button')
+    /**
+     * 按文案查找工具栏按钮。
+     * @param {string} text - 按钮文案。
+     * @returns {any} 匹配的按钮包装器。
+     */
+    const toolbarButton = (text) =>
+      wrapper
+        .findAll('.entry-toolbar-right button')
+        .find((button) => button.text().trim() === text)
+
+    expect(selectedButton().element.disabled).toBe(false)
+    expect(selectedButton().attributes('data-button-type')).toBe('default')
+    expect(toolbarButton('取消选择').attributes('data-button-type')).toBe('default')
+    expect(toolbarButton('新增').attributes('data-button-type')).toBe('primary')
+    expect(toolbarButton('二级分类管理').attributes('data-button-type')).toBe('default')
+    expect(toolbarButton('git推送').classes()).toContain('entry-toolbar-git-button')
+    expect(toolbarButton('更新翻译').attributes('data-button-type')).toBe('default')
+    expect(
+      wrapper
+        .findAll('.column-filter-button')
+        .find((button) => button.text() === '展示列')
+        .attributes('data-button-type')
+    ).toBe('text')
+    expect(wrapper.find('.badge-count').text()).toBe('1')
+    expect(wrapper.find('.entry-toolbar-selected-label').exists()).toBe(true)
+
+    wrapper.vm.selectAllLoading = true
+    await nextTick()
+
+    expect(selectedButton().element.disabled).toBe(true)
+    expect(wrapper.find('.entry-toolbar-selected-spinner').exists()).toBe(true)
+    expect(
+      wrapper
+        .find('.entry-toolbar-selected-button-loading .entry-toolbar-selected-label')
+        .exists()
+    ).toBe(true)
+    expect(wrapper.find('.badge-count').exists()).toBe(false)
+
+    wrapper.vm.selectAllLoading = false
+    await nextTick()
+
+    expect(selectedButton().element.disabled).toBe(false)
+    expect(wrapper.find('.entry-toolbar-selected-spinner').exists()).toBe(false)
+    expect(wrapper.find('.entry-toolbar-selected-label').text()).toBe('已选词条')
+    expect(wrapper.find('.badge-count').text()).toBe('1')
+  })
+
+  it('当前查询取勾请求失败时保留原已选词条', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockRejectedValueOnce(new Error('取勾失败'))
+    wrapper.vm.selectEntry = [
+      { id: 'selected', productID: 'product-id-1' },
+      { id: 'other-product', productID: 'product-id-2' },
+    ]
+
+    wrapper.vm.onSelectAll(false, [], [])
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
+      'selected',
+      'other-product',
+    ])
+    expect(message.error).toHaveBeenCalledWith('取勾失败')
+  })
+
+  it('待取勾期间单行重新勾选会覆盖待处理取勾', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const pendingClear = createDeferred()
+    const row = { id: 'reselected-entry', productID: 'product-id-1' }
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingClear.promise)
+    wrapper.vm.dataSource = [row]
+    wrapper.vm.selectEntry = [row, { id: 'removed-entry', productID: 'product-id-1' }]
+
+    wrapper.vm.clearCurrentQuerySelection()
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain(row.id)
+
+    wrapper.vm.onSelect(row, true)
+    expect(wrapper.vm.selectAllPendingRequests[0].includedIds).toContain(row.id)
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
+
+    pendingClear.resolve({
+      data: {
+        list: [row, { id: 'removed-entry', productID: 'product-id-1' }],
+      },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([row.id])
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
+  })
+
+  it('取勾响应先返回时，较早的全选响应不得重新选择当前查询词条', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    const olderSelection = createDeferred()
+    const queryClear = createDeferred()
+    getEntryByClassfyMock
+      .mockReturnValueOnce(olderSelection.promise)
+      .mockReturnValueOnce(queryClear.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品一' }
+
+    wrapper.vm.selectAllEntry()
+    wrapper.vm.onSelectAll(false, [], [])
+    expect(getEntryByClassfyMock).toHaveBeenCalledTimes(2)
+
+    queryClear.resolve({
+      data: { list: [{ id: 'query-entry', productID: 'product-1' }] },
+    })
+    await flushPromises()
+    olderSelection.resolve({
+      data: { list: [{ id: 'query-entry', productID: 'product-1' }] },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).not.toContain(
+      'query-entry',
+    )
+  })
+
+  it('取勾期间较新的全选优先于迟到的取勾响应', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    const queryClear = createDeferred()
+    const newerSelection = createDeferred()
+    getEntryByClassfyMock
+      .mockReturnValueOnce(queryClear.promise)
+      .mockReturnValueOnce(newerSelection.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品一' }
+
+    wrapper.vm.onSelectAll(false, [], [])
+    wrapper.vm.selectAllEntry()
+    newerSelection.resolve({
+      data: { list: [{ id: 'query-entry', productID: 'product-1' }] },
+    })
+    await flushPromises()
+    queryClear.resolve({
+      data: { list: [{ id: 'query-entry', productID: 'product-1' }] },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toContain(
+      'query-entry',
+    )
+  })
+
+  it('分类取勾与子产品全选交错时保留较新的子产品选择，响应顺序不影响结果', async () => {
+    for (const clearFirst of [true, false]) {
+      wrapper = mountProductEntry()
+      await flushPromises()
+      getEntryByClassfyMock.mockClear()
+      const categoryClear = createDeferred()
+      const productSelect = createDeferred()
+      getEntryByClassfyMock
+        .mockReturnValueOnce(categoryClear.promise)
+        .mockReturnValueOnce(productSelect.promise)
+      wrapper.vm.product = {
+        type: 'classify',
+        key: 'category-a',
+        title: '分类 A',
+      }
+      wrapper.vm.dataSource = [
+        { id: 'shared-id', productID: 'product-b' },
+        { id: 'category-only', productID: 'product-a' },
+      ]
+      wrapper.vm.selectEntry = [
+        { id: 'shared-id', productID: 'product-b' },
+        { id: 'category-only', productID: 'product-a' },
+        { id: 'sibling-kept', productID: 'product-c' },
+      ]
+
+      wrapper.vm.clearCurrentQuerySelection()
+      wrapper.vm.product = { type: 'product', key: 'product-b', title: '产品 B' }
+      wrapper.vm.dataSource = [
+        { id: 'shared-id', productID: 'product-b' },
+        { id: 'product-only', productID: 'product-b' },
+      ]
+      wrapper.vm.onSelectAll(true, [], wrapper.vm.dataSource)
+
+      const resolveClear = () =>
+        categoryClear.resolve({
+          data: {
+            list: [
+              { id: 'shared-id', productID: 'product-b' },
+              { id: 'category-only', productID: 'product-a' },
+            ],
+          },
+        })
+      const resolveSelect = () =>
+        productSelect.resolve({
+          data: {
+            list: [
+              { id: 'shared-id', productID: 'product-b', entry: '产品 B 最新值' },
+              { id: 'product-only', productID: 'product-b' },
+            ],
+          },
+        })
+
+      if (clearFirst) {
+        resolveClear()
+        await flushPromises()
+        resolveSelect()
+      } else {
+        resolveSelect()
+        await flushPromises()
+        resolveClear()
+      }
+      await flushPromises()
+
+      expect(wrapper.vm.selectEntry.map((entry) => entry.id).sort()).toEqual([
+        'product-only',
+        'shared-id',
+        'sibling-kept',
+      ])
+      expect(
+        wrapper.vm.selectEntry.filter((entry) => entry.id === 'shared-id'),
+      ).toHaveLength(1)
+      expect(
+        wrapper.vm.selectEntry.find((entry) => entry.id === 'shared-id').entry,
+      ).toBe('产品 B 最新值')
+      wrapper.unmount()
+      wrapper = null
+    }
+  })
+
+  it('子产品取勾与分类全选交错时以较新的子产品取勾为准，响应顺序不影响结果', async () => {
+    for (const clearFirst of [true, false]) {
+      wrapper = mountProductEntry()
+      await flushPromises()
+      getEntryByClassfyMock.mockClear()
+      const productClear = createDeferred()
+      const categorySelect = createDeferred()
+      getEntryByClassfyMock
+        .mockReturnValueOnce(categorySelect.promise)
+        .mockReturnValueOnce(productClear.promise)
+      wrapper.vm.product = { type: 'classify', key: 'category-a', title: '分类 A' }
+      wrapper.vm.dataSource = [
+        { id: 'shared-id', productID: 'product-b' },
+        { id: 'category-only', productID: 'product-a' },
+      ]
+      wrapper.vm.onSelectAll(true, [], wrapper.vm.dataSource)
+
+      wrapper.vm.product = { type: 'product', key: 'product-b', title: '产品 B' }
+      wrapper.vm.dataSource = [
+        { id: 'shared-id', productID: 'product-b' },
+        { id: 'product-only', productID: 'product-b' },
+      ]
+      wrapper.vm.clearCurrentQuerySelection()
+
+      const resolveClear = () =>
+        productClear.resolve({
+          data: {
+            list: [
+              { id: 'shared-id', productID: 'product-b' },
+              { id: 'product-only', productID: 'product-b' },
+            ],
+          },
+        })
+      const resolveSelect = () =>
+        categorySelect.resolve({
+          data: {
+            list: [
+              { id: 'shared-id', productID: 'product-b' },
+              { id: 'category-only', productID: 'product-a' },
+            ],
+          },
+        })
+
+      if (clearFirst) {
+        resolveClear()
+        await flushPromises()
+        resolveSelect()
+      } else {
+        resolveSelect()
+        await flushPromises()
+        resolveClear()
+      }
+      await flushPromises()
+
+      expect(wrapper.vm.selectEntry.map((entry) => entry.id).sort()).toEqual([
+        'category-only',
+      ])
+      expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
+      wrapper.unmount()
+      wrapper = null
+    }
+  })
+
+  it('兄弟产品全选与取勾并发时保留各自范围内的最终操作和非交集选择', async () => {
+    for (const clearFirst of [true, false]) {
+      wrapper = mountProductEntry()
+      await flushPromises()
+      getEntryByClassfyMock.mockClear()
+      const productASelect = createDeferred()
+      const productBClear = createDeferred()
+      getEntryByClassfyMock
+        .mockReturnValueOnce(productASelect.promise)
+        .mockReturnValueOnce(productBClear.promise)
+      wrapper.vm.selectEntry = [
+        { id: 'product-b-selected', productID: 'product-b' },
+        { id: 'other-kept', productID: 'product-c' },
+      ]
+      wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+      wrapper.vm.dataSource = [{ id: 'product-a-new', productID: 'product-a' }]
+      wrapper.vm.onSelectAll(true, [], wrapper.vm.dataSource)
+
+      wrapper.vm.product = { type: 'product', key: 'product-b', title: '产品 B' }
+      wrapper.vm.dataSource = [{ id: 'product-b-selected', productID: 'product-b' }]
+      wrapper.vm.clearCurrentQuerySelection()
+
+      const resolveClear = () =>
+        productBClear.resolve({
+          data: { list: [{ id: 'product-b-selected', productID: 'product-b' }] },
+        })
+      const resolveSelect = () =>
+        productASelect.resolve({
+          data: { list: [{ id: 'product-a-new', productID: 'product-a' }] },
+        })
+
+      if (clearFirst) {
+        resolveClear()
+        await flushPromises()
+        resolveSelect()
+      } else {
+        resolveSelect()
+        await flushPromises()
+        resolveClear()
+      }
+      await flushPromises()
+
+      expect(wrapper.vm.selectEntry.map((entry) => entry.id).sort()).toEqual([
+        'other-kept',
+        'product-a-new',
+      ])
+      expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(1)
+      expect(wrapper.vm.selectedProducts.products.has('product-b')).toBe(false)
+      wrapper.unmount()
+      wrapper = null
+    }
   })
 })

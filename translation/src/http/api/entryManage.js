@@ -158,8 +158,14 @@ export function forbiddenEntryInfo(data) {
 }
 
 // 查询公共库数据
+/**
+ * 查询公共词条；相同的并发只读请求共享进行中的 Promise。
+ * @param {Object} data - 公共词条筛选条件。
+ * @param {Object} params - 分页及查询参数。
+ * @returns {Promise<Object>} 公共词条查询响应。
+ */
 export function getPublicEntry(data, params) {
-  return request({
+  return requestDeduped({
     url: "/entryInfo/getPublicEntry",
     method: "POST",
     params,
@@ -375,8 +381,14 @@ export function workImportExcleTrans(data) {
 }
 
 // 获取分类词条
+/**
+ * 查询分类词条；相同的并发只读请求共享进行中的 Promise。
+ * @param {Object} params - 分类、语种、分页及查询参数。
+ * @param {Object} data - 词条筛选条件。
+ * @returns {Promise<Object>} 分类词条查询响应。
+ */
 export function getEntryByClassfy(params, data) {
-  return request({
+  return requestDeduped({
     url: "/entryInfo/getEntryByClassfy",
     method: "POST",
     params,

@@ -13,6 +13,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 vi.mock('@/http/request', () => ({
   default: vi.fn(),
   requestMultipart: vi.fn(),
+  requestDeduped: vi.fn(),
 }))
 
 // NOTE:
@@ -24,7 +25,7 @@ vi.mock('@/http/request', () => ({
 //   entryValidate_v2: vi.fn(),
 // }))
 
-import request, { requestMultipart } from '@/http/request'
+import request, { requestMultipart, requestDeduped } from '@/http/request'
 // import {
 //   entryImportExcle_v2 as mockEntryImportExcle_v2,
 // } from '@/http/api/mock/entryManage'
@@ -33,6 +34,8 @@ import {
   entryImportExcle_v2,
   entryValidate_v2,
   createEntrysourceListByClassfyTask,
+  getPublicEntry,
+  getEntryByClassfy,
 } from '@/http/api/entryManage'
 
 describe('entryManage API - v1/v2 版本', () => {
@@ -41,6 +44,30 @@ describe('entryManage API - v1/v2 版本', () => {
     vi.spyOn(console, 'log').mockImplementation(() => { })
     vi.spyOn(console, 'error').mockImplementation(() => { })
     vi.spyOn(console, 'warn').mockImplementation(() => { })
+  })
+
+  it('两个主列表查询使用只读在途去重请求', () => {
+    const publicData = { entry: '公共词条' }
+    const publicParams = { pageIndex: -1, pageSize: -1 }
+    const productParams = { classfyID: 'product-1', pageIndex: 1, pageSize: 20 }
+    const productData = { entry: '产品词条' }
+
+    getPublicEntry(publicData, publicParams)
+    getEntryByClassfy(productParams, productData)
+
+    expect(requestDeduped).toHaveBeenNthCalledWith(1, {
+      url: '/entryInfo/getPublicEntry',
+      method: 'POST',
+      params: publicParams,
+      data: publicData,
+    })
+    expect(requestDeduped).toHaveBeenNthCalledWith(2, {
+      url: '/entryInfo/getEntryByClassfy',
+      method: 'POST',
+      params: productParams,
+      data: productData,
+    })
+    expect(request).not.toHaveBeenCalled()
   })
 
   describe('entryImportExcle (v1 更新接口)', () => {

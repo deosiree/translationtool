@@ -24,7 +24,7 @@
           </div>
         </div>
       </template>
-      <a-button type="primary" :size="buttonSize" :ghost="ghost">
+      <a-button :type="buttonType" :size="buttonSize" :ghost="ghost">
         <template #icon>
           <SettingOutlined />
         </template>
@@ -89,6 +89,11 @@ export default {
     buttonSize: {
       type: String,
       default: "small",
+    },
+    /** 触发按钮类型；默认保留主按钮样式 */
+    buttonType: {
+      type: String,
+      default: "primary",
     },
     /** popover 标题 */
     title: {

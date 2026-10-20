@@ -4,10 +4,13 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import CommonEntry from '@/views/entry/commonEntry.vue'
 import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
+import { createDeferred } from '../../testUtils/deferred'
+import { deletePublicEntry as deletePublicEntryApi, getPublicEntry, updatePublicEntry } from '@/http/api/entryManage'
+import { message, Modal } from 'ant-design-vue'
 
 // Mock 依赖
 vi.mock('@/http/api/entryManage', () => ({
@@ -40,6 +43,9 @@ vi.mock('ant-design-vue', () => ({
     success: vi.fn(),
     error: vi.fn(),
     warning: vi.fn()
+  },
+  Modal: {
+    confirm: vi.fn(({ onOk }) => onOk?.())
   }
 }))
 
@@ -230,5 +236,136 @@ describe('CommonEntry - 浏览省略与编辑文本域', () => {
     const row = wrapper.vm.customRow({ id: 'c-1' })
     row.onDblclick()
     expect(wrapper.vm.editableData['c-1']).toBeUndefined()
+  })
+})
+
+describe('CommonEntry - 查询响应竞态', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  /**
+   * 挂载公共词条表并等待初始化查询完成。
+   * @returns {Promise<any>} 初始化完成后的当前测试组件。
+   */
+  async function mountReadyEntry() {
+    wrapper = mount(CommonEntry, {
+      props: {
+        currentCommon: { department: '测试部门' },
+        boxHeight: 600,
+      },
+      global: {
+        mocks: createUserStoreMock(),
+        stubs: {
+          SearchBox: true,
+          DataBox: true,
+          'a-table': true,
+          'a-button': true,
+        },
+      },
+    })
+    await flushPromises()
+    getPublicEntry.mockClear()
+    message.error.mockClear()
+    return wrapper
+  }
+
+  it('只提交最新查询结果，较早成功响应不能覆盖新结果', async () => {
+    await mountReadyEntry()
+    const olderRequest = createDeferred()
+    const latestRequest = createDeferred()
+    getPublicEntry
+      .mockReturnValueOnce(olderRequest.promise)
+      .mockReturnValueOnce(latestRequest.promise)
+
+    wrapper.vm.search.entry = '旧条件'
+    wrapper.vm.getCommonEntry()
+    wrapper.vm.search.entry = '新条件'
+    wrapper.vm.getCommonEntry()
+
+    latestRequest.resolve({ data: { list: [{ id: 'latest' }] } })
+    await flushPromises()
+    olderRequest.resolve({ data: { list: [{ id: 'stale' }] } })
+    await flushPromises()
+
+    expect(wrapper.vm.dataSource).toEqual([{ id: 'latest' }])
+    expect(wrapper.vm.loading).toBe(false)
+  })
+
+  it('过期查询失败不提示错误，也不提前结束最新查询的 loading', async () => {
+    await mountReadyEntry()
+    const olderRequest = createDeferred()
+    const latestRequest = createDeferred()
+    getPublicEntry
+      .mockReturnValueOnce(olderRequest.promise)
+      .mockReturnValueOnce(latestRequest.promise)
+
+    wrapper.vm.getCommonEntry()
+    wrapper.vm.search.entry = '新条件'
+    wrapper.vm.getCommonEntry()
+    olderRequest.reject(new Error('旧查询失败'))
+    await flushPromises()
+
+    expect(message.error).not.toHaveBeenCalled()
+    expect(wrapper.vm.loading).toBe(true)
+
+    latestRequest.resolve({ data: { list: [{ id: 'latest' }] } })
+    await flushPromises()
+    expect(wrapper.vm.dataSource).toEqual([{ id: 'latest' }])
+    expect(wrapper.vm.loading).toBe(false)
+  })
+
+  it('重置触发的新查询优先于重置前的查询结果', async () => {
+    await mountReadyEntry()
+    const beforeReset = createDeferred()
+    const afterReset = createDeferred()
+    getPublicEntry
+      .mockReturnValueOnce(beforeReset.promise)
+      .mockReturnValueOnce(afterReset.promise)
+
+    wrapper.vm.search.entry = '旧条件'
+    wrapper.vm.getCommonEntry()
+    wrapper.vm.reset()
+
+    afterReset.resolve({ data: { list: [{ id: 'reset' }] } })
+    await flushPromises()
+    beforeReset.resolve({ data: { list: [{ id: 'stale' }] } })
+    await flushPromises()
+
+    expect(wrapper.vm.dataSource).toEqual([{ id: 'reset' }])
+  })
+
+  it('保存和删除后的刷新共享最新查询保护', async () => {
+    await mountReadyEntry()
+    const beforeWrite = createDeferred()
+    const afterSave = createDeferred()
+    const afterDelete = createDeferred()
+    getPublicEntry
+      .mockReturnValueOnce(beforeWrite.promise)
+      .mockReturnValueOnce(afterSave.promise)
+      .mockReturnValueOnce(afterDelete.promise)
+    updatePublicEntry.mockResolvedValue({})
+    deletePublicEntryApi.mockResolvedValue({})
+
+    wrapper.vm.getCommonEntry()
+    wrapper.vm.editableData = { row: { id: 'row', translate: 'new' } }
+    wrapper.vm.save({ id: 'row' })
+    await flushPromises()
+
+    wrapper.vm.selectedRowKeys = ['row']
+    wrapper.vm.deletePublicEntry()
+    await flushPromises()
+
+    afterDelete.resolve({ data: { list: [{ id: 'latest' }] } })
+    await flushPromises()
+    afterSave.resolve({ data: { list: [{ id: 'stale-save' }] } })
+    beforeWrite.resolve({ data: { list: [{ id: 'stale-query' }] } })
+    await flushPromises()
+
+    expect(Modal.confirm).toHaveBeenCalled()
+    expect(wrapper.vm.dataSource).toEqual([{ id: 'latest' }])
   })
 })

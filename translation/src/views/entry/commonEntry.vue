@@ -112,6 +112,7 @@ import TextArea from "@/components/cellEditor/textarea_IME.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
 import { formatCellText } from "@/components/table/cellText";
 import { applyLockCellSize } from "@/components/ColumnFilter";
+import { createQueryVersionGuard } from "@/utils/queryVersionGuard";
 import "@/assets/style/common.less";
 export default {
   components: {
@@ -148,6 +149,7 @@ export default {
       // tableHeight: { x:'100%',y: 0 },
       tableHeight: { x: "max-content", y: 0 },
       loading: false,
+      queryVersionGuard: createQueryVersionGuard(),
       columns: [
         {
           title: "序号",
@@ -219,6 +221,13 @@ export default {
     this.setTableHeight();
     this.init();
   },
+  /**
+   * 组件卸载时使未完成的公共词条查询失效。
+   * @returns {void}
+   */
+  beforeUnmount() {
+    this.queryVersionGuard.invalidate();
+  },
   watch: {
     boxHeight(newval, oldval) {
       this.box = newval;
@@ -264,8 +273,12 @@ export default {
         setTableHeight(this, 8, 126, 32, { ok: true, h: this.box });
       });
     },
-    // 查询公共库数据
+    /**
+     * 查询公共词条并只提交当前最新请求的结果。
+     * @returns {void}
+     */
     getCommonEntry() {
+      const queryToken = this.queryVersionGuard.next();
       let params = {
         pageIndex: -1,
         pageSize: -1,
@@ -276,8 +289,17 @@ export default {
         translate: this.search.translate,
         type: this.search.type,
       };
+      this.loading = true;
       getPublicEntry(data, params).then((res) => {
+        if (!this.queryVersionGuard.isCurrent(queryToken)) return;
         this.dataSource = res.data.list;
+      }).catch((err) => {
+        if (!this.queryVersionGuard.isCurrent(queryToken)) return;
+        message.error(err?.message || "公共词条查询失败");
+      }).finally(() => {
+        if (this.queryVersionGuard.isCurrent(queryToken)) {
+          this.loading = false;
+        }
       });
     },
     // 添加表格行点击事件

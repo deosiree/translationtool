@@ -13,7 +13,7 @@ const mockColumns = [
 describe('ColumnFilter', () => {
   const globalStubs = {
     'a-popover': {
-      template: '<div><slot name="content" /></div>',
+      template: '<div><slot /><slot name="content" /></div>',
     },
     'a-checkbox-group': {
       template: '<div><slot /></div>',
@@ -22,7 +22,8 @@ describe('ColumnFilter', () => {
     'a-col': true,
     'a-checkbox': true,
     'a-button': {
-      template: '<button @click="$attrs.onClick"><slot name="icon" /><slot /></button>',
+      props: ['type', 'size', 'ghost'],
+      template: '<button :data-button-type="type" @click="$attrs.onClick"><slot name="icon" /><slot /></button>',
     },
     SettingOutlined: true,
   }
@@ -38,6 +39,33 @@ describe('ColumnFilter', () => {
 
     expect(wrapper.text()).toContain('展示列')
     expect(wrapper.text()).toContain('重置')
+  })
+
+  /**
+   * 验证触发按钮类型的默认值与可配置行为。
+   * @param {void} none - 无参数。
+   * @returns {void}
+   */
+  it('默认保留主按钮，调用方可指定文字按钮', () => {
+    const primaryWrapper = mount(ColumnFilter, {
+      props: { columns: mockColumns },
+      global: { stubs: globalStubs },
+    })
+    const primaryTrigger = primaryWrapper
+      .findAll('button')
+      .find((button) => button.text().includes('展示列'))
+
+    expect(primaryTrigger.attributes('data-button-type')).toBe('primary')
+
+    const textWrapper = mount(ColumnFilter, {
+      props: { columns: mockColumns, buttonType: 'text' },
+      global: { stubs: globalStubs },
+    })
+    const textTrigger = textWrapper
+      .findAll('button')
+      .find((button) => button.text().includes('展示列'))
+
+    expect(textTrigger.attributes('data-button-type')).toBe('text')
   })
 
   it('勾选变化应 emit 合并必选列后的 change', async () => {

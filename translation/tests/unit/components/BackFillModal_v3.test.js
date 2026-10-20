@@ -71,7 +71,10 @@ describe("BackFillModal_v3 locked csv utf-8", () => {
           },
           LockedCsvImportMeta: true,
           ExportButton: true,
-          "a-button": true,
+          "a-button": {
+            props: ["type", "size"],
+            template: '<button :data-button-type="type"><slot /></button>',
+          },
           "a-form": {
             template: "<form><slot /></form>",
             methods: {
@@ -107,6 +110,23 @@ describe("BackFillModal_v3 locked csv utf-8", () => {
     expect(wrapper.vm.formModel.encoding).toBe(DEFAULT_ENCODING);
     expect(wrapper.vm.backFillAccept).toBe(".csv");
     expect(wrapper.vm.submitEncoding).toBe("UTF-8");
+  });
+
+  /**
+   * 验证按钮模式下触发按钮类型的默认值与可配置行为。
+   * @param {void} none - 无参数。
+   * @returns {Promise<void>} 属性更新断言完成后结束。
+   */
+  it("按钮模式默认保留主按钮并支持指定默认按钮", async () => {
+    expect(wrapper.find("button").attributes("data-button-type")).toBe(
+      "primary"
+    );
+
+    await wrapper.setProps({ buttonType: "default" });
+
+    expect(wrapper.find("button").attributes("data-button-type")).toBe(
+      "default"
+    );
   });
 
   it("validateFileExtension 非 csv 时 notification 并 reject", async () => {

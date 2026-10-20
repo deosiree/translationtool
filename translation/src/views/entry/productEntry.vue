@@ -149,9 +149,13 @@
                     <div>英文基础字母、数字：1 字符约 1 字节</div>
                     <div>俄文常见字母：1 字符约 2 字节</div>
                     <div>中文常用汉字：1 字符约 3 字节</div>
-                    <div>实际字节数取决于具体字符，标点、重音字母等可能不同。</div>
+                    <div>
+                      实际字节数取决于具体字符，标点、重音字母等可能不同。
+                    </div>
                   </template>
-                  <InfoCircleOutlined style="margin-left: 4px; color: #00000066" />
+                  <InfoCircleOutlined
+                    style="margin-left: 4px; color: #00000066"
+                  />
                 </a-tooltip>
               </template>
               <a-input-number
@@ -327,9 +331,15 @@
       :showOperate="true"
     >
       <template v-slot:operate>
-        <div ref="button" class="entry-toolbar">
+        <div
+          ref="button"
+          class="entry-toolbar"
+        >
           <div class="entry-toolbar-left">
-            <div v-if="isProduct()" class="entry-toolbar-version">
+            <div
+              v-if="isProduct()"
+              class="entry-toolbar-version"
+            >
               <span class="entry-toolbar-version-label">产品版本：</span>
               <a-select
                 v-model:value="currentVersion"
@@ -342,7 +352,10 @@
                 allowClear
               />
             </div>
-            <div v-if="hasEditingRows" class="entry-toolbar-rules">
+            <div
+              v-if="hasEditingRows"
+              class="entry-toolbar-rules"
+            >
               <RulesDropdown
                 :options="rulesOptions"
                 @update:options="rulesOptions = $event"
@@ -357,56 +370,17 @@
               buttonClass="yellowBtn"
               :treeTitle="product.title"
             />
-            <a-button
-              type="primary"
-              size="small"
-              @click="createVersion"
-              v-if="!createVersionFlag"
-              >批量选择</a-button
-            >
-            <a-button
-              type="primary"
-              size="small"
-              @click="selectAllEntry"
-              v-if="createVersionFlag"
-              :loading="selectAllLoading"
-              >选择全部</a-button
-            >
-            <a-button
-              type="primary"
-              size="small"
-              @click="cancelCreate"
-              class="yellowBtn"
-              v-if="createVersionFlag"
-              >取消选择</a-button
-            >
-            <a-badge
-              :count="selectEntry.length"
-              :overflow-count="99"
-              v-if="createVersionFlag"
-            >
-              <a-button
-                type="primary"
-                size="small"
-                class="resetBtn"
-                @click="viewCreateVersionEntry"
-                >已选词条</a-button
-              >
-            </a-badge>
 
-            <!-- <a-button type="primary" size="small" @click="viewDictionary" v-if="user.department === '通用平台部' || user.department === '监控系统部'">查看辞典</a-button> -->
             <a-button
               type="primary"
               size="small"
+              class="entry-toolbar-add-button"
               :disabled="!isProduct()"
               @click="addEntry"
             >
               <template #icon> <PlusOutlined /> </template>新增
             </a-button>
 
-            <!-- <a-button type="primary" size="small" danger @click="deleteEntry" v-if="edit"><template #icon><DeleteOutlined /></template>删除</a-button> -->
-            <!-- <a-button type="primary" size="small" @click="batchSave" v-if="edit"><template #icon><SaveOutlined /></template>保存</a-button> -->
-            <!-- <a-button type="primary" size="small" class="resetBtn" ><template #icon><UpSquareOutlined /></template>升级</a-button> -->
             <a-button
               type="primary"
               size="small"
@@ -415,26 +389,6 @@
               :disabled="!isProduct()"
               >二级分类管理</a-button
             >
-            <!-- <BackFillModal v-if="admin" mode="button" :translateTypes="translateTypes" :showFileTypeSelect="true"
-              :defaultAccept="'.csv'" size="small" buttonTitle="更新翻译 v1" modalTitle="更新翻译 v1" @importSuccess="refreshTable" />
-            <BackFillModal_v2 v-if="admin" mode="button" :showFileTypeSelect="true" :defaultAccept="'.csv'" size="small"
-              buttonTitle="更新翻译 v2" modalTitle="更新翻译 v2" :functionMode="'updateTranslation'"
-              @importSuccess="refreshTable" /> -->
-            <!-- 更新翻译(同步) -->
-            <!-- <BackFillModal_v2_5
-              v-if="
-                admin &&
-                $currentDepartment &&
-                $currentDepartment.ops.has('fileUpdate')
-              "
-              mode="button"
-              buttonTitle="更新翻译"
-              modalTitle="更新翻译"
-              size="small"
-              :showFileTypeSelect="true"
-              :defaultAccept="'.csv'"
-              @importSuccess="refreshTable"
-            /> -->
             <!-- 更新翻译(异步) -->
             <BackFillModal_v3
               v-if="
@@ -451,6 +405,41 @@
               @importSuccess="refreshTable"
             />
 
+            <a-badge
+              :count="selectAllLoading ? 0 : selectEntry.length"
+              :overflow-count="99"
+            >
+              <a-button
+                type="primary"
+                size="small"
+                class="entry-toolbar-selected-button"
+                :class="{
+                  'entry-toolbar-selected-button-loading': selectAllLoading,
+                }"
+                :disabled="selectAllLoading"
+                :aria-label="selectAllLoading ? '正在选择词条' : '已选词条'"
+                :aria-busy="selectAllLoading"
+                @click="viewCreateVersionEntry"
+              >
+                <span class="entry-toolbar-selected-label">已选词条</span>
+                <span
+                  v-if="selectAllLoading"
+                  class="entry-toolbar-selected-spinner"
+                  aria-hidden="true"
+                >
+                  <LoadingOutlined />
+                </span>
+              </a-button>
+            </a-badge>
+
+            <a-button
+              type="default"
+              size="small"
+              :disabled="selectEntry.length === 0 && !selectAllLoading"
+              @click="cancelSelection"
+              >取消选择</a-button
+            >
+
             <ColumnFilter
               v-model="checkedColumn"
               :columns="columnSettingsList"
@@ -458,6 +447,7 @@
               col-pref-name="colPref-productEntry"
               :normal-width="200"
               :need-filter="false"
+              button-type="default"
               @change="syncColumnsFromPref"
             />
           </div>
@@ -474,22 +464,16 @@
               class="ant-table-striped table-cell-overflow"
               :columns="columns"
               :data-source="dataSource"
-              :row-selection="
-                batchSelectFlag
-                  ? {
-                      columnWidth: 48,
-                      selectedRowKeys: selectedRowKeys,
-                      onChange: onSelectChange,
-                      onSelect: onSelect,
-                      onSelectAll: onSelectAll,
-                    }
-                  : null
-              "
+              :row-selection="{
+                columnWidth: 48,
+                selectedRowKeys: tableSelectedRowKeys,
+                onChange: onSelectChange,
+                onSelect: onSelect,
+                onSelectAll: onSelectAll,
+              }"
               :row-key="(record) => record.id"
               :scroll="
-                dataSource.length > 0
-                  ? tableHeight
-                  : { x: tableHeight.x }
+                dataSource.length > 0 ? tableHeight : { x: tableHeight.x }
               "
               :loading="loading"
               :rowClassName="getRowClassName"
@@ -506,7 +490,10 @@
                   </template>
                   <span>{{ title }} <InfoCircleOutlined /></span>
                 </a-tooltip>
-                <CellOverflowTooltip v-else-if="column.colValue" :content="title">
+                <CellOverflowTooltip
+                  v-else-if="column.colValue"
+                  :content="title"
+                >
                   {{ title }}
                 </CellOverflowTooltip>
                 <span v-else>{{ title }}</span>
@@ -695,7 +682,9 @@
                     </span>
                   </div>
                 </template>
-                <template v-else-if="column.dataIndex && column.dataIndex !== 'index'">
+                <template
+                  v-else-if="column.dataIndex && column.dataIndex !== 'index'"
+                >
                   <CellOverflowTooltip :content="formatCellText(text)" />
                 </template>
               </template>
@@ -786,7 +775,10 @@
               </template>
             </a-table>
           </a-config-provider>
-          <div v-if="dataSource.length === 0" class="entry-empty-overlay">
+          <div
+            v-if="dataSource.length === 0"
+            class="entry-empty-overlay"
+          >
             <a-empty :image="simpleEmptyImage" />
           </div>
           <!-- <a-pagination
@@ -898,10 +890,7 @@
     :selectedRowKeys="selectedRowKeys"
     :selectedRows="selectedRows"
     :rulesOptions="rulesOptions"
-    @update:dataSource="selectEntry = $event"
-    @update:selectedRowKeys="selectedRowKeys = $event"
-    @update:selectedRows="selectedRows = $event"
-    @update:selectedProducts="selectedProducts = $event"
+    @update:dataSource="updateSelectedEntries"
     @createClose="createClose"
     @refresh="refreshTable"
     @cancelCreate="cancelCreate"
@@ -971,6 +960,7 @@ import {
 } from "@/http/api/userPartiality";
 import { getI18nAdress } from "@/http/api/workbench";
 import { getCheckNotUseEntry, checkNotUseEntry } from "@/http/api/check";
+import { MultiRequestPolling } from "@/utils/pollingUtils";
 import {
   PlusOutlined,
   DeleteOutlined,
@@ -984,16 +974,9 @@ import {
   SearchOutlined,
   CaretDownOutlined,
   CaretRightOutlined,
+  LoadingOutlined,
 } from "@ant-design/icons-vue";
-import {
-  onSelectChange,
-  onSelect,
-  onSelectAll,
-  pageChange,
-  selectAllEntry,
-  clearAllEntry,
-  mergeSelectedEntriesById,
-} from "@/utils/selectionUtils";
+import { pageChange, mergeSelectedEntriesById } from "@/utils/selectionUtils";
 import {
   applyTable,
   mergeColumnSelection,
@@ -1009,7 +992,12 @@ import {
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { normalizeEditableRow } from "@/utils/dataUtils";
 import { normalizeOptionalID } from "@/utils/idUtils";
-import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
+import { createQueryVersionGuard } from "@/utils/queryVersionGuard";
+import {
+  formatEntryText,
+  formatCellText,
+  formatMaxLengthText,
+} from "@/components/table/cellText";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import {
   byteLength,
@@ -1023,7 +1011,11 @@ import {
   applyCell,
   revalidateEditingRows,
 } from "@/utils/validationUtils";
-import commonParam, { entryParams, entryAllCols, entryPresets } from "@/constants/commonParam.js";
+import commonParam, {
+  entryParams,
+  entryAllCols,
+  entryPresets,
+} from "@/constants/commonParam.js";
 import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
@@ -1079,6 +1071,7 @@ export default {
     SearchOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
+    LoadingOutlined,
   },
   emits: [],
   props: {
@@ -1127,10 +1120,10 @@ export default {
       searchConditionList: entryParams.searchConditionList,
       checkedSearchCondition: cachedSearchCondition
         ? mergeColumnSelection(
-            JSON.parse(cachedSearchCondition).displayColumn
-              .split(",")
+            JSON.parse(cachedSearchCondition)
+              .displayColumn.split(",")
               .filter(Boolean),
-            entryParams.searchConditionList,
+            entryParams.searchConditionList
           )
         : entryParams.checkedSearchCondition, // (可选)显示的查询条件框
       exportFields: [
@@ -1178,28 +1171,35 @@ export default {
       selectedRows: [],
       selectedRowIndex: null,
       selectedProducts: {
-        products: new Map(), // 切换到当前产品前的已选词条的产品记录
-        totalNum: 0, // 切换到当前产品前的已选词条总数
+        products: new Map(), // 全局已选词条按 productID 分组的数量
+        totalNum: 0, // 全局已选词条数量
       },
+      selectedEntryRevisions: new Map(),
+      savedEntriesById: new Map(),
       currentEntry: {},
       showOperationArea: false,
       operationAreaTitle: "详情信息",
       operationAreaHeight: 190,
       currentVersion: null,
       productVersions: [],
-      createVersionFlag: false,
       selectEntry: [], // 已选词条（可能会跨产品，还涉及了分页）
       createVisible: false,
       rules: {},
       cellErrors: {},
       rulesOptions: commonParam.rulesOptions.map((item) => ({ ...item })),
-      batchSelectFlag: false,
       classify1Option: [],
       secondClassifyVisible: false,
       classify2Option: [],
       rowClassify2Option: {},
       dictionaryVisible: false,
       selectAllLoading: false,
+      selectAllClearVersion: 0,
+      selectAllRequestId: 0,
+      selectAllPendingRequests: [],
+      redundantPollingController: null,
+      redundantPollingRequestId: null,
+      redundantPollingToken: 0,
+      queryVersionGuard: createQueryVersionGuard(),
       filters: null,
       accurSearch: [], // 用于分页时的查询参数
       lastSearchType: "getEntryByClassfy", // 记录最近一次查询类型
@@ -1221,6 +1221,42 @@ export default {
     this.applyColumnPreference();
   },
   computed: {
+    /**
+     * 按操作顺序将当前查询的待全选和待取勾状态投影到当前页。
+     * @param {undefined} [_unused] 计算属性不接收参数。
+     * @returns {Array} 当前表格用于显示勾选状态的词条 ID。
+     */
+    tableSelectedRowKeys() {
+      const selectedIds = new Set(this.selectEntry.map((item) => item.id));
+      const currentScopeKey = this.getCurrentSelectionScopeKey();
+      const visibleIds = new Set(
+        this.dataSource.map((item) => item?.id).filter((id) => id != null)
+      );
+
+      this.selectAllPendingRequests
+        .filter((request) => request.scopeKey === currentScopeKey)
+        .sort((left, right) => left.id - right.id)
+        .forEach((request) => {
+          const affectedIds = new Set(
+            request.action === "select"
+              ? request.excludedIds
+              : request.includedIds
+          );
+
+          visibleIds.forEach((id) => {
+            const isSelected =
+              request.action === "select"
+                ? !affectedIds.has(id)
+                : affectedIds.has(id);
+            if (isSelected) {
+              selectedIds.add(id);
+            } else {
+              selectedIds.delete(id);
+            }
+          });
+        });
+      return Array.from(selectedIds);
+    },
     /**
      * 返回与表格默认空态一致的简洁插画。
      * @param {undefined} [_unused] 计算属性不使用业务输入。
@@ -1259,7 +1295,18 @@ export default {
       this.getLanguage();
     });
   },
+  /**
+   * 组件卸载时结束冗余校验状态轮询。
+   * @param {void} none - 无参数。
+   * @returns {void}
+   */
+  beforeUnmount() {
+    this.queryVersionGuard.invalidate();
+    this.stopRedundantPolling();
+  },
   watch: {
+    "search.searchType": "handleRedundantSearchContextChange",
+    "search.i18nURL": "handleRedundantSearchContextChange",
     hasEditingRows(editing) {
       this.syncOperationColumnWidth(editing);
     },
@@ -1275,58 +1322,15 @@ export default {
       this.setTableHeight();
     },
     currentProduct: {
-      handler(newval, oldval) {
-        // 切换前判断上个产品是否有已选词条
-        if (oldval.title) {
-          const changedNum =
-            this.selectEntry.length - this.selectedProducts.totalNum; // 上一次切换中变化的词条数
-          // console.log("changedNum =", changedNum);
-          this.selectedProducts.totalNum += changedNum;
-          const productID =
-            oldval.type === "module" ? oldval.parentId : oldval.key; // 产品的ID
-          if (this.selectedProducts.products.has(productID)) {
-            const selectedNum =
-              this.selectedProducts.products.get(productID) + changedNum;
-            // console.log("当前数量", selectedNum);
-            if (selectedNum > 0) {
-              this.selectedProducts.products.set(productID, selectedNum);
-              // console.log(
-              //   `${oldval.title}产品存在，已选词条数量变化为：${selectedNum}`,
-              //   this.selectedProducts
-              // );
-            } else if (selectedNum == 0) {
-              this.selectedProducts.products.delete(productID);
-              // console.log(
-              //   `${oldval.title}产品存在，已选词条数量变化为0,已删除`,
-              //   this.selectedProducts
-              // );
-            } else {
-              console.log(
-                `${oldval.title}产品存在，已选词条数量<0,有问题`,
-                this.selectedProducts
-              );
-            }
-          } else {
-            if (changedNum > 0) {
-              this.selectedProducts.products.set(productID, changedNum);
-              // console.log(
-              //   `新增${oldval.title}产品，已选词条数量变化为：${changedNum}`,
-              //   this.selectedProducts
-              // );
-            } else if (changedNum < 0) {
-              console.log(
-                `不新增${oldval.title}产品，已选词条数量变化为：${changedNum},error`,
-                this.selectedProducts
-              );
-            }
-            // else {
-            //   console.log(
-            //     `不新增${oldval.title}产品，已选词条数量变化为：${changedNum}`,
-            //     this.selectedProducts
-            //   );
-            // }
-          }
-        }
+      /**
+       * 切换产品时同步产品状态并停止旧产品的校验轮询。
+       * @param {Object} newval - 新选择的产品节点。
+       * @returns {void}
+       */
+      handler(newval) {
+        this.queryVersionGuard.invalidate();
+        this.loading = false;
+        this.stopRedundantPolling();
         // 切换后的初始化
         this.currentVersion = null;
         this.product = newval;
@@ -1353,8 +1357,8 @@ export default {
         this.showOperationArea = false;
         this.pagination.current = 1;
         // this.selectEntry = [];// 存在跨产品，所以不归零
-        this.selectedRowKeys = [];
-        this.selectedRows = [];
+        this.selectedRows = this.selectEntry;
+        this.selectedRowKeys = this.selectEntry.map((item) => item.id);
         this.pageChange(
           this.pagination.current,
           this.pagination.pageSize,
@@ -1417,12 +1421,16 @@ export default {
   },
   unmounted() {},
   methods: {
+    /**
+     * 初始化词条管理筛选项、版本及列表。
+     * @returns {Promise<void>} 初始化流程。
+     */
     async init() {
       // 获取一级分类
       await this.selectFirstClassify();
-      // 查询产品的所有版本,并查询词条
+      // 版本列表和词条列表分别加载，避免初始化重复查询词条。
       if (this.product.type == "product") {
-        await this.getProductVersion({ isInit: true, accurate: [] });
+        this.getProductVersion();
       }
       // 查询i18nURL
       await this.getI18nAdress();
@@ -1503,22 +1511,21 @@ export default {
       return className;
     },
     /**
-     * 根据当前产品查询所有版本。
-     * @param {Object} searchparams 初始化查询选项。
-     * @returns {void}
+     * 根据当前产品加载版本列表，不触发词条表查询。
+     * @returns {Promise<void>} 版本列表请求。
      */
-    getProductVersion(searchparams = { isInit: false, accurate: [] }) {
+    getProductVersion() {
       if (Object.keys(this.product).length === 0) {
-        return;
+        return Promise.resolve();
       }
       const productID = resolveRequestProductID(this.product);
       if (productID === undefined) {
         this.productVersions = [];
         this.currentVersion = null;
-        return;
+        return Promise.resolve();
       }
       const params = { versionName: "", productID };
-      getVersionByName(params).then((res) => {
+      return getVersionByName(params).then((res) => {
         this.productVersions = res.data.list;
         // // 当前产品版本设置为第一个版本
         // if (this.productVersions.length > 0) {
@@ -1526,19 +1533,23 @@ export default {
         // } else {
         //   this.currentVersion = null;
         // }
-        // 获取版本下的词条
-        this.getEntryByClassfy(searchparams.isInit, searchparams.accurate);
       });
     },
-    // 条件查询
+    /**
+     * 按当前查询类型执行查询，并让旧冗余校验轮询失效。
+     * @param {Array} [accurate=[]] 准确查询条件。
+     * @param {boolean} [isInit=false] 是否为首次点击状态树。
+     * @returns {void}
+     */
     conditionalQuery(accurate = [], isInit = false) {
+      this.stopRedundantPolling();
+      this.queryVersionGuard.invalidate();
+      this.loading = false;
       // 将页码变为第一页
       this.pagination.current = 1;
       // this.selectedRowKeys = [];
       // this.selectedRows = [];
       // this.selectEntry = [];
-      // this.createVersionFlag = false;
-      // this.batchSelectFlag = false;
 
       // 接口方法集合
       if (
@@ -1547,6 +1558,7 @@ export default {
       ) {
         // 条件查询
         this.lastSearchType = "getEntryByClassfy";
+        this.search.hasRedundantRls = false;
         if (accurate && accurate.length > 0) {
           this.accurSearch = accurate;
         } else {
@@ -1570,14 +1582,18 @@ export default {
      * @returns {void}
      */
     getEntryByClassfy(isInit = false, accurate = []) {
+      this.stopRedundantPolling();
+      const queryToken = this.queryVersionGuard.next();
       if (isInit) {
         if (this.product.type == "department") {
           this.dataSource = [];
           this.pagination.total = 0;
+          this.loading = false;
           return; // 如果是部门，则不在点击状态树时查询版本
         }
       }
       if (Object.keys(this.product).length === 0) {
+        this.loading = false;
         return;
       }
       if (
@@ -1587,6 +1603,7 @@ export default {
         !this.search.language
       ) {
         message.info("请选择翻译语种！");
+        this.loading = false;
         return;
       }
       let data = {
@@ -1643,15 +1660,19 @@ export default {
       // 获取对应分类的词条
       getEntryByClassfy(params, data)
         .then((res) => {
+          if (!this.queryVersionGuard.isCurrent(queryToken)) return;
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
           this.paintModuleLimits();
         })
         .catch((err) => {
+          if (!this.queryVersionGuard.isCurrent(queryToken)) return;
           message.error(err.message);
         })
         .finally(() => {
-          this.loading = false;
+          if (this.queryVersionGuard.isCurrent(queryToken)) {
+            this.loading = false;
+          }
         });
     },
     // 获取词条分类
@@ -1664,90 +1685,322 @@ export default {
         this.entryClassfy = res.data;
       });
     },
-    // 查询冗余词条校验状态
+    /**
+     * 查询冗余校验状态；执行中保持 loading 并轮询，无结果时等待用户明确发起。
+     * @param {void} none - 无参数。
+     * @returns {Promise<void>} 状态查询处理结果。
+     */
     async getCheckNotUseEntry() {
       if (!this.search.i18nURL) {
         message.info("请选择i18nURL！");
+        this.queryVersionGuard.invalidate();
+        this.loading = false;
         return;
       }
-      this.loading = true;
-      let params = {
+      const queryToken = this.queryVersionGuard.next();
+      const pollToken = this.redundantPollingToken;
+      const params = {
         i18nURL: this.search.i18nURL,
         classfyID: this.currentProduct.key,
       };
-      await getCheckNotUseEntry(params).then(async (res) => {
-        console.log("getCheckNotUseEntry:", res);
-        if (res.data.state === 1) {
-          // 有结果
-          this.search.hasRedundantRls = true; // 显示“重新执行”
-          this.dataSource = res.data.list;
-          this.pagination.total = res.data.totalNum;
-          this.paintModuleLimits();
-        } else if (res.data.state === 2) {
-          // 有结果,但校验异常
-          this.search.hasRedundantRls = true; // 显示“重新执行”
-          message.info(`任务执行异常`, 1);
-        } else if (res.data.state === 0) {
-          // 没结果没执行
-          this.dataSource = [];
-          this.pagination.total = 0;
-          message.info("查询无结果,开始校验", 1);
-          await checkNotUseEntry(params).catch((err) => {
-            console.log("冗余校验执行失败", err);
-          }); // 没执行所以需要执行
-        } else if (res.data.state === 3) {
-          // 没结果有执行
-          this.dataSource = [];
-          this.pagination.total = 0;
-          message.info("查询无结果,正在校验", 1);
-        }
-      });
-      this.loading = false;
+      this.loading = true;
+      this.search.hasRedundantRls = false;
+      this.dataSource = [];
+      this.pagination.total = 0;
+      try {
+        const res = await getCheckNotUseEntry(params);
+        if (
+          pollToken !== this.redundantPollingToken ||
+          !this.queryVersionGuard.isCurrent(queryToken)
+        )
+          return;
+        const state = Number(res.data?.state);
+        this.handleRedundantCheckStatus(
+          state,
+          res,
+          params,
+          pollToken,
+          false,
+          queryToken
+        );
+      } catch (err) {
+        if (
+          pollToken !== this.redundantPollingToken ||
+          !this.queryVersionGuard.isCurrent(queryToken)
+        )
+          return;
+        this.loading = false;
+        this.search.hasRedundantRls = true;
+        message.error(err?.message || "冗余校验状态查询失败");
+      }
     },
-    // 重新查询冗余词条校验状态
+    /**
+     * 重新发起当前产品和 i18nURL 的冗余校验。
+     * @param {void} none - 无参数。
+     * @returns {Promise<void>} 任务启动处理结果。
+     */
     async reGetCheckNotUseEntry() {
+      this.stopRedundantPolling();
       if (!this.search.i18nURL) {
         message.info("请选择i18nURL！");
+        this.queryVersionGuard.invalidate();
+        this.loading = false;
         return;
       }
-      this.loading = true;
-      let params = {
+      const queryToken = this.queryVersionGuard.next();
+      const pollToken = this.redundantPollingToken;
+      const params = {
         i18nURL: this.search.i18nURL,
         classfyID: this.currentProduct.key,
       };
-      await checkNotUseEntry(params)
-        .then(async (res) => {
-          this.dataSource = [];
-          this.pagination.total = 0;
-          await getCheckNotUseEntry(params).then(async (res) => {
-            if (res.data.state === 3) {
-              // 没结果有执行
-              this.search.hasRedundantRls = false; // 隐藏“重新执行”
-              message.info("正在重新校验中", 1);
-            } else {
-              let state = "";
-              switch (res.data.state) {
-                case 0:
-                  state = "不在执行中";
-                  break;
-                case 1:
-                  state = "有结果";
-                  break;
-                case 2:
-                  state = "任务执行异常";
-                  break;
-                default:
-                  state = "未知状态";
-                  break;
-              }
-              message.info(`重新校验失败,任务状态：${state}`, 1);
-            }
-          });
-        })
-        .catch((err) => {
-          console.log("冗余校验执行失败", err);
-        });
+      this.loading = true;
+      this.search.hasRedundantRls = false;
+      this.pagination.current = 1;
+      this.dataSource = [];
+      this.pagination.total = 0;
+      await this.startRedundantCheck(params, pollToken, true, queryToken);
+    },
+    /**
+     * 提交冗余校验任务，并根据接口状态决定提示或启动轮询。
+     * @param {Object} params - 当前产品和 i18nURL 查询参数。
+     * @param {number} pollToken - 用于忽略过期请求的轮询代次。
+     * @param {boolean} isRestart - 是否为用户主动重新校验。
+     * @param {number} queryToken - 当前列表查询的版本号。
+     * @returns {Promise<void>} 任务提交处理结果。
+     */
+    async startRedundantCheck(params, pollToken, isRestart, queryToken) {
+      try {
+        const res = await checkNotUseEntry(params);
+        if (
+          pollToken !== this.redundantPollingToken ||
+          !this.queryVersionGuard.isCurrent(queryToken)
+        )
+          return;
+        const state = Number(res.data?.state);
+        if (state === 3) {
+          this.loading = true;
+          this.search.hasRedundantRls = false;
+          message.info("冗余词条正在校验中，将继续查询结果");
+          this.startRedundantPolling(params, pollToken, queryToken);
+          return;
+        }
+        if (state !== 0 && state !== 1) {
+          this.loading = false;
+          this.search.hasRedundantRls = true;
+          message.error(
+            state === 2
+              ? "冗余词条校验执行异常，请重新查询"
+              : `冗余校验未启动，任务状态：${this.getRedundantStatusLabel(state)}`
+          );
+          return;
+        }
+        this.loading = true;
+        let startMessage = "冗余校验已启动，正在查询结果";
+        if (state === 1) {
+          startMessage = "冗余校验已提交，正在查询结果";
+        } else if (isRestart) {
+          startMessage = "已重新启动冗余校验，正在查询结果";
+        }
+        message.info(startMessage);
+        this.startRedundantPolling(params, pollToken, queryToken);
+      } catch (err) {
+        if (
+          pollToken !== this.redundantPollingToken ||
+          !this.queryVersionGuard.isCurrent(queryToken)
+        )
+          return;
+        this.loading = false;
+        this.search.hasRedundantRls = true;
+        message.error(err?.message || "冗余校验启动失败");
+      }
+    },
+    /**
+     * 每分钟查询一次冗余校验状态，直到结果返回或任务结束。
+     * @param {Object} params - 当前产品和 i18nURL 查询参数。
+     * @param {number} pollToken - 用于忽略过期请求的轮询代次。
+     * @param {number} queryToken - 当前列表查询的版本号。
+     * @returns {void}
+     */
+    startRedundantPolling(params, pollToken, queryToken) {
+      if (
+        pollToken !== this.redundantPollingToken ||
+        !this.queryVersionGuard.isCurrent(queryToken)
+      )
+        return;
+      this.stopRedundantPolling();
+      this.loading = true;
+      const activeToken = this.redundantPollingToken;
+      let latestResponse = null;
+      let hasNotifiedError = false;
+      const controller = new MultiRequestPolling({
+        interval: 60 * 1000,
+        onError: (err) => {
+          if (
+            activeToken !== this.redundantPollingToken ||
+            !this.queryVersionGuard.isCurrent(queryToken) ||
+            hasNotifiedError
+          )
+            return;
+          hasNotifiedError = true;
+          message.error(err?.message || "冗余校验状态查询失败，将继续等待");
+        },
+      });
+      this.redundantPollingController = controller;
+      this.redundantPollingRequestId = controller.addRequest(
+        async () => {
+          if (
+            activeToken !== this.redundantPollingToken ||
+            !this.queryVersionGuard.isCurrent(queryToken)
+          )
+            return null;
+          latestResponse = await getCheckNotUseEntry(params);
+          if (
+            activeToken !== this.redundantPollingToken ||
+            !this.queryVersionGuard.isCurrent(queryToken)
+          )
+            return null;
+          return Number(latestResponse.data?.state);
+        },
+        (state) => {
+          if (
+            activeToken !== this.redundantPollingToken ||
+            !this.queryVersionGuard.isCurrent(queryToken)
+          )
+            return;
+          this.handleRedundantCheckStatus(
+            state,
+            latestResponse,
+            params,
+            activeToken,
+            true,
+            queryToken
+          );
+        }
+      );
+    },
+    /**
+     * 应用冗余校验状态，统一更新结果、提示、轮询和表格 loading。
+     * @param {number} state - 后端返回的校验状态。
+     * @param {Object|null} response - 状态查询响应。
+     * @param {Object} params - 当前产品和 i18nURL 查询参数。
+     * @param {number} pollToken - 用于忽略过期响应的轮询代次。
+     * @param {boolean} fromPolling - 当前状态是否来自定时轮询。
+     * @param {number} queryToken - 当前列表查询的版本号。
+     * @returns {void}
+     */
+    handleRedundantCheckStatus(
+      state,
+      response,
+      params,
+      pollToken,
+      fromPolling,
+      queryToken
+    ) {
+      if (
+        pollToken !== this.redundantPollingToken ||
+        !this.queryVersionGuard.isCurrent(queryToken)
+      )
+        return;
+      if (state === 1) {
+        this.stopRedundantPolling();
+        this.search.hasRedundantRls = true;
+        this.dataSource = response?.data?.list || [];
+        this.pagination.total =
+          response?.data?.totalNum ?? this.dataSource.length;
+        this.pagination.current = 1;
+        this.paintModuleLimits();
+        this.loading = false;
+        message.info(
+          this.dataSource.length > 0
+            ? `冗余校验完成，共发现 ${this.pagination.total} 条词条`
+            : "冗余校验完成，没有发现冗余词条"
+        );
+        return;
+      }
+      if (state === 2) {
+        this.stopRedundantPolling();
+        this.dataSource = [];
+        this.pagination.total = 0;
+        this.search.hasRedundantRls = true;
+        this.loading = false;
+        message.error("冗余词条校验执行异常，请重新查询");
+        return;
+      }
+      if (state === 3) {
+        this.dataSource = [];
+        this.pagination.total = 0;
+        this.search.hasRedundantRls = false;
+        this.loading = true;
+        if (!fromPolling) {
+          message.info("冗余词条正在校验中，将继续查询结果");
+          this.startRedundantPolling(params, pollToken, queryToken);
+        }
+        return;
+      }
+      if (state === 0) {
+        this.stopRedundantPolling();
+        this.dataSource = [];
+        this.pagination.total = 0;
+        this.search.hasRedundantRls = true;
+        this.loading = false;
+        message.warning(
+          fromPolling
+            ? "冗余校验已结束或被其他任务替代，请重新查询"
+            : "暂未查到当前结果（也可能其他产品或 URL 正在校验），如需发起校验请点击“重新查询”"
+        );
+        return;
+      }
+      this.stopRedundantPolling();
+      this.dataSource = [];
+      this.pagination.total = 0;
+      this.search.hasRedundantRls = true;
       this.loading = false;
+      message.warning(
+        `冗余校验返回未知状态：${this.getRedundantStatusLabel(state)}`
+      );
+    },
+    /**
+     * 停止旧的冗余校验轮询并让尚未返回的响应失效。
+     * @param {void} none - 无参数。
+     * @returns {void}
+     */
+    stopRedundantPolling() {
+      this.redundantPollingToken += 1;
+      if (this.redundantPollingController) {
+        if (this.redundantPollingRequestId) {
+          this.redundantPollingController.removeRequest(
+            this.redundantPollingRequestId
+          );
+        }
+        this.redundantPollingController.stop();
+      }
+      this.redundantPollingController = null;
+      this.redundantPollingRequestId = null;
+      this.loading = false;
+    },
+    /**
+     * 修改冗余校验类型或 i18nURL 时立即取消旧查询轮询。
+     * @param {void} none - 无参数。
+     * @returns {void}
+     */
+    handleRedundantSearchContextChange() {
+      if (this.lastSearchType === "checkNotUseEntry") {
+        this.stopRedundantPolling();
+      }
+    },
+    /**
+     * 返回冗余校验状态的用户可读名称。
+     * @param {number} state - 后端返回的校验状态。
+     * @returns {string} 状态名称。
+     */
+    getRedundantStatusLabel(state) {
+      const labels = {
+        0: "未启动或已被替代",
+        1: "已完成",
+        2: "执行异常",
+        3: "正在校验",
+      };
+      return labels[state] || "未知";
     },
     // 组装表格数据
     assemblyTableData(data) {
@@ -1824,7 +2077,11 @@ export default {
             );
             let cols = new Set(this.columns.map((item) => item.dataIndex));
             for (const col of ["entry", ...commonParam.langValList]) {
-              if (record[col] && cols.has(col) && this.rules[record.id]?.[col]) {
+              if (
+                record[col] &&
+                cols.has(col) &&
+                this.rules[record.id]?.[col]
+              ) {
                 try {
                   await validateEditableCell(this, record.id, col);
                 } catch (err) {
@@ -1967,7 +2224,11 @@ export default {
       if (!this.editableData[record.id]) return;
       await applyCell(this, record.id, column.dataIndex);
     },
-    // 编辑-保存
+    /**
+     * 校验并提交当前行编辑，成功状态由保存响应确认。
+     * @param {string} id - 当前编辑词条 ID。
+     * @returns {Promise<void>} 编辑保存流程。
+     */
     async editSave(id) {
       const validateArrSum = ["entry", ...commonParam.langValList];
       const columnKeys = this.columns
@@ -1979,20 +2240,15 @@ export default {
         try {
           await validateEditableCell(this, id, columnValue);
         } catch (err) {
-          setCellError(
-            this,
-            id,
-            columnValue,
-            err.errorMessage || String(err)
-          );
+          setCellError(this, id, columnValue, err.errorMessage || String(err));
           return;
         }
       }
 
       if (id.startsWith("new") || id.startsWith("copy")) {
-          // 新增词条/升级词条
-          addSingleEntry(this.prepareEntryForSave(this.editableData[id])).then(
-            (res) => {
+        // 新增词条/升级词条
+        addSingleEntry(this.prepareEntryForSave(this.editableData[id])).then(
+          (res) => {
             message.success("新增成功!");
             let index = this.dataSource.findIndex((item) => item.id === id);
             this.dataSource.splice(index, 1);
@@ -2000,20 +2256,11 @@ export default {
             delete this.editableData[id];
             delete this.rowClassify2Option[id];
             this.pagination.total = this.pagination.total + 1;
-          });
-        } else {
-          this.confirmSave([
-            this.prepareEntryForSave(this.editableData[id]),
-          ]);
-        }
-
-        // 更新选中的值
-        const selectedIndex = this.selectedRows.findIndex(
-          (item) => item.id === id
+          }
         );
-        if (selectedIndex !== -1) {
-          this.selectedRows[selectedIndex] = { ...this.editableData[id] };
-        }
+      } else {
+        this.confirmSave([this.prepareEntryForSave(this.editableData[id])]);
+      }
     },
     // 批量保存
     batchSave() {
@@ -2038,8 +2285,9 @@ export default {
       });
     },
     /**
-     * 批量落库；notes 为废弃字段兜底。
-     * @param {Object[]} rows
+     * 批量落库并按逐条成功结果同步已选词条。
+     * @param {Object[]} rows - 本次提交的词条。
+     * @returns {Promise<void>} 批量保存流程。
      */
     async saveRows(rows) {
       try {
@@ -2069,15 +2317,35 @@ export default {
       }
     },
     /**
-     * 单行保存成功后的本地 UI 同步。
-     * @param {Object} entry
+     * 单行保存成功后同步表格及已选词条缓存。
+     * @param {Object} entry - 保存成功的词条数据。
+     * @returns {void} 无返回值。
      */
     afterSave(entry) {
       delete this.editableData[entry.id];
       delete this.rules[entry.id];
-      let index = this.dataSource.findIndex((item) => item.id === entry.id);
-      this.dataSource.splice(index, 1);
-      this.dataSource.splice(index, 0, entry);
+      const revision = ++this.selectAllRequestId;
+      this.selectedEntryRevisions.set(entry.id, revision);
+      if (
+        this.selectAllPendingRequests.some(
+          (request) => request.action === "select" && request.id < revision
+        )
+      ) {
+        this.savedEntriesById.set(entry.id, { entry, revision });
+      }
+      const index = this.dataSource.findIndex((item) => item.id === entry.id);
+      if (index !== -1) {
+        this.dataSource.splice(index, 1, entry);
+      }
+      const selectedIndex = this.selectEntry.findIndex(
+        (item) => item.id === entry.id
+      );
+      if (selectedIndex !== -1) {
+        this.selectEntry.splice(selectedIndex, 1, entry);
+        this.selectedRows = this.selectEntry;
+        this.selectedRowKeys = this.selectEntry.map((item) => item.id);
+      }
+      this.syncSelectedProducts();
       delete this.rowClassify2Option[entry.id];
       this.getEntryByClassfy(false, this.accurSearch);
     },
@@ -2204,65 +2472,35 @@ export default {
       // console.log("当前产品", this.product.title);
       return this.product.type == "product" || this.product.type == "module";
     },
-    // 批量选择
-    createVersion() {
-      this.createVersionFlag = true;
-      // this.selectEntry = [];
-      // this.selectedRowKeys = [];
-      // this.selectedRows = [];
-      this.batchSelectFlag = true;
-    },
-    // 已选词条按钮点击事件
-    viewCreateVersionEntry() {
-      this.createVisible = true;
-      setModalAriaHidden(this, document);
-    },
-    createClose() {
-      this.createVisible = false;
-      this.getProductVersion();
-    },
-    refreshTable() {
-      console.log("刷新查询", this.lastSearchType);
-      if (this.lastSearchType === "checkNotUseEntry") {
-        // 上一次为冗余词条校验查询，则刷新冗余校验结果
-        this.getCheckNotUseEntry();
-      } else {
-        // 其他情况（包含普通条件查询与全量查询），沿用上一次的accurate参数
-        const accurate =
-          this.lastAccurate && this.lastAccurate.length
-            ? this.lastAccurate
-            : this.accurSearch;
-        this.getEntryByClassfy(false, accurate);
-      }
-    },
-    // 选择全部词条
     /**
-     * 查询当前筛选下的全部词条并合并到已选列表。
-     * @param {void} none 本方法不接收参数。
-     * @returns {void}
+     * 返回选择计数使用的产品归属 ID。
+     * @param {Object} product - 当前产品或模块。
+     * @returns {string|number|undefined} 产品 ID。
      */
-    selectAllEntry() {
-      // 获取所有的词条
-      if (Object.keys(this.product).length === 0) {
-        return;
-      }
-      this.selectAllLoading = true;
-      let data = {
+    getSelectionProductID(product) {
+      return product.type === "module" ? product.parentId : product.key;
+    },
+    /**
+     * 构造当前产品、版本及查询条件对应的全量词条请求。
+     * @param {void} none - 本方法不接收参数。
+     * @returns {{params: Object, data: Object}} 全量查询参数。
+     */
+    getCurrentSelectionQuery() {
+      const data = {
         abbr: this.search.abbr,
         entry: this.search.entry,
-        classfy1: this.search.classfy1,
-        classfy2: this.search.classfy2,
-        // classfy1: this.product.type === "module" ? this.product.title : "",
+        classfy1: cloneDeep(this.search.classfy1),
+        classfy2: cloneDeep(this.search.classfy2),
         entryState:
           this.search.entryState == null
-            ? this.search.entryState_
+            ? cloneDeep(this.search.entryState_)
             : [this.search.entryState],
         tag: this.search.tag,
         entrySource: this.search.entrySource,
         comment: this.search.comment,
         diFileName: this.search.diFileName,
         update: this.search.update,
-        filter_translate: this.search.filter_translate, // 翻译结果过滤
+        filter_translate: this.search.filter_translate,
       };
       if (this.search.customCheckTransLength != null) {
         data.customCheckTransLength = this.search.customCheckTransLength;
@@ -2279,49 +2517,389 @@ export default {
           data[item.state] = this.search.translateState;
         }
       });
-      let params = {
-        classfyID:
-          this.product.type === "module"
-            ? this.product.parentId
-            : this.product.key,
+
+      const params = {
+        classfyID: this.getSelectionProductID(this.product),
         translateType: this.search.language,
-        startTime: this.search.startTime,
-        endTime: this.search.endTime,
+        startTime: cloneDeep(this.search.startTime),
+        endTime: cloneDeep(this.search.endTime),
         update: this.search.update,
         pageIndex: -1,
         pageSize: -1,
       };
       if (this.accurSearch && this.accurSearch.length > 0) {
-        params.accurate = this.accurSearch;
+        params.accurate = cloneDeep(this.accurSearch);
       }
-      this.loading = true;
+      return { params, data };
+    },
+    /**
+     * 生成识别当前完整选择查询的稳定键，用于隔离待取勾的表格即时反馈。
+     * @param {void} none - 本方法不接收参数。
+     * @returns {string} 当前查询范围的序列化键。
+     */
+    getCurrentSelectionScopeKey() {
+      if (this.lastSearchType === "checkNotUseEntry") {
+        return JSON.stringify({
+          searchType: this.lastSearchType,
+          classfyID: this.currentProduct?.key ?? this.product?.key,
+          i18nURL: this.search.i18nURL,
+        });
+      }
+
+      const { params, data } = this.getCurrentSelectionQuery();
+      return JSON.stringify({
+        searchType: this.lastSearchType,
+        queryType: this.search.searchType,
+        params,
+        data,
+      });
+    },
+    /**
+     * 创建并登记一次全量选择或取勾请求。
+     * @param {string} action - 请求类型，select 或 deselect。
+     * @param {string} scopeKey - 发起请求时的完整查询范围键。
+     * @returns {Object} 带顺序号和用户行级覆盖状态的请求记录。
+     */
+    createSelectionRequest(
+      action,
+      scopeKey = this.getCurrentSelectionScopeKey()
+    ) {
+      const request = {
+        id: ++this.selectAllRequestId,
+        clearVersion: this.selectAllClearVersion,
+        action,
+        scopeKey,
+        excludedIds: [],
+        includedIds: [],
+      };
+      this.selectAllPendingRequests.push(request);
+      this.selectAllLoading = true;
+      return request;
+    },
+    /**
+     * 将较新的全量勾选记录为较早取勾请求的行级例外。
+     * @param {Array} rows - 本次全量勾选的词条。
+     * @param {number} requestId - 本次勾选的顺序号。
+     * @returns {void}
+     */
+    preserveSelectionForPendingClears(rows, requestId) {
+      const includedIds = (rows || [])
+        .map((item) => item?.id)
+        .filter((id) => id != null);
+      this.selectAllPendingRequests.forEach((request) => {
+        if (request.action !== "deselect" || request.id >= requestId) return;
+        request.includedIds = Array.from(
+          new Set([...request.includedIds, ...includedIds])
+        );
+      });
+    },
+    /**
+     * 从全局清单移除当前完整查询结果，并保护请求期间较新的行级勾选。
+     * @param {Array} rows - 当前查询的完整结果集。
+     * @param {Object} request - 当前取勾请求。
+     * @returns {void}
+     */
+    removeCurrentQuerySelection(rows, request) {
+      const protectedIds = new Set(request.includedIds);
+      const resultIds = new Set(
+        (rows || [])
+          .map((item) => item?.id)
+          .filter((id) => id != null && !protectedIds.has(id))
+      );
+      this.selectAllPendingRequests.forEach((pendingRequest) => {
+        if (
+          pendingRequest.action !== "select" ||
+          pendingRequest.id >= request.id ||
+          pendingRequest.clearVersion !== request.clearVersion
+        ) {
+          return;
+        }
+        pendingRequest.excludedIds = Array.from(
+          new Set([...pendingRequest.excludedIds, ...resultIds])
+        );
+      });
+      const removedEntries = this.selectEntry.filter((item) =>
+        resultIds.has(item.id)
+      );
+      this.selectEntry = this.selectEntry.filter(
+        (item) => !resultIds.has(item.id)
+      );
+      removedEntries.forEach((item) => {
+        this.selectedEntryRevisions.delete(item.id);
+        this.savedEntriesById.delete(item.id);
+      });
+      this.selectedRows = this.selectEntry;
+      this.selectedRowKeys = this.selectEntry.map((item) => item.id);
+      this.syncSelectedProducts();
+    },
+    /**
+     * 移除当前搜索结果的已选词条，其他查询和产品的选择保持不变。
+     * @param {void} none - 本方法不接收参数。
+     * @returns {void}
+     */
+    clearCurrentQuerySelection() {
+      const request = this.createSelectionRequest("deselect");
+      if (this.lastSearchType === "checkNotUseEntry") {
+        this.removeCurrentQuerySelection(this.dataSource, request);
+        this.finishSelectionRequest(request);
+        return;
+      }
+
+      const { params, data } = this.getCurrentSelectionQuery();
       getEntryByClassfy(params, data)
         .then((res) => {
-          const list = res.data?.list || [];
-          this.selectedRows = mergeSelectedEntriesById(this.selectedRows, list);
-          this.selectEntry = this.selectedRows;
-          this.selectedRowKeys = this.selectedRows.map((item) => item.id);
+          if (request.clearVersion !== this.selectAllClearVersion) return;
+          this.removeCurrentQuerySelection(res.data?.list || [], request);
         })
         .catch((err) => {
-          message.error(err.message);
+          if (request.clearVersion !== this.selectAllClearVersion) return;
+          message.error(err?.message || "取消当前查询选择失败");
         })
-        .finally(() => {
-          this.loading = false;
-          this.selectAllLoading = false;
-        });
+        .finally(() => this.finishSelectionRequest(request));
     },
-    // 取消批量选择
-    cancelCreate() {
+    /**
+     * 完成一次全量选择请求并同步工具栏 loading 状态。
+     * @param {Object} request - 已完成的选择请求。
+     * @returns {void}
+     */
+    finishSelectionRequest(request) {
+      this.selectAllPendingRequests = this.selectAllPendingRequests.filter(
+        (pendingRequest) => pendingRequest.id !== request.id
+      );
+      this.savedEntriesById.forEach((saved, id) => {
+        const hasOlderPendingSelect = this.selectAllPendingRequests.some(
+          (pendingRequest) =>
+            pendingRequest.action === "select" &&
+            pendingRequest.id < saved.revision
+        );
+        if (!hasOlderPendingSelect) this.savedEntriesById.delete(id);
+      });
+      this.selectAllLoading = this.selectAllPendingRequests.length > 0;
+    },
+    // 已选词条按钮点击事件
+    viewCreateVersionEntry() {
+      this.createVisible = true;
+      setModalAriaHidden(this, document);
+    },
+    /**
+     * 关闭已选词条弹窗并刷新版本和当前词条结果。
+     * @returns {void}
+     */
+    createClose() {
+      this.createVisible = false;
+      this.getProductVersion();
+      this.refreshTable();
+    },
+    /**
+     * 刷新当前查询结果；冗余校验刷新会重新读取状态并按需恢复轮询。
+     * @param {void} none - 无参数。
+     * @returns {void}
+     */
+    refreshTable() {
+      console.log("刷新查询", this.lastSearchType);
+      if (this.lastSearchType === "checkNotUseEntry") {
+        // 上一次为冗余词条校验查询，则刷新冗余校验结果
+        this.stopRedundantPolling();
+        this.getCheckNotUseEntry();
+      } else {
+        // 其他情况（包含普通条件查询与全量查询），沿用上一次的accurate参数
+        const accurate =
+          this.lastAccurate && this.lastAccurate.length
+            ? this.lastAccurate
+            : this.accurSearch;
+        this.getEntryByClassfy(false, accurate);
+      }
+    },
+    /**
+     * 解析全量查询结果，保留晚于本次请求的选择或保存结果。
+     * @param {Object} request - 当前全量选择请求。
+     * @param {Array} rows - 接口返回的全量词条。
+     * @returns {Array} 按请求版本过滤后的词条。
+     */
+    preserveNewerSelectionEntries(request, rows) {
+      const currentEntries = new Map(
+        this.selectEntry.map((item) => [item.id, item])
+      );
+      const resolvedRows = [];
+      (rows || []).forEach((row) => {
+        if (!row || row.id == null) return;
+        const revision = this.selectedEntryRevisions.get(row.id) || 0;
+        if (revision > request.id) {
+          const saved = this.savedEntriesById.get(row.id);
+          const latestEntry = currentEntries.get(row.id) || saved?.entry;
+          if (latestEntry) resolvedRows.push(latestEntry);
+          return;
+        }
+        this.selectedEntryRevisions.set(row.id, request.id);
+        this.savedEntriesById.delete(row.id);
+        resolvedRows.push(row);
+      });
+      return resolvedRows;
+    },
+    /**
+     * 按全局已选词条的 productID 重建弹窗需要的产品计数。
+     * @param {void} none - 无参数。
+     * @returns {void} 无返回值。
+     */
+    syncSelectedProducts() {
+      const products = new Map();
+      this.selectEntry.forEach((entry) => {
+        const productID = normalizeOptionalID(entry?.productID);
+        if (productID === undefined) return;
+        products.set(productID, (products.get(productID) || 0) + 1);
+      });
+      this.selectedProducts = {
+        products,
+        totalNum: this.selectEntry.length,
+      };
+    },
+    // 选择全部词条
+    /**
+     * 查询当前筛选下的全部词条并合并到已选列表。
+     * @param {void} none 本方法不接收参数。
+     * @returns {void}
+     */
+    selectAllEntry() {
+      // 获取所有的词条
+      if (Object.keys(this.product).length === 0) {
+        return;
+      }
+
+      if (this.lastSearchType === "checkNotUseEntry") {
+        const rows = this.dataSource;
+        this.updatePendingSelectAllExclusions(
+          [],
+          rows.map((item) => item.id)
+        );
+        const revision = ++this.selectAllRequestId;
+        rows.forEach((item) => {
+          this.selectedEntryRevisions.set(item.id, revision);
+          this.savedEntriesById.delete(item.id);
+        });
+        this.selectEntry = mergeSelectedEntriesById(this.selectEntry, rows);
+        this.selectedRows = this.selectEntry;
+        this.selectedRowKeys = this.selectEntry.map((item) => item.id);
+        this.syncSelectedProducts();
+        return;
+      }
+
+      const request = this.createSelectionRequest("select");
+      const { params, data } = this.getCurrentSelectionQuery();
+      getEntryByClassfy(params, data)
+        .then((res) => {
+          if (request.clearVersion !== this.selectAllClearVersion) return;
+          const list = res.data?.list || [];
+          const excludedIds = new Set(request.excludedIds);
+          const selectedList = this.preserveNewerSelectionEntries(
+            request,
+            list.filter((item) => !excludedIds.has(item.id))
+          );
+          this.preserveSelectionForPendingClears(selectedList, request.id);
+          this.selectEntry = mergeSelectedEntriesById(
+            this.selectEntry,
+            selectedList
+          );
+          this.selectedRows = this.selectEntry;
+          this.selectedRowKeys = this.selectedRows.map((item) => item.id);
+          this.syncSelectedProducts();
+        })
+        .catch((err) => {
+          if (request.clearVersion !== this.selectAllClearVersion) return;
+          message.error(err?.message || "全量选择失败");
+          this.$nextTick(() => {
+            if (request.clearVersion !== this.selectAllClearVersion) return;
+            this.selectedRows = this.selectEntry;
+            this.selectedRowKeys = this.selectEntry.map((item) => item.id);
+          });
+        })
+        .finally(() => this.finishSelectionRequest(request));
+    },
+    /**
+     * 清空跨页、跨产品的已选词条数组。
+     * @param {void} none - 本方法不接收参数。
+     * @returns {void}
+     */
+    clearSelectedEntries() {
+      this.selectAllClearVersion += 1;
+      this.selectAllPendingRequests = [];
+      this.selectAllLoading = false;
       this.selectEntry = [];
       this.selectedRowKeys = [];
       this.selectedRows = [];
-      this.selectedProducts = {
-        products: new Map(), // 切换到当前产品前的已选词条的产品记录
-        totalNum: 0, // 切换到当前产品前的已选词条总数
-      };
-      this.createVersionFlag = false;
+      this.selectedEntryRevisions.clear();
+      this.savedEntriesById.clear();
+    },
+    /**
+     * 清空全部已选词条并关闭已选词条弹窗。
+     * @param {void} none - 本方法不接收参数。
+     * @returns {void}
+     */
+    cancelCreate() {
+      this.cancelSelection();
       this.createVisible = false;
-      this.batchSelectFlag = false;
+    },
+    /**
+     * 清空跨产品、跨查询的已选词条和产品计数。
+     * @param {void} none - 本方法不接收参数。
+     * @returns {void}
+     */
+    cancelSelection() {
+      this.clearSelectedEntries();
+      this.selectedProducts = {
+        products: new Map(),
+        totalNum: 0,
+      };
+    },
+    /**
+     * 同步已选列表更新，并记录全量选择请求期间被移除的词条。
+     * @param {Array} rows - 弹窗更新后的已选词条列表。
+     * @returns {void}
+     */
+    updateSelectedEntries(rows) {
+      const previousIds = new Set(this.selectEntry.map((item) => item.id));
+      const nextIds = new Set(rows.map((item) => item.id));
+      const removedRows = this.selectEntry.filter(
+        (item) => !nextIds.has(item.id)
+      );
+      const addedRows = rows.filter((item) => !previousIds.has(item.id));
+      this.updatePendingSelectAllExclusions(
+        removedRows.map((item) => item.id),
+        addedRows.map((item) => item.id)
+      );
+      const revision = ++this.selectAllRequestId;
+      removedRows.forEach((item) => {
+        this.selectedEntryRevisions.delete(item.id);
+        this.savedEntriesById.delete(item.id);
+      });
+      rows.forEach((item) => {
+        this.selectedEntryRevisions.set(item.id, revision);
+        this.savedEntriesById.delete(item.id);
+      });
+      this.selectEntry = mergeSelectedEntriesById([], rows);
+      this.selectedRows = this.selectEntry;
+      this.selectedRowKeys = this.selectEntry.map((item) => item.id);
+      this.syncSelectedProducts();
+    },
+    /**
+     * 将单行或弹窗中的选择变化同步到所有进行中的全量请求。
+     * @param {Array} excludedIds - 用户主动取消选择的词条 ID。
+     * @param {Array} includedIds - 用户主动恢复选择的词条 ID。
+     * @returns {void}
+     */
+    updatePendingSelectAllExclusions(excludedIds = [], includedIds = []) {
+      this.selectAllPendingRequests.forEach((request) => {
+        if (request.action === "deselect") {
+          const requestIncludedIds = new Set(request.includedIds);
+          excludedIds.forEach((id) => requestIncludedIds.delete(id));
+          includedIds.forEach((id) => requestIncludedIds.add(id));
+          request.includedIds = Array.from(requestIncludedIds);
+          return;
+        }
+        const requestExcludedIds = new Set(request.excludedIds);
+        excludedIds.forEach((id) => requestExcludedIds.add(id));
+        includedIds.forEach((id) => requestExcludedIds.delete(id));
+        request.excludedIds = Array.from(requestExcludedIds);
+      });
     },
     //新增词条
     /**
@@ -2342,9 +2920,11 @@ export default {
         id: `new${this.dataSource.length + 1}`,
         entryState: 0,
         classfy1: this.product.type === "module" ? this.product.title : "",
-        maxLength: this.product.type === "module" ? this.product.foreignMaxByte : "",
+        maxLength:
+          this.product.type === "module" ? this.product.foreignMaxByte : "",
         maxByte: this.product.type === "module" ? this.product.maxByte : "",
-        foreignMaxByte: this.product.type === "module" ? this.product.foreignMaxByte : "",
+        foreignMaxByte:
+          this.product.type === "module" ? this.product.foreignMaxByte : "",
         versionID: this.currentVersion,
         entryVersion: 0,
       };
@@ -2610,32 +3190,87 @@ export default {
     handleTableChange(pagination, filters) {
       handleTableChange(pagination, filters, this);
     },
-    // 复选框选择事件
-    onSelectChange(selectedRowKeys, selectedRows) {
-      onSelectChange(this, selectedRowKeys, selectedRows);
+    /**
+     * 根据已选词条同步表格行键和行数据。
+     * @returns {void}
+     */
+    onSelectChange() {
+      this.selectedRows = this.selectEntry;
+      this.selectedRowKeys = this.selectEntry.map((item) => item.id);
     },
-    // 复选框点击事件
+    /**
+     * 同步单行勾选到跨页、跨产品的已选词条列表。
+     * @param {Object} record - 当前操作的词条。
+     * @param {boolean} selected - 该词条是否被勾选。
+     * @returns {void}
+     */
     onSelect(record, selected) {
-      onSelect(this, record, selected, this.createVersionFlag);
-    },
-    // 复选框当前页全选/反选框点击事件
-    onSelectAll(selected, selectedRows, changeRows) {
-      onSelectAll(
-        this,
-        selected,
-        selectedRows,
-        changeRows,
-        this.createVersionFlag
+      this.updatePendingSelectAllExclusions(
+        selected ? [] : [record.id],
+        selected ? [record.id] : []
       );
+      if (selected) {
+        const revision = ++this.selectAllRequestId;
+        this.selectedEntryRevisions.set(record.id, revision);
+        this.savedEntriesById.delete(record.id);
+        this.selectEntry = mergeSelectedEntriesById(this.selectEntry, [record]);
+      } else {
+        this.selectedEntryRevisions.delete(record.id);
+        this.savedEntriesById.delete(record.id);
+        this.selectEntry = this.selectEntry.filter(
+          (item) => item.id !== record.id
+        );
+      }
+      this.selectedRows = this.selectEntry;
+      this.selectedRowKeys = this.selectEntry.map((item) => item.id);
+      this.syncSelectedProducts();
     },
-    // 分页切换
-    pageChange(page, pageSize, refreshFn = this.getEntryByClassfy) {
+    /**
+     * 将表头勾选应用到当前筛选结果全集，取勾时仅移除当前查询结果。
+     * @param {boolean} selected - 表头复选框是否处于勾选状态。
+     * @param {Array} _selectedRows - 表格当前勾选行。
+     * @param {Array} changeRows - 本次表头操作影响的当前页词条。
+     * @returns {void}
+     */
+    onSelectAll(selected, _selectedRows, changeRows) {
+      if (selected) {
+        this.updatePendingSelectAllExclusions(
+          [],
+          (changeRows || []).map((item) => item.id)
+        );
+        const revision = ++this.selectAllRequestId;
+        (changeRows || []).forEach((item) => {
+          this.selectedEntryRevisions.set(item.id, revision);
+          this.savedEntriesById.delete(item.id);
+        });
+        this.selectEntry = mergeSelectedEntriesById(
+          this.selectEntry,
+          changeRows || []
+        );
+        this.selectedRows = this.selectEntry;
+        this.selectedRowKeys = this.selectEntry.map((item) => item.id);
+        this.syncSelectedProducts();
+        this.selectAllEntry();
+        return;
+      }
+      this.clearCurrentQuerySelection();
+    },
+    /**
+     * 切换表格分页；冗余校验结果已完整载入，只进行本地分页。
+     * @param {number} page - 目标页码。
+     * @param {number} pageSize - 每页条数。
+     * @param {Function|null} [refreshFn] - 普通查询使用的数据刷新回调。
+     * @returns {void}
+     */
+    pageChange(page, pageSize, refreshFn) {
+      let fetchData = refreshFn;
+      if (fetchData === undefined) fetchData = this.getEntryByClassfy;
+      if (this.lastSearchType === "checkNotUseEntry") fetchData = null;
       pageChange(
         this,
         page,
         pageSize,
-        // this.getEntryByClassfy,
-        refreshFn,
+        fetchData,
         "selectEntry",
         false,
         this.accurSearch
@@ -2818,5 +3453,58 @@ export default {
   gap: 10px;
   justify-content: flex-end;
   align-items: center;
+}
+
+.entry-toolbar-right :deep(.entry-toolbar-add-button.ant-btn-primary:disabled),
+.entry-toolbar-right
+  :deep(.entry-toolbar-add-button.ant-btn-primary.ant-btn-disabled) {
+  color: rgba(0, 0, 0, 0.25);
+  background-color: #f5f5f5;
+  border-color: #d9d9d9;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.entry-toolbar-selected-button {
+  position: relative;
+  white-space: nowrap;
+}
+
+.entry-toolbar-right :deep(.ant-badge-count) {
+  z-index: 999;
+}
+
+.entry-toolbar-selected-button-loading .entry-toolbar-selected-label {
+  visibility: hidden;
+}
+
+.entry-toolbar-selected-spinner {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+}
+
+.entry-toolbar-right :deep(.entry-toolbar-git-button.ant-btn-primary) {
+  color: rgba(0, 0, 0, 0.88);
+  background: #fff;
+  border-color: #d9d9d9;
+  box-shadow: none;
+}
+
+.entry-toolbar-right :deep(.entry-toolbar-git-button.ant-btn-primary:hover),
+.entry-toolbar-right :deep(.entry-toolbar-git-button.ant-btn-primary:focus) {
+  color: #4096ff;
+  background: #fff;
+  border-color: #4096ff;
+}
+
+.entry-toolbar-right :deep(.entry-toolbar-git-button.ant-btn-primary:active) {
+  color: #0958d9;
+  background: #fff;
+  border-color: #0958d9;
 }
 </style>
