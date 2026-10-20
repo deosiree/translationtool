@@ -304,6 +304,7 @@ public class BatchInsertEntryHandler {
         String i18nUrl,
         TaskInfoEntity taskInfoEntity,
         String userName,
+        String department,
         List<TLanguage> languageList){
 
         
@@ -365,7 +366,17 @@ public class BatchInsertEntryHandler {
                 // entryInfoEntities.add(entryInfoEntity);
             }
             /* 避免dic词条无法用词条更新抽取 */
-            String entrySource = dicRelPath.startsWith("tr/") ? "pt/" + dicRelPath.substring("tr/".length(), dicRelPath.length()) : dicRelPath;
+            String entrySource = dicRelPath;
+            /* 不同部门抽取的i18n_tr的词条存放在不同的目录下,以下修改如果场景是利用平台和监控组合起来的lang包进行分支新建，词条来源无法准确获取 */
+            if(entrySource.startsWith("tr/")){
+                if(department.equals("通用平台部")){
+                    /* 默认lang包中tr目录下的词条由pt目录下的dic文件获取 */
+                    entrySource = "pt/" + dicRelPath.substring("tr/".length(), dicRelPath.length());
+                }else if(department.equals("监控系统部")){
+                    /* 默认lang包中tr目录下的词条由jk目录下的dic文件获取 */
+                    entrySource = "jk/" + dicRelPath.substring("tr/".length(), dicRelPath.length());
+                }
+            }
             
             DICDictionaryVOConverter dicDictionaryVOConverter = new DICDictionaryVOConverter(entrySource, taskInfoEntity.getId(), taskInfoEntity.getProductId(), taskInfoEntity.getVersionId(), commonUtils, languageList.stream().collect(Collectors.toSet()), userName, dicRelPath);
             // entryInfoEntities.addAll(convertFromDictionaryVOToDICEntry(dictionaryVOs, dicRelPath, dicRelPath, taskInfoEntity, userName, languageList));
@@ -895,7 +906,7 @@ public class BatchInsertEntryHandler {
                 List<String> _fileNameList = new ArrayList<>();
                 _fileNameList.add(fileName);    // 限流
                 /* 请求i18n获取对应文件的词条 */
-                List<EntryInfoEntity> _entryInfoEntities = buildEntryFromTRFilesUsingI18nServer(_fileNameList, i18nUrl, taskInfoEntity, userName, targetTLanguages);
+                List<EntryInfoEntity> _entryInfoEntities = buildEntryFromTRFilesUsingI18nServer(_fileNameList, i18nUrl, taskInfoEntity, userName, department, targetTLanguages);
                 List<EntryInfoEntity> filteredEntryInfoEntities = _entryInfoEntities.stream().filter(new Predicate<EntryInfoEntity>() {
 
                     @Override
