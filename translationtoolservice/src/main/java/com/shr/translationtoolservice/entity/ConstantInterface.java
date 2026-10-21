@@ -517,6 +517,16 @@ public class ConstantInterface {
         return getTranslateIDMethodMap;
     }
 
+    public static Map<String,String> entryInfoEntityTranslateStateFieldMap(){
+        Map<String,String> translateStateMethodMap = new HashMap<>(); 
+        translateStateMethodMap.put(ConstantInterface.CHINESE, "chineseTranslateState");
+        translateStateMethodMap.put(ConstantInterface.ENGLISH, "englishTranslateState");
+        translateStateMethodMap.put(ConstantInterface.RUSSIAN, "russianTranslateState");
+        translateStateMethodMap.put(ConstantInterface.SPANISH, "spanishTranslateState");
+        translateStateMethodMap.put(ConstantInterface.FRENCH, "frenchTranslateState");
+        return translateStateMethodMap;
+    }
+
 
 
 }

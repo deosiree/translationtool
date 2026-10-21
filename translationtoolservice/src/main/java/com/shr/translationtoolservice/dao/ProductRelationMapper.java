@@ -21,6 +21,8 @@ public interface ProductRelationMapper extends BaseMapper<ProductRelationEntity>
 
     int deleteByProductIdList(@Param("idList") List<String>  idList);
 
+    int deleteByCondition(@Param("entryIDs") List<String> idList,@Param("productID") String productID,@Param("versionID") String versionID, @Param("taskID") String taskID);
+
     int insertList(@Param("productRelationEntities") List<ProductRelationEntity> productRelationEntities);
 
     int checkExist(@Param("productRelationEntity") ProductRelationEntity productRelationEntity);

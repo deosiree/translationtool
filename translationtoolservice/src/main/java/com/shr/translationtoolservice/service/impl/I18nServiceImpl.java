@@ -9,9 +9,13 @@ import com.shr.translationtoolservice.entity.vo.DictionaryVo;
 import com.shr.translationtoolservice.entity.vo.TDBFieldInfo;
 import com.shr.translationtoolservice.entity.vo.TDBTableInfo;
 import com.shr.translationtoolservice.service.I18nService;
+import com.shr.translationtoolservice.service.processor.groupby.DefaultEntryGroupbyStrategy;
+import com.shr.translationtoolservice.service.processor.groupby.GeneralReplicatedVOType;
 import com.shr.translationtoolservice.util.*;
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
+import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils.MethodEntity;
+
 import lombok.extern.slf4j.Slf4j;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.platform.commons.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +23,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 /**
  * @ClassName I18nServiceImpl
@@ -39,12 +44,16 @@ public class I18nServiceImpl implements I18nService {
     @Autowired
     private HTTPUtils httpUtils;
 
+    @Autowired
+    private CommonUtils commonUtils;
+
+    @Autowired
+    private EntryUtils entryUtils;
+
     @Value("${I18server.url}")
     private String I18URL;
     @Autowired
     private TranslateMapper translateMapper;
-    @Autowired
-    private CommonUtils commonUtils;
 
     @Autowired
     private TLanguageMapper languageMapper;
@@ -56,18 +65,10 @@ public class I18nServiceImpl implements I18nService {
             i18nUrl = I18URL;
         }
         //先将词条分类，写到不同的 地方
-        List<EntryInfoEntity> dbEntrInfo = new ArrayList<>();
-        List<EntryInfoEntity> diEntryInfo = new ArrayList<>();
-        List<EntryInfoEntity> enumEntryInfo = new ArrayList<>();
-        List<EntryInfoEntity> configEntryInfo = new ArrayList<>();
-       // String fileName = "";
-          Map<String,List<Map<String, String>>> tsEntryInfoMap = new HashMap<>();
+        Map<String,List<Map<String, String>>> tsEntryInfoMap = new HashMap<>();
 
         //di分组   fileName -> list
         Map<String, List<EntryInfoEntity>> diTypeMap = new HashMap<>();
-        Map<String, List<EntryInfoEntity>> dbTypeMap = new HashMap<>();
-        Map<String, List<EntryInfoEntity>> configTypeMap = new HashMap<>();
-        Map<String, List<EntryInfoEntity>> enumTypeMap = new HashMap<>();
         if (CollectionUtils.isEmpty(entryInfoEntities1)) {
             return ConstantInterface.OK_STR;
         }
@@ -83,212 +84,200 @@ public class I18nServiceImpl implements I18nService {
         }
 
         //开线程
-        processEntryInfo(entryInfoEntities, translateType, tag, common, tsEntryInfoMap, diTypeMap);
+        int result = processEntryInfo(entryInfoEntities, translateType, tsEntryInfoMap, diTypeMap);
+        if(result < 0){
+            return "处理词条信息时发生异常, 检查日志信息";
+        }
 
-        /*for (EntryInfoEntity entryInfoEntity : entryInfoEntities) {
-            //取翻译状态为3的词条
-
-            String trans = getTransByType(entryInfoEntity, translateType);
-            if (StringUtils.isBlank(trans)) {
-                continue;
+        StringBuilder builder = new StringBuilder();
+        //写入i18 ts
+        if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
+            for (String fileName : tsEntryInfoMap.keySet()) {
+                List<TLanguage> tLanguages = languageMapper.selectLaguageByName(translateType);
+                //tsUtils.writeTSEntry(entryInfoEntities, fileName, tag,i18nUrl,translateType);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("entry", tsEntryInfoMap.get(fileName));
+                fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
+                String s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
+                if (StringUtils.isBlank(s)) {
+                    return ErrorCodeList.I18N_SERVER_ERROR + fileName;
+                } else if (!s.equals("true")) {
+                    builder.append("文件: " + fileName + "更新失败");
+                }
             }
-            if ("TS".equals(entryInfoEntity.getWriteType())) {
-                if (CollectionUtils.isEmpty(tsEntryInfoMap.get(entryInfoEntity.getEntrySource()))){
+        }
+        if (!CollectionUtils.isEmpty(diTypeMap)) {
+            //按照分裂写入di
+            for (String di_fileName : diTypeMap.keySet()) {
+                String res = diUtils.writeDiEntry(diTypeMap.get(di_fileName), di_fileName, translateType, tag, common, i18nUrl);
+                if (!res.equals(ConstantInterface.OK_STR)) {
+                    return res;
+                }
+            }
+
+        }
+
+        String extrasInfos = builder.toString();
+        return extrasInfos.isEmpty()? ConstantInterface.OK_STR  : "部分更新成功" + "额外信息: " + extrasInfos;
+    }
+
+    private int processEntryInfo(
+        List<EntryInfoEntity> entryInfoEntities, 
+        String translateType, 
+        Map<String, List<Map<String, String>>> tsEntryInfoMap, 
+        Map<String, List<EntryInfoEntity>> diTypeMap) {
+
+
+        /* 设定对应语言的翻译状态为3 */
+        Map<String, String> entryInfoEntityTranslateStateFieldMap = ConstantInterface.entryInfoEntityTranslateStateFieldMap();
+
+        String translateStateFieldName = entryInfoEntityTranslateStateFieldMap.get(translateType);
+
+        if(StringUtils.isBlank(translateStateFieldName)){
+            log.error(String.format("未找到翻译状态的属性名称: %s", translateType));
+            return -1;
+        }
+
+        Map<String, String> translateFieldMap = ConstantInterface.translateFieldMap();
+
+        String translateField = translateFieldMap.get(translateType);
+
+        if(StringUtils.isBlank(translateField)){
+            log.error(String.format("未找到翻译属性名称: %s", translateType));
+            return -1;
+        }
+        
+        MethodEntity getTranslateMethod = new MethodEntity(MethodUtils.acquireMethod(EntryInfoEntity.class, translateField,MethodUtils.DEFAULT_GET_METHOD_NAME_GENERATOR));
+
+        MethodEntity getTranslateStateMethod = new MethodEntity(MethodUtils.acquireMethod(EntryInfoEntity.class, translateStateFieldName, MethodUtils.DEFAULT_GET_METHOD_NAME_GENERATOR));
+        
+
+        /* 过滤词条翻译状态不为已审核的词条，这部分词条不回写 */
+        /* 过滤出可回写词条 */ 
+        List<EntryInfoEntity> filteredEntryInfos = entryInfoEntities.stream().filter(new Predicate<EntryInfoEntity>() {
+
+
+            @Override
+            public boolean test(EntryInfoEntity t) {
+                // TODO Auto-generated method stub
+                // return filteredEntryIDs.contains(t.getId()) && getTranslateMethod.invoke(t);
+                try {
+                    Object translateStateValue = getTranslateStateMethod.invoke(t);
+                    String translateState = translateStateValue == null ? "" : String.valueOf(translateStateValue);
+
+                    Object translateValue = getTranslateMethod.invoke(t);
+                    String translate = translateValue == null ? "" : String.valueOf(translateValue); 
+
+                    return (!translateState.isEmpty() && translateState.equals("3")) && !StringUtils.isBlank(translate); // 翻译不为空，并且翻译状态为3
+                } catch (Exception e) {
+                    log.error(String.format("异常信息: %s", e.getMessage()), e);
+                    return false;
+                }
+            }
+            
+        }).collect(Collectors.toList());
+
+        if(filteredEntryInfos.size() < entryInfoEntities.size()){
+            log.info(String.format("请求回写词条共%d个, 经过滤后可回写%d个",entryInfoEntities.size(), filteredEntryInfos.size()));
+        }
+
+        String writeTypeFieldName = "writeType";
+
+        DefaultEntryGroupbyStrategy entryWriteTypeGroupbyStrategy = new DefaultEntryGroupbyStrategy();
+
+        entryWriteTypeGroupbyStrategy.addTargetAttribute(writeTypeFieldName);
+
+        /* 将词条信息根据回写类型划分到不同的组下 */
+        Map<GeneralReplicatedVOType, List<EntryInfoEntity>> writeTypeGroupedEntryInfos = entryUtils.makeGroupMapForEntryInfoEntities(filteredEntryInfos, entryWriteTypeGroupbyStrategy);
+
+        String attributeKey = String.valueOf(entryWriteTypeGroupbyStrategy.getFieldColumnNumber(writeTypeFieldName));
+        GeneralReplicatedVOType tsType = new GeneralReplicatedVOType();
+        tsType.addAttribute(attributeKey, ConstantInterface.TS);
+
+        GeneralReplicatedVOType dicType = new GeneralReplicatedVOType();
+        dicType.addAttribute(attributeKey, ConstantInterface.DI);
+
+        List<EntryInfoEntity> tsEntryInfosList = writeTypeGroupedEntryInfos.get(tsType);
+        if(tsEntryInfosList != null && !tsEntryInfosList.isEmpty()){
+
+            /* 处理TS词条 */
+            for(EntryInfoEntity entryInfoEntity : tsEntryInfosList){
+                String entrySource = entryInfoEntity.getEntrySource();
+                if(entrySource.isEmpty()){
+                    log.warn(String.format("警告, TS词条的词条来源为空, entry: [%s], tag: [%s], comment: [%s]", entryInfoEntity.getEntry(), entryInfoEntity.getTag(), entryInfoEntity.getComment()));
+                    continue;
+                }
+                Map<String, String> tsEntryInfo = new HashMap<>();
+                tsEntryInfo.put("source", entryInfoEntity.getEntry());
+                String tagStr =  entryInfoEntity.getTag();
+                tsEntryInfo.put("tag", tagStr);
+                tsEntryInfo.put("comment", entryInfoEntity.getComment());
+
+                Object translateValue = getTranslateMethod.invoke(entryInfoEntity);
+                String translate = translateValue == null ? "" : String.valueOf(translateValue); 
+                tsEntryInfo.put("translate", translate);
+
+                if(CollectionUtils.isEmpty(tsEntryInfoMap.get(entrySource))){
                     List<Map<String, String>> tsEntrys = new ArrayList<>();
-                    //遍历单词
-                    Map<String, String> requestMap  = new HashMap<>();
-                    requestMap.put("source", entryInfoEntity.getEntry());
-                    String tagStr =  entryInfoEntity.getTag();
-                   *//* if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
-                        tagStr =  entryInfoEntity.getTag();
-                    }*//*
-                    requestMap.put("tag", tagStr);
-                    requestMap.put("comment", entryInfoEntity.getComment());
-                    requestMap.put("translate", trans);
-                    tsEntrys.add(requestMap);
-                    tsEntryInfoMap.put(entryInfoEntity.getEntrySource(),tsEntrys);
-                }else {
-                    //遍历单词
-                    Map<String, String> requestMap = new HashMap<>();
-                    requestMap.put("source", entryInfoEntity.getEntry());
-                    String tagStr =  entryInfoEntity.getTag();
-                    *//*if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
-                        tagStr =  entryInfoEntity.getTag();
-                    }*//*
-                    requestMap.put("tag", tagStr);
-                    requestMap.put("comment", entryInfoEntity.getComment());
-                    requestMap.put("translate", trans);
-                    List<Map<String, String>> list = tsEntryInfoMap.get(entryInfoEntity.getEntrySource());
-                    list.add(requestMap);
+                    tsEntrys.add(tsEntryInfo);
+                    tsEntryInfoMap.put(entrySource, tsEntrys);
+
+                }else{
+                    List<Map<String, String>> list = tsEntryInfoMap.get(entrySource);
+                    list.add(tsEntryInfo);
+                }
+            }
+        }else{
+            log.info("回写请求无可回写的TS词条, 跳过TS词条的处理过程");
+        }
+
+        List<EntryInfoEntity> dicEntryInfosList = writeTypeGroupedEntryInfos.get(dicType);
+        if(dicEntryInfosList != null && !dicEntryInfosList.isEmpty()){
+
+            
+
+            for(EntryInfoEntity entryInfoEntity : dicEntryInfosList){
+                String diFileName = entryInfoEntity.getDiFileName();
+                if(diFileName.isEmpty()){
+                    log.warn(String.format("警告, DIC词条的diFileName为空, entry: [%s], tag: [%s], comment: [%s]", entryInfoEntity.getEntry(), entryInfoEntity.getTag(), entryInfoEntity.getComment()));
+                    continue;
                 }
 
-            } else if ("DI".equals(entryInfoEntity.getWriteType())) {
-                //di 来源处理
                 List<EntryInfoEntity> entities;
-                if (CollectionUtils.isEmpty(diTypeMap.get(entryInfoEntity.getDiFileName()))) {
+                if (CollectionUtils.isEmpty(diTypeMap.get(diFileName))) {
                     entities = new ArrayList<>();
                     entities.add(entryInfoEntity);
-                    diTypeMap.put(entryInfoEntity.getDiFileName(), entities);
+                    diTypeMap.put(diFileName, entities);
                 } else {
-                    entities = diTypeMap.get(entryInfoEntity.getDiFileName());
+                    entities = diTypeMap.get(diFileName);
                     for (EntryInfoEntity entryInfoEntity1 : entities){
                         if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
-                            if (tag){
-                                if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag())){
+                                if(StringUtils.isBlank(entryInfoEntity1.getTag())){
+                                    entryInfoEntity1.setTag("");
+                                }
+                                if(StringUtils.isBlank(entryInfoEntity1.getComment())){
+                                    entryInfoEntity1.setComment("");
+                                }
+
+                                if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag()) && entryInfoEntity1.getComment().equals(entryInfoEntity.getComment())){
                                     continue;
                                 }else {
                                     entities.add(entryInfoEntity);
                                     break;
                                 }
-                            }
                         }else {
                             entities.add(entryInfoEntity);
                             break;
                         }
                     }
                 }
-            }
-        }*/
-        StringBuilder builder = new StringBuilder();
-            //写入i18 ts
-            if (!CollectionUtils.isEmpty(tsEntryInfoMap)) {
-                for (String fileName : tsEntryInfoMap.keySet()) {
-                    List<TLanguage> tLanguages = languageMapper.selectLaguageByName(translateType);
-                    //tsUtils.writeTSEntry(entryInfoEntities, fileName, tag,i18nUrl,translateType);
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("entry", tsEntryInfoMap.get(fileName));
-                    fileName = fileName + "_" + tLanguages.get(0).getCode() + ".ts";
-                    String s = httpUtils.post(i18nUrl + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
-                    if (StringUtils.isBlank(s)) {
-                        return ErrorCodeList.I18N_SERVER_ERROR + fileName;
-                    } else if (!s.equals("true")) {
-                        builder.append("文件: " + fileName + "更新失败");
-                        // ErrorCodeList.setErrorCodeList(ErrorCodeList.UPDATE_TS_ERROR + fileName);
-                        // return ErrorCodeList.UPDATE_TS_ERROR + fileName;
-                    }
-                }
-                // jsonObject.put("entry", tsEntryInfoMap);
-                // String s = httpUtils.post(I18URL + ConstantInterface.SAVE_WORDS + "?fileName=" + fileName, jsonObject);
-            }
-            if (!CollectionUtils.isEmpty(diTypeMap)) {
-                //按照分裂写入di
-                for (String di_fileName : diTypeMap.keySet()) {
-                    //writeDiWords(di_fileName, translateType, dbEntrInfo);
-                     String res = diUtils.writeDiEntry(diTypeMap.get(di_fileName), di_fileName, translateType, tag, common, i18nUrl);
-                    if (!res.equals(ConstantInterface.OK_STR)) {
-                        return res;
-                    }
-                }
 
             }
-
-        String extrasInfos = builder.toString();
-        return extrasInfos.isEmpty()? ConstantInterface.OK_STR  : "部分更新成功" + "额外信息: " + extrasInfos;
-    }
-
-    private void processEntryInfo(List<EntryInfoEntity> entryInfoEntities, String translateType, boolean tag
-            , boolean common, Map<String, List<Map<String, String>>> tsEntryInfoMap, Map<String, List<EntryInfoEntity>> diTypeMap) {
-        int numberOfThreads = 32; // Number of threads to use
-        CountDownLatch latch = new CountDownLatch(numberOfThreads);
-
-        int chunkSize = entryInfoEntities.size() / numberOfThreads;
-        for (int i = 0; i < numberOfThreads; i++) {
-            int start = i * chunkSize;
-            int end = (i == numberOfThreads - 1) ? entryInfoEntities.size() : (i + 1) * chunkSize;
-            List<EntryInfoEntity> sublist = entryInfoEntities.subList(start, end);
-
-            new Thread(() -> {
-                try {
-                    // Process the sublist
-                    for (EntryInfoEntity entryInfoEntity : sublist) {
-                        // Your processing logic here
-                        //取翻译状态为3的词条
-
-                        String trans = getTransByType(entryInfoEntity, translateType);
-                        if (StringUtils.isBlank(trans)) {
-                            continue;
-                        }
-                        if ("TS".equals(entryInfoEntity.getWriteType())) {
-                            if (CollectionUtils.isEmpty(tsEntryInfoMap.get(entryInfoEntity.getEntrySource()))){
-                                List<Map<String, String>> tsEntrys = new ArrayList<>();
-                                //遍历单词
-                                Map<String, String> requestMap  = new HashMap<>();
-                                requestMap.put("source", entryInfoEntity.getEntry());
-                                String tagStr =  entryInfoEntity.getTag();
-                   /* if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
-                        tagStr =  entryInfoEntity.getTag();
-                    }*/
-                                requestMap.put("tag", tagStr);
-                                requestMap.put("comment", entryInfoEntity.getComment());
-                                requestMap.put("translate", trans);
-                                tsEntrys.add(requestMap);
-                                tsEntryInfoMap.put(entryInfoEntity.getEntrySource(),tsEntrys);
-                            }else {
-                                //遍历单词
-                                Map<String, String> requestMap = new HashMap<>();
-                                requestMap.put("source", entryInfoEntity.getEntry());
-                                String tagStr =  entryInfoEntity.getTag();
-                    /*if (StringUtils.isNotBlank(entryInfoEntity.getTag())){
-                        tagStr =  entryInfoEntity.getTag();
-                    }*/
-                                requestMap.put("tag", tagStr);
-                                requestMap.put("comment", entryInfoEntity.getComment());
-                                requestMap.put("translate", trans);
-                                List<Map<String, String>> list = tsEntryInfoMap.get(entryInfoEntity.getEntrySource());
-                                list.add(requestMap);
-                            }
-
-                        } else if ("DI".equals(entryInfoEntity.getWriteType())) {
-                            String diFileName = entryInfoEntity.getDiFileName();
-                            if(StringUtils.isBlank(diFileName)){
-                                continue;
-                            }
-                            //di 来源处理
-                            List<EntryInfoEntity> entities;
-                            if (CollectionUtils.isEmpty(diTypeMap.get(diFileName))) {
-                                entities = new ArrayList<>();
-                                entities.add(entryInfoEntity);
-                                diTypeMap.put(diFileName, entities);
-                            } else {
-                                entities = diTypeMap.get(diFileName);
-                                for (EntryInfoEntity entryInfoEntity1 : entities){
-                                    if (entryInfoEntity1.getEntry().equals(entryInfoEntity.getEntry())){
-                                            if(StringUtils.isBlank(entryInfoEntity1.getTag())){
-                                                entryInfoEntity1.setTag("");
-                                            }
-                                            if(StringUtils.isBlank(entryInfoEntity1.getComment())){
-                                                entryInfoEntity1.setComment("");
-                                            }
-
-                                            if (entryInfoEntity1.getTag().equals(entryInfoEntity.getTag()) && entryInfoEntity1.getComment().equals(entryInfoEntity.getComment())){
-                                                continue;
-                                            }else {
-                                                entities.add(entryInfoEntity);
-                                                break;
-                                            }
-                                    }else {
-                                        entities.add(entryInfoEntity);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } finally {
-                    latch.countDown();
-                }
-            }).start();
+        }else{
+            log.info("回写请求无可回写的DIC词条, 跳过DIC词条的处理过程");
         }
 
-        try {
-            latch.await(); // Wait for all threads to finish
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
-
-
-
+        return 0;
 
 
     }
@@ -530,36 +519,4 @@ public class I18nServiceImpl implements I18nService {
         return entryInfoEntities;
     }
 
-
-    private String getTransByType(EntryInfoEntity entryInfoEntity, String translateType) {
-        String transState = "";
-        String trans = "";
-        TranslateEntity translateEntity = new TranslateEntity();
-        switch (translateType) {
-            case ConstantInterface.CHINESE:
-                translateEntity = translateMapper.selectById(entryInfoEntity.getZhTransId());
-                break;
-            case ConstantInterface.ENGLISH:
-                 translateEntity = translateMapper.selectById(entryInfoEntity.getEnTransId());
-                break;
-            case ConstantInterface.RUSSIAN:
-                translateEntity = translateMapper.selectById(entryInfoEntity.getRuTransId());
-                break;
-            case ConstantInterface.SPANISH:
-                translateEntity = translateMapper.selectById(entryInfoEntity.getSpaTransId());
-                break;
-            case ConstantInterface.FRENCH:
-                translateEntity = translateMapper.selectById(entryInfoEntity.getFraTransId());
-                break;
-        }
-        if (translateEntity == null) {
-            return "";
-        }
-        transState = translateEntity.getTranslateState();
-        trans = translateEntity.getTranslate();
-        if (!"3".equals(transState)) {
-            return "";
-        }
-        return trans;
-    }
 }
