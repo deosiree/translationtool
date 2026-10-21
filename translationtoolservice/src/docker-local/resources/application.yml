@@ -1,0 +1,2 @@
+# Required by legacy @PropertySource annotations.
+# Runtime settings are loaded from the read-only mounted config.

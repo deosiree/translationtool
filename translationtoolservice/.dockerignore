@@ -1,0 +1,7 @@
+.env*
+.git
+node_modules
+target/*
+!target/app.jar
+src/main/resources/application.yml
+*.log

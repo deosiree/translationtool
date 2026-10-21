@@ -1,0 +1,44 @@
+name: translationtool-local
+
+services:
+  java-backend:
+    container_name: translationtoolservice-local
+    image: translationtool-local-java-backend:latest
+    build:
+      context: ./translationtoolservice
+      dockerfile: Dockerfile
+    env_file:
+      - ./translationtoolservice/.env.local
+    environment:
+      SERVER_PORT: "18001"
+      SPRING_REDIS_HOST: redis
+      SPRING_CONFIG_ADDITIONAL_LOCATION: file:/run/config/
+    volumes:
+      - ./translationtoolservice/src/main/resources/application.yml:/run/config/application.yml:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:18001:18001"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: translationtool-redis-local
+    environment:
+      SPRING_REDIS_PASSWORD: ${SPRING_REDIS_PASSWORD:?Set SPRING_REDIS_PASSWORD in translationtoolservice/.env.local}
+    command:
+      - sh
+      - -c
+      - exec redis-server --appendonly yes --requirepass "$${SPRING_REDIS_PASSWORD}"
+    volumes:
+      - translationtool-local-redis:/data
+    healthcheck:
+      test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$${SPRING_REDIS_PASSWORD}\" ping | grep -q PONG"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  translationtool-local-redis:
