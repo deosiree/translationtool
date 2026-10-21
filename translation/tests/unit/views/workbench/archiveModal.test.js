@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import { defineComponent, nextTick } from 'vue'
+import { message } from 'ant-design-vue'
 import ArchiveModal from '@/views/workbench/archiveModal.vue'
 import CustomModal from '@/components/modal/index.vue'
 import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
@@ -79,7 +80,13 @@ const FormStub = defineComponent({
       return formValidateMock()
     }
   },
-  template: '<form />'
+  template: '<form><slot /></form>'
+})
+
+const FormItemStub = defineComponent({
+  name: 'FormItemStub',
+  props: ['rules'],
+  template: '<div><slot /></div>'
 })
 
 /**
@@ -100,7 +107,7 @@ function mountArchiveModal(props = {}) {
         CustomModal: ArchiveCustomModalStub,
         PipeShell: true,
         'a-form': FormStub,
-        'a-form-item': true,
+        'a-form-item': FormItemStub,
         'a-button': true,
         'a-select': true
       }
@@ -268,16 +275,24 @@ describe('ArchiveModal - 回写 loading 生命周期', () => {
     expect(wrapper.vm.ipSelectModal).toBe(false)
   })
 
-  it('表单校验失败后解除遮罩且不发起回写', async () => {
+  it('表单 rules 校验失败时不显示全局提示、保留弹窗且不发请求', async () => {
     wrapper = mountArchiveModal()
     wrapper.vm.optionFlag = 0
+    wrapper.vm.ipSelectModal = true
     formValidateMock.mockRejectedValue(new Error('请选择IP'))
 
     await wrapper.vm.ipSelectOK()
     await flushPromises()
 
     expect(wrapper.vm.writeBackLoading).toBe(false)
+    expect(wrapper.vm.ipSelectModal).toBe(true)
+    expect(formValidateMock).toHaveBeenCalledTimes(1)
+    expect(message.error).not.toHaveBeenCalled()
     expect(setInfoMock).not.toHaveBeenCalled()
+    expect(updateTaskInfoMock).not.toHaveBeenCalled()
+    expect(wrapper.findComponent(FormItemStub).props('rules')).toEqual([
+      { required: true, message: '请选择IP!' }
+    ])
   })
 
   it('归档并结束任务时等待任务更新和回写都完成', async () => {

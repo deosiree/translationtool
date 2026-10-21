@@ -600,11 +600,15 @@ export default {
       this.optionFlag = 0;
       this.getIPs();
     },
-    // 结束任务按钮点击事件
+    /**
+     * 打开结束当前任务的影响确认框。
+     * @param {void} none 本方法不接收参数。
+     * @returns {void} 确认框打开后结束。
+     */
     placeOnFile2() {
       Modal.confirm({
         title: "是否结束任务？",
-        content: '词条状态将更新为"已归档"，不会回写词条到服务器。',
+        content: '结束后，当前任务下的所有词条状态都将更新为"已归档"，任务将从待办事项移至已办事项。不会回写词条到服务器。',
         icon: createVNode(ExclamationCircleOutlined),
         okText: "是",
         cancelText: "否",
@@ -632,7 +636,11 @@ export default {
       if (this.writeBackLoading) return;
       this.writeBackLoading = true;
       try {
-        await this.$refs.ipModal.validate();
+        try {
+          await this.$refs.ipModal.validate();
+        } catch {
+          return;
+        }
         if (this.optionFlag === 0) {
           await this.writeBackFun();
         } else if (this.optionFlag === 1) {
