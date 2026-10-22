@@ -33,6 +33,31 @@
           <a-checkbox v-model:checked="statusCheck">只能导出已审核</a-checkbox>
         </a-form-item>
       </a-form>
+      <div
+        v-if="exportModal.exportType === 'xml' && xmlExportIssues && (xmlExportIssues.duplicates.length || xmlExportIssues.emptyCount)"
+        class="xml-export-issues"
+      >
+        <a-alert message="发现异常 abbr，已阻止 XML 生成。（注意，导出xml的abbr对应“词条”列）" type="error" show-icon />
+        <div class="xml-export-issues-table">
+          <a-table
+            :columns="xmlExportIssueColumns"
+            :data-source="xmlExportIssueRows"
+            :pagination="false"
+            :row-key="record => record.key"
+            :scroll="{ x: 'max-content', y: 52 }"
+            size="small"
+            :bordered="true"
+          />
+        </div>
+        <a-button
+          v-if="xmlExportIssues.duplicates.length"
+          type="link"
+          size="small"
+          @click="downloadDuplicateAbbrs"
+        >
+          下载重复 abbr TXT
+        </a-button>
+      </div>
     </div>
     <template #leftBottomBtn>
       <a-button key="back" @click="handleClose">取消</a-button>
@@ -59,6 +84,7 @@ import {
 import commonParam, { entryParams } from "@/constants/commonParam.js";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { getCurrentStringTime } from "@/utils/dateUtils";
+import { analyzeXmlExportAbbrs } from "@/utils/xmlExportUtils.js";
 export default {
   components: {
     CustomModal,
@@ -94,11 +120,21 @@ export default {
       default: false,
     }, // 是否隐藏按钮（仅显示模态框）
   },
+  /**
+   * 初始化导出弹窗状态和可选字段。
+   * @param {void} 无参数。
+   * @returns {Object} 组件响应式数据。
+   */
   data() {
     return {
       exportVisible: false,
       exportLoading: false,
       exportLoading2: false,
+      xmlExportIssues: null,
+      xmlExportIssueColumns: [
+        { title: "词条", dataIndex: "entry", key: "entry" },
+        { title: "异常原因", dataIndex: "reason", key: "reason" },
+      ],
       exportModal: {
         exportType: null,
         field: [],
@@ -118,6 +154,32 @@ export default {
       fieldOptions: [], // 初始值，会在mounted中从fieldOptions_ prop更新
       statusCheck: this.defaultStatusCheck, // 使用prop值作为初始值( props 不应该被组件内部直接修改)
     };
+  },
+  computed: {
+    /**
+     * 将导出异常汇总转换为表格显示行。
+     * @param {void} 无参数。
+     * @returns {Array<{key: string, entry: string, reason: string}>} 异常表格行。
+     */
+    xmlExportIssueRows() {
+      const rows = (this.xmlExportIssues?.duplicates || []).map(
+        ({ abbr, count }) => ({
+          key: `duplicate:${abbr}`,
+          entry: abbr,
+          reason: `重复（共 ${count} 条）`,
+        })
+      );
+
+      if (this.xmlExportIssues?.emptyCount) {
+        rows.push({
+          key: "empty-abbr",
+          entry: "（空）",
+          reason: `abbr 为空（共 ${this.xmlExportIssues.emptyCount} 条）`,
+        });
+      }
+
+      return rows;
+    },
   },
   mounted() {
     this.$nextTick(() => {
@@ -159,7 +221,13 @@ export default {
       });
       // console.log("获取用户偏好后：导出字段", this.exportModal.field);
     },
+    /**
+     * 切换导出类型并更新 XML 默认字段。
+     * @param {string} value 当前导出类型。
+     * @returns {void} 字段更新后结束。
+     */
     exportTypeChange(value) {
+      this.xmlExportIssues = null;
       if (value === "xml") {
         // 找到“词条”与“翻译”相关字段
         const translationRegex = /翻译$/; // 匹配以“翻译”结尾的字段
@@ -175,7 +243,11 @@ export default {
     selectAllFields() {
       this.exportModal.field = this.fieldOptions.map((item) => item.label);
     },
-    // 导出-确认
+    /**
+     * 校验导出配置并生成所选格式文件。
+     * @param {boolean} choosePath 是否使用系统保存文件选择器。
+     * @returns {Promise<void>} 导出流程完成后结束。
+     */
     async handleOK(choosePath = true) {
       if (choosePath) this.exportLoading2 = true;
       else this.exportLoading = true;
@@ -201,6 +273,41 @@ export default {
 
         await this.$refs.exportForm.validate();
         const { exportType, field } = this.exportModal;
+        let xmlItemDataList = [];
+        this.xmlExportIssues = null;
+        if (exportType === "xml") {
+          const isXmlTemp = Object.prototype.hasOwnProperty.call(
+            this.$currentDepartment,
+            "xml_temp"
+          ) && this.$currentDepartment.xml_temp;
+          xmlItemDataList = this.dataSource.map((item) => {
+            const itemData = {
+              abbr: item.entry != null ? item.entry : "",
+              cn_desc: item.chinese != null ? item.chinese : "",
+              en_desc: item.english != null ? item.english : "",
+              es_desc: item.spanish != null ? item.spanish : "",
+              ru_desc: item.russian != null ? item.russian : "",
+              local_desc:
+                item[this.exportModal.local_desc] != null
+                  ? item[this.exportModal.local_desc]
+                  : "",
+            };
+
+            if (isXmlTemp) {
+              const originalAbbr = itemData.abbr;
+              itemData.abbr = itemData.cn_desc;
+              itemData.cn_desc = originalAbbr;
+            }
+
+            return itemData;
+          });
+
+          const issues = analyzeXmlExportAbbrs(xmlItemDataList);
+          if (issues.duplicates.length || issues.emptyCount) {
+            this.xmlExportIssues = issues;
+            return;
+          }
+        }
         let data = {};
         let params = {
           exportType: exportType,
@@ -247,49 +354,6 @@ export default {
         }
 
         if (exportType === "xml") {
-          // 对词条去重
-          const uniqueEntries = [];
-          const entrySet = new Set();
-          this.dataSource.forEach((item) => {
-            if (!entrySet.has(item.entry)) {
-              entrySet.add(item.entry);
-              uniqueEntries.push(item);
-            }
-          });
-
-          // 自动转义并生成xml文件
-          const itemDataList = [];
-          uniqueEntries.forEach((item) => {
-            // console.log(
-            //   "法国",
-            //   item,
-            //   this.exportModal.local_desc,
-            //   item[this.exportModal.local_desc]
-            // );
-            const itemData = {
-              abbr: item.entry != null ? item.entry : "",
-              cn_desc: item.chinese != null ? item.chinese : "",
-              en_desc: item.english != null ? item.english : "",
-              es_desc: item.spanish != null ? item.spanish : "",
-              ru_desc: item.russian != null ? item.russian : "",
-              local_desc:
-                item[this.exportModal.local_desc] != null
-                  ? item[this.exportModal.local_desc]
-                  : "",
-            };
-
-            // 装置部给领导看的临时版本
-            if (this.$currentDepartment.hasOwnProperty("xml_temp") &&
-              this.$currentDepartment.xml_temp
-            ) {
-              let abbr_tmp = itemData.abbr;
-              itemData.abbr = itemData.cn_desc;
-              itemData.cn_desc = abbr_tmp;
-            }
-
-            itemDataList.push(itemData);
-          });
-
           // 创建 XML 文档（指定版本和编码）
           // 基于xmlbuilder2包（更规范）
           const xml = create({ version: "1.0", encoding: "UTF-8" }).ele(
@@ -297,7 +361,7 @@ export default {
             { local_language: "0" }
           );
           // 遍历数据，为每个 item 生成 <ITEM> 子元素
-          itemDataList.forEach((item) => {
+          xmlItemDataList.forEach((item) => {
             // 添加 <ITEM> 子元素，并设置其属性（自动转义特殊字符）
             xml.ele("ITEM", {
               abbr: item.abbr, // 属性名合法（字母开头）
@@ -348,7 +412,7 @@ export default {
 
           // // 手动构建 XML 字符串
           // let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<DICT local_language="0">\n`;
-          // uniqueEntries.forEach((item) => {
+          // xmlItemDataList.forEach((item) => {
           //   // 赋值
           //   let abbr = item.entry != null ? item.entry : ""; // 装置部需求
           //   let cn_desc = item.chinese != null ? item.chinese : ""; // 装置部需求
@@ -492,6 +556,30 @@ export default {
         this.fileHandle = null; // 重置文件句柄
       }
     },
+    /**
+     * 下载 XML 导出中重复 abbr 的去重清单。
+     * @param {void} 无参数。
+     * @returns {void} 下载完成后结束。
+     */
+    downloadDuplicateAbbrs() {
+      const duplicateValues = this.xmlExportIssues?.duplicates.map(
+        ({ abbr }) => abbr
+      ) || [];
+      if (duplicateValues.length === 0) return;
+
+      const blob = new Blob([duplicateValues.join("\n")], {
+        type: "text/plain;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${this.exportModal.xml_name || "export"}_重复abbr.txt`;
+      link.style.display = "none";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    },
     // 保存文件
     async handleFileSave(blob, suggestedName, types, choosePath = true) {
       try {
@@ -532,8 +620,13 @@ export default {
     handleClose() {
       this.exportVisible = false;
     },
-    // 关闭模态框后
+    /**
+     * 重置已关闭弹窗的导出配置和异常信息。
+     * @param {void} 无参数。
+     * @returns {void} 重置完成后结束。
+     */
     afterClose() {
+      this.xmlExportIssues = null;
       this.exportModal = {
         exportType: null,
         field: [],
@@ -545,3 +638,10 @@ export default {
   },
 };
 </script>
+
+<style lang="less" scoped>
+.xml-export-issues-table {
+  max-height: 100px;
+  overflow: auto;
+}
+</style>
