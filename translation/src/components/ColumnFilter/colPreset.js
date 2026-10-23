@@ -12,6 +12,11 @@
  * @property {boolean} [visible] 是否可见，false 时默认不勾选
  * @property {boolean} [hidden] 是否隐藏，true 时该 preset 列列表不含此列；allCols 可标注默认 hidden，preset defaults/ovrd 可覆盖
  * @property {number} [width] 列宽度
+ * @property {number} [minWidth] 列最小宽度
+ * @property {string} [align] 单元格对齐方式
+ * @property {boolean} [resizable] 是否允许拖拽调整列宽
+ * @property {boolean} [adaptive] 是否参与表格剩余空间分配
+ * @property {string} [layout] 共享列宽语义档位，未设置时按 value 推断
  * @property {string} [fixed] 列固定
  * @property {string} [dataIndex] 列数据索引
  */
@@ -24,6 +29,11 @@
  * @property {boolean} [visible] 是否可见
  * @property {boolean} [hidden] 是否隐藏
  * @property {number} [width] 列宽度
+ * @property {number} [minWidth] 列最小宽度
+ * @property {string} [align] 单元格对齐方式
+ * @property {boolean} [resizable] 是否允许拖拽调整列宽
+ * @property {boolean} [adaptive] 是否参与表格剩余空间分配
+ * @property {string} [layout] 共享列宽语义档位，未设置时按 value 推断
  * @property {string} [fixed] 列固定
  * @property {string} [dataIndex] 列数据索引
  */

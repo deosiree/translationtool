@@ -104,7 +104,7 @@ describe('columnBuilder', () => {
     )
     const fluidStyle = fluid.customCell()
     const rigidStyle = rigid.customCell()
-    expect(fluidStyle.style.minWidth).toBe('200px')
+    expect(fluidStyle.style.minWidth).toBe('50px')
     expect(fluidStyle.style.maxWidth).toBeUndefined()
     expect(rigidStyle.style.minWidth).toBe('100px')
     expect(rigidStyle.style.maxWidth).toBe('100px')
@@ -125,7 +125,7 @@ describe('columnBuilder', () => {
     const entry = columns.find((c) => c.colValue === 'entry')
     const index = columns.find((c) => c.colValue === 'index')
     expect(entry.customCell().style.maxWidth).toBeUndefined()
-    expect(index.customCell().style.maxWidth).toBe('50px')
+    expect(index.customCell().style.maxWidth).toBe('56px')
   })
 
   it('buildTable 应解析动态 dataIndex 并排除当前语种列', () => {
@@ -184,10 +184,19 @@ describe('columnBuilder', () => {
     )
     expect(col.ellipsis).toEqual({ showTitle: false })
     expect(col.customCell().style).toEqual({
-      width: '50px',
-      minWidth: '50px',
-      maxWidth: '50px',
+      width: '56px',
+      minWidth: '56px',
+      maxWidth: '56px',
     })
+  })
+
+  it('buildCol 应按列定义允许序号列拖拽调整宽度', () => {
+    const col = buildCol(
+      { label: '序号', value: 'index', index: 0, resizable: true },
+      { pagination: { pageSize: 20, current: 1 } }
+    )
+
+    expect(col.resizable).toBe(true)
   })
 
   it('lockCellSize 下 customCell 应读取拖列后的 col.width', () => {
@@ -342,7 +351,7 @@ describe('columnTable', () => {
 
       const tagCol = vm.columns.find((c) => c.colValue === 'tag')
       expect(tagCol.ellipsis).toEqual({ showTitle: false })
-      expect(tagCol.customCell().style.width).toBe('100px')
+      expect(tagCol.customCell().style.width).toBe('128px')
     })
 
     it('fluidColValues 含 english 时新增英文列为流体（无 maxWidth）', () => {
@@ -371,7 +380,7 @@ describe('columnTable', () => {
       )
 
       const eng = vm.columns.find((c) => c.colValue === 'english')
-      expect(eng.customCell().style.minWidth).toBe('100px')
+      expect(eng.customCell().style.minWidth).toBe('50px')
       expect(eng.customCell().style.maxWidth).toBeUndefined()
     })
   })

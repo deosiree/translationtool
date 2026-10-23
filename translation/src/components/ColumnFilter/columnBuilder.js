@@ -3,6 +3,7 @@
  * @description 列定义 → Ant Design Table columns（单轨 buildCol）
  */
 import { resolvePresetCols, defaultSelectionFromCols } from "./colPreset.js";
+import { getColumnLayout } from "@/components/table/columnLayout.js";
 
 /**
  * 从 ctx 解析当前语种 transMap（工作台动态列）
@@ -71,11 +72,11 @@ export function applyFluidCellSize(col) {
   if (!col) return col;
   col.ellipsis = { showTitle: false };
   col.customCell = () => {
-    const w = toCssSize(col.width);
+    const w = toCssSize(col.minWidth ?? col.width);
     return { style: { minWidth: w } };
   };
   col.customHeaderCell = () => {
-    const w = toCssSize(col.width);
+    const w = toCssSize(col.minWidth ?? col.width);
     return { style: { minWidth: w } };
   };
   return col;
@@ -110,11 +111,14 @@ function applyCellSizeMode(col, colValue, lockCellSize, fluidColValues) {
 function buildIndexCol(def, ctx, lockCellSize = false, fluidColValues = null) {
   const pagination = ctx?.pagination || { pageSize: 20, current: 1 };
   const col = {
+    ...getColumnLayout("index"),
     title: def.label,
     dataIndex: "index",
     align: "center",
-    width: def.width ?? 50,
+    width: def.width ?? getColumnLayout("index").width,
     fixed: "left",
+    resizable: def.resizable ?? getColumnLayout("index").resizable,
+    adaptive: def.adaptive ?? getColumnLayout("index").adaptive,
     index: def.index,
     colValue: def.value,
     customRender: (text) =>
@@ -221,13 +225,17 @@ export function buildCol(
     return buildIndexCol(def, ctx, lockCellSize, fluidColValues);
   }
 
+  const layout = getColumnLayout(def.layout || def.value);
   const col = {
+    ...layout,
     title: def.label,
     dataIndex: resolveDataIndex(def, ctx),
-    align: "center",
-    width: def.width ?? normalWidth,
+    align: def.align ?? layout.align ?? "center",
+    width: def.width ?? layout.width ?? normalWidth,
+    minWidth: def.minWidth ?? layout.minWidth,
     ellipsis: true,
-    resizable: true,
+    resizable: def.resizable ?? layout.resizable ?? true,
+    adaptive: def.adaptive ?? layout.adaptive,
     index: def.index,
     colValue: def.value,
   };
@@ -280,6 +288,11 @@ export function buildTable(
     required: !!c.required,
     visible: c.visible,
     width: c.width,
+    minWidth: c.minWidth,
+    align: c.align,
+    resizable: c.resizable,
+    adaptive: c.adaptive,
+    layout: c.layout,
     fixed: c.fixed,
     ...(c.dataIndex ? { dataIndex: c.dataIndex } : {}),
   }));

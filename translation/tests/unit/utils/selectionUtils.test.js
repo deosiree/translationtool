@@ -6,8 +6,18 @@ import {
   onSelectAll,
   selectAllEntry,
   clearAllEntry,
-  mergeSelectedEntriesById
+  mergeSelectedEntriesById,
+  refreshSelectedEntriesById,
+  refreshTableSelectionById,
+  removeSelectedEntriesById,
+  syncTableSelectionById,
+  updateTableSelectionById,
+  getSelectionScopeRows,
+  getCurrentSelectionRows,
+  collectAllPages,
+  createSelectionOperationGuard,
 } from '@/utils/selectionUtils'
+import { partitionSubmittedRows } from '@/utils/batchUpdateResults.js'
 
 describe('selectionUtils - 表格选择/分页工具函数', () => {
   let mockVm
@@ -319,12 +329,315 @@ describe('selectionUtils - 表格选择/分页工具函数', () => {
       expect(merged).toEqual([{ id: 1, name: 'new' }])
     })
 
+    it('刷新已选行时只更新现有 ID，不额外选中新查询中的行', () => {
+      expect(refreshSelectedEntriesById(
+        [{ id: 1, name: 'old' }, { id: 2, name: 'keep' }],
+        [{ id: 1, name: 'new' }, { id: 3, name: 'not-selected' }]
+      )).toEqual([{ id: 1, name: 'new' }, { id: 2, name: 'keep' }])
+    })
+
+    it('刷新树形查询时更新选中子行对象并同步行键', () => {
+      const selectedChild = { id: 'child', value: 'old' }
+      const vm = {
+        selectedRows: [selectedChild, { id: 'outside', value: 'keep' }],
+        selectedRowKeys: ['child', 'outside'],
+      }
+
+      refreshTableSelectionById(vm, [{ id: 'parent', child: [{ id: 'child', value: 'new' }] }])
+
+      expect(vm.selectedRows).toEqual([
+        { id: 'child', value: 'new' },
+        { id: 'outside', value: 'keep' },
+      ])
+      expect(vm.selectedRowKeys).toEqual(['child', 'outside'])
+    })
+
     it('应忽略空数组与无 id 的项', () => {
       expect(mergeSelectedEntriesById(null, [{ id: 1 }])).toEqual([{ id: 1 }])
       expect(mergeSelectedEntriesById([{ id: 1 }, null, {}], [{ id: 2 }])).toEqual([
         { id: 1 },
         { id: 2 },
       ])
+    })
+  })
+
+  describe('跨页选择操作', () => {
+    it('优先使用完整缓存，初始状态回退当前数据源', () => {
+      expect(getSelectionScopeRows({
+        allData: [{ id: 'all' }],
+        dataSource: [{ id: 'page' }],
+      })).toEqual([{ id: 'all' }])
+      expect(getSelectionScopeRows({
+        allData: [],
+        dataSource: [{ id: 'page' }],
+      })).toEqual([{ id: 'page' }])
+    })
+    it('本地筛选时从完整缓存恢复对象并只选择当前筛选子集', () => {
+      const vm = {
+        allData: [
+          { id: 1, entry: '命中', isExist: 1 },
+          { id: 2, entry: '未命中', isExist: 0 },
+          { id: 3, entry: '命中', isExist: 1 },
+        ],
+        dataSource: [{ id: 1, entry: '旧对象', isExist: 1 }, { id: 3, entry: '命中', isExist: 1 }],
+        pagination: { total: 2 },
+        filters: { isExist: [1] },
+      }
+
+      expect(getCurrentSelectionRows(vm)).toEqual([
+        { id: 1, entry: '命中', isExist: 1 },
+        { id: 3, entry: '命中', isExist: 1 },
+      ])
+    })
+
+    it('远程分页没有完整缓存时保留当前页数据，不扩展到其他页', () => {
+      const vm = {
+        allData: [{ id: 1 }],
+        dataSource: [{ id: 1 }],
+        pagination: { total: 3 },
+        filters: null,
+      }
+
+      expect(getCurrentSelectionRows(vm)).toEqual([{ id: 1 }])
+    })
+    it('单行取勾只移除回调行并保留其他页选择', () => {
+      mockVm.selectedRows = [
+        { id: 1, name: '第一页' },
+        { id: 2, name: '第二页' },
+        { id: 3, name: '范围外' },
+      ]
+      mockVm.selectedRowKeys = [1, 2, 3]
+
+      updateTableSelectionById(mockVm, [{ id: 1 }], false)
+
+      expect(mockVm.selectedRowKeys).toEqual([2, 3])
+      expect(mockVm.selectedRows).toEqual([
+        { id: 2, name: '第二页' },
+        { id: 3, name: '范围外' },
+      ])
+    })
+
+    it('单行父级选择按树形语义同步子行', () => {
+      updateTableSelectionById(
+        mockVm,
+        [{ id: 10, children: [{ id: 11 }, { id: 12 }] }],
+        true,
+      )
+
+      expect(mockVm.selectedRowKeys).toEqual([10, 11, 12])
+    })
+
+    it('单行选择回调保留当前结果其他页和范围外的已选行', () => {
+      const outsideScope = { id: 'other-query', name: '范围外' }
+      const firstPageRow = { id: 'page-1', name: '旧对象' }
+      const secondPageRow = { id: 'page-2', name: '第二页' }
+      const refreshedFirstPageRow = { id: 'page-1', name: '新对象' }
+      mockVm.selectedRows = [outsideScope, firstPageRow, secondPageRow]
+      mockVm.selectedRowKeys = ['other-query', 'page-1', 'page-2']
+
+      syncTableSelectionById(
+        mockVm,
+        [refreshedFirstPageRow],
+        [firstPageRow, secondPageRow]
+      )
+
+      expect(mockVm.selectedRows).toEqual([outsideScope, refreshedFirstPageRow])
+      expect(mockVm.selectedRowKeys).toEqual(['other-query', 'page-1'])
+    })
+
+    it('按完整树范围同步单行选择且按 ID 去重', () => {
+      const parent = { id: 'parent', children: [{ id: 'child' }] }
+      mockVm.selectedRows = [{ id: 'outside' }, parent, { id: 'child' }]
+      mockVm.selectedRowKeys = ['outside', 'parent', 'child']
+
+      syncTableSelectionById(
+        mockVm,
+        [{ id: 'parent', children: [{ id: 'child' }] }, { id: 'child' }],
+        [parent]
+      )
+
+      expect(mockVm.selectedRowKeys).toEqual(['outside', 'parent', 'child'])
+      expect(mockVm.selectedRows.filter((row) => row.id === 'child')).toHaveLength(1)
+    })
+
+    it('按 pageSize 逐页收集完整结果', async () => {
+      const fetchPage = vi.fn(async (pageIndex, pageSize) => ({
+        data: {
+          totalNum: 5,
+          list: Array.from({ length: Math.min(pageSize, 5 - (pageIndex - 1) * pageSize) }, (_, index) => ({
+            id: (pageIndex - 1) * pageSize + index + 1,
+          })),
+        },
+      }))
+
+      const rows = await collectAllPages(fetchPage, 2)
+
+      expect(fetchPage.mock.calls).toEqual([[1, 2], [2, 2], [3, 2]])
+      expect(rows.map((row) => row.id)).toEqual([1, 2, 3, 4, 5])
+    })
+
+    it('当前收集操作失效后不再请求下一页且不返回部分结果', async () => {
+      let isCurrent = true
+      const fetchPage = vi.fn(async () => {
+        isCurrent = false
+        return { data: { totalNum: 3, list: [{ id: 1 }] } }
+      })
+
+      const rows = await collectAllPages(fetchPage, 2, () => isCurrent)
+
+      expect(fetchPage).toHaveBeenCalledTimes(1)
+      expect(rows).toEqual([])
+    })
+
+    it('分页请求失败时保留原始错误', async () => {
+      const failure = new Error('请求失败')
+      const fetchPage = vi.fn().mockRejectedValue(failure)
+
+      await expect(collectAllPages(fetchPage, 2)).rejects.toBe(failure)
+      expect(fetchPage).toHaveBeenCalledTimes(1)
+    })
+
+    it('后端实际页长小于请求页长时仍收齐 totalNum', async () => {
+      const total = 76
+      const responsePageSize = 20
+      const fetchPage = vi.fn(async (pageIndex, pageSize) => {
+        const effectivePageSize = Math.min(pageSize, responsePageSize)
+        const start = (pageIndex - 1) * effectivePageSize
+        return {
+          data: {
+            totalNum: total,
+            list: Array.from(
+              { length: Math.min(effectivePageSize, total - start) },
+              (_, index) => ({ id: start + index + 1 })
+            ),
+          },
+        }
+      })
+
+      const rows = await collectAllPages(fetchPage, 100)
+
+      expect(fetchPage.mock.calls).toEqual([
+        [1, 100],
+        [2, 20],
+        [3, 20],
+        [4, 20],
+      ])
+      expect(rows).toHaveLength(total)
+      expect(new Set(rows.map((row) => row.id)).size).toBe(total)
+    })
+
+    it('接口未返回 totalNum 时持续请求到不足一页', async () => {
+      const fetchPage = vi.fn(async (pageIndex) => ({
+        data: {
+          list: pageIndex < 3 ? [{ id: pageIndex * 2 - 1 }, { id: pageIndex * 2 }] : [],
+        },
+      }))
+
+      const rows = await collectAllPages(fetchPage, 2)
+
+      expect(fetchPage).toHaveBeenCalledTimes(3)
+      expect(rows.map((row) => row.id)).toEqual([1, 2, 3, 4])
+    })
+
+    it('取勾当前范围完整结果时保留其他范围的已选行', () => {
+      expect(removeSelectedEntriesById(
+        [{ id: 1 }, { id: 2 }, { id: 3 }],
+        [{ id: 2 }]
+      )).toEqual([{ id: 1 }, { id: 3 }])
+    })
+
+    it('父级全选请求期间，较新的子行操作覆盖同 ID 结果', () => {
+      const guard = createSelectionOperationGuard()
+      const operation = guard.begin('todo-tree-query', true)
+      guard.record(2, false)
+
+      expect(guard.project(2, 'todo-tree-query', false)).toBe(false)
+      expect(guard.project(3, 'todo-tree-query', false)).toBe(true)
+      expect(guard.resolve(operation, [{ id: 1 }, { id: 2 }, { id: 3 }], [], 'todo-tree-query'))
+        .toEqual([{ id: 1 }, { id: 3 }])
+    })
+
+    it('父级全选期间对子项和兄弟项的最后操作分别生效', () => {
+      const guard = createSelectionOperationGuard()
+      const operation = guard.begin('parent-query', true)
+      guard.record('child-a', false)
+      guard.record('child-b', true)
+      const currentRows = [{ id: 'child-b' }]
+
+      const selectedRows = guard.resolve(
+        operation,
+        [
+          { id: 'parent' },
+          { id: 'child-a' },
+          { id: 'child-b' },
+          { id: 'sibling' },
+        ],
+        currentRows,
+        'parent-query'
+      )
+
+      expect(selectedRows.map((row) => row.id).sort()).toEqual(['child-b', 'parent', 'sibling'])
+    })
+
+    it('全选与取勾响应逆序时仍按最后操作优先且不重复 ID', () => {
+      const guard = createSelectionOperationGuard()
+      const select = guard.begin('query', true)
+      const deselect = guard.begin('query', false)
+
+      const afterDeselect = guard.resolve(deselect, [{ id: 1 }, { id: 2 }], [], 'query')
+      const afterSelect = guard.resolve(select, [{ id: 1 }, { id: 2 }], afterDeselect, 'query')
+
+      expect(afterSelect).toEqual([])
+    })
+
+    it('失败或查询范围失效时不应用临时投影和迟到结果', () => {
+      const guard = createSelectionOperationGuard()
+      const failed = guard.begin('query-a', true)
+      expect(guard.project(1, 'query-a', false)).toBe(true)
+      guard.reject(failed)
+      expect(guard.project(1, 'query-a', false)).toBe(false)
+
+      const stale = guard.begin('query-a', true)
+      expect(guard.isCurrent(stale, 'query-a')).toBe(true)
+      guard.invalidate()
+      expect(guard.isCurrent(stale, 'query-b')).toBe(false)
+      expect(guard.resolve(stale, [{ id: 1 }], [], 'query-b')).toEqual([])
+    })
+  })
+
+  describe('批量保存结果映射', () => {
+    it('逐条结果只返回成功行，失败行保留原提交对象', () => {
+      const submitted = [
+        { id: 'ok', value: 'new' },
+        { id: 'failed', value: 'edited' },
+      ]
+      const result = partitionSubmittedRows(submitted, {
+        code: 203,
+        data: {
+          totalNum: 1,
+          list: [
+            { id: 'ok', success: true },
+            { id: 'failed', success: false, message: '校验失败' },
+          ],
+        },
+      })
+
+      expect(result.successRows).toEqual([submitted[0]])
+      expect(result.failedRows).toEqual([submitted[1]])
+      expect(result.successCount).toBe(1)
+      expect(result.failedCount).toBe(1)
+    })
+
+    it('兼容旧版只返回失败行的响应', () => {
+      const submitted = [{ id: 'ok' }, { id: 'failed' }]
+      const result = partitionSubmittedRows(submitted, {
+        code: 200,
+        data: { totalNum: 1, list: [{ id: 'failed' }] },
+      })
+
+      expect(result.successRows).toEqual([{ id: 'ok' }])
+      expect(result.failedRows).toEqual([{ id: 'failed' }])
+      expect(result.failedCount).toBe(1)
     })
   })
 })

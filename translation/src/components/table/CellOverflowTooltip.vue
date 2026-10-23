@@ -50,9 +50,17 @@ export default {
     getPopupContainer() {
       return document.body;
     },
+    /**
+     * 根据提示容器或其内部文本节点的溢出状态决定是否显示完整文本。
+     * @param {MouseEvent} event - 当前提示文本节点的鼠标进入事件。
+     * @returns {void} 更新 Tooltip 显示状态。
+     */
     onMouseEnter(event) {
       const el = event.currentTarget;
-      this.isOverflow = Boolean(this.tooltipContent) && isTextOverflow(el);
+      const contentEl = el.firstElementChild || el;
+      this.isOverflow =
+        Boolean(this.tooltipContent) &&
+        (isTextOverflow(el) || isTextOverflow(contentEl));
     },
     onMouseLeave() {
       this.isOverflow = false;
