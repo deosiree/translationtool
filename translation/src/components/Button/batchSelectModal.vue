@@ -117,13 +117,18 @@ export default {
     },
   },
   methods: {
-    // 移除某条已选词条（每行最右边的按钮
+    /**
+     * 从已选词条列表移除一条记录，并同步行键和已选行。
+     * @param {Object} record - 要移除的词条。
+     * @returns {void} 无返回值。
+     */
     remove(record) {
       const newDataSource = this.dataSource.filter((item) => {
         return item.id != record.id;
       });
       const newSelectedRowKeys = this.selectedRowKeys.filter((item) => {
-        return item.id != record.id;
+        const id = item && typeof item === "object" ? item.id : item;
+        return id != record.id;
       });
       const newSelectedRows = this.selectedRows.filter((item) => {
         return item.id != record.id;
