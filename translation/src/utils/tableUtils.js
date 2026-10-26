@@ -60,7 +60,13 @@ export function handleTableChange(pagination, filters, vm) {
 }
 
 /**
- * 动态设置表格高度
+ * 根据页面、查询区及工具栏尺寸动态设置表格高度。
+ * @param {Object} vm - 当前 Vue 页面实例。
+ * @param {number} buttonHeightBias - 工具栏额外高度偏移。
+ * @param {number} tableHeightBias - 表格可视高度偏移。
+ * @param {number} dataHeightBias - DataBox 高度偏移。
+ * @param {{ ok: boolean, h: number }} hasboxHeight - 是否使用指定的容器高度。
+ * @returns {void} 在下一轮渲染后更新页面高度状态。
  */
 export function setTableHeight(
   vm,
@@ -81,11 +87,9 @@ export function setTableHeight(
       vm.$refs.operationArea?.$el?.offsetHeight ?? 0;
     vm.dataHeight = box - searchHeight - dataHeightBias - operationAreaHeight;
 
-    let buttonHeight = 0;
-    try {
-      buttonHeight =
-        vm.$refs.button?.offsetHeight + buttonHeightBias ?? buttonHeightBias;
-    } catch (error) {}
+    const buttonRef = vm.$refs.button;
+    const buttonElement = buttonRef?.$el ?? buttonRef;
+    const buttonHeight = (buttonElement?.offsetHeight ?? 0) + buttonHeightBias;
     vm.tableHeight.y = vm.dataHeight - buttonHeight - tableHeightBias;
   });
 }
