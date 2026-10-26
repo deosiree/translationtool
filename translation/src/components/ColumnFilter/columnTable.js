@@ -149,14 +149,11 @@ export function changeColumn(
       return;
     }
     if (nowColumnIndex === -1 && checkedIndex !== -1) {
-      const pref = vm.$columnFilterPref || {};
       const newCol = buildCol(
         def,
         vm.colBuildCtx,
         normalWidth,
-        needFilter,
-        !!pref.lockCellSize,
-        pref.fluidColValues || null
+        needFilter
       );
       vm.columns.splice(-1, 0, newCol);
     }
@@ -226,8 +223,6 @@ export function getColPref(
  * @param {number} [options.normalWidth=100] 默认列宽
  * @param {boolean} [options.needFilter=false] 是否启用列头筛选
  * @param {Function} [options.filterCols] 二次过滤 columnSettingsList 的函数
- * @param {boolean} [options.lockCellSize=false] 是否锁定单元格宽并关闭原生 title
- * @param {string[]} [options.fluidColValues] 流体列 value（仅 minWidth，可随表变宽）
  */
 export function applyTable(vm, options) {
   const {
@@ -238,8 +233,6 @@ export function applyTable(vm, options) {
     normalWidth = 100,
     needFilter = false,
     filterCols = null,
-    lockCellSize = false,
-    fluidColValues = null,
   } = options;
 
   vm.colBuildCtx = ctx;
@@ -249,9 +242,7 @@ export function applyTable(vm, options) {
     ctx,
     normalWidth,
     needFilter,
-    filterCols,
-    lockCellSize,
-    fluidColValues
+    filterCols
   );
   vm.columnSettingsList = columnSettingsList;
   vm.columns = columns;
@@ -259,8 +250,6 @@ export function applyTable(vm, options) {
     colPrefName,
     normalWidth,
     needFilter,
-    lockCellSize,
-    fluidColValues,
   };
   getColPref(colPrefName, normalWidth, vm, needFilter, columnSettingsList);
 }

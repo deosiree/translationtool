@@ -28,8 +28,6 @@ export {
   buildCol,
   buildTable,
   filterWbColsForCtx,
-  applyLockCellSize,
-  applyFluidCellSize,
 } from "./columnBuilder.js";
 export {
   mergeColumnSelection,

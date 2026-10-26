@@ -4,6 +4,7 @@
  */
 import { resolvePresetCols, defaultSelectionFromCols } from "./colPreset.js";
 import { getColumnLayout } from "@/components/table/columnLayout.js";
+import { getIsExistLabel } from "@/constants/statusMaps.js";
 
 /**
  * 从 ctx 解析当前语种 transMap（工作台动态列）
@@ -35,80 +36,12 @@ function resolveDataIndex(def, ctx) {
 }
 
 /**
- * 将列宽转为 CSS 尺寸（数字补 px）
- * @param {number|string|undefined} width
- * @returns {string|undefined}
- */
-function toCssSize(width) {
-  if (width == null || width === "") return undefined;
-  return typeof width === "number" ? `${width}px` : String(width);
-}
-
-/**
- * 锁定单元格 width/min-width/max-width，并关闭原生 title
- * @param {Object} col Ant Table 列配置
- * @returns {Object}
- */
-export function applyLockCellSize(col) {
-  if (!col) return col;
-  col.ellipsis = { showTitle: false };
-  col.customCell = () => {
-    const w = toCssSize(col.width);
-    return { style: { width: w, minWidth: w, maxWidth: w } };
-  };
-  col.customHeaderCell = () => {
-    const w = toCssSize(col.width);
-    return { style: { width: w, minWidth: w, maxWidth: w } };
-  };
-  return col;
-}
-
-/**
- * 流体列：只锁 minWidth（取 col.width），不设 maxWidth，随表宽扩展
- * @param {Object} col Ant Table 列配置
- * @returns {Object}
- */
-export function applyFluidCellSize(col) {
-  if (!col) return col;
-  col.ellipsis = { showTitle: false };
-  col.customCell = () => {
-    const w = toCssSize(col.minWidth ?? col.width);
-    return { style: { minWidth: w } };
-  };
-  col.customHeaderCell = () => {
-    const w = toCssSize(col.minWidth ?? col.width);
-    return { style: { minWidth: w } };
-  };
-  return col;
-}
-
-/**
- * lockCellSize 时按 fluid 集合选择锁死或流体
- * @param {Object} col
- * @param {string} colValue 逻辑 value（def.value）
- * @param {boolean} lockCellSize
- * @param {string[]|Set<string>|null} fluidColValues
- * @returns {Object}
- */
-function applyCellSizeMode(col, colValue, lockCellSize, fluidColValues) {
-  if (!lockCellSize) return col;
-  const fluidSet =
-    fluidColValues instanceof Set
-      ? fluidColValues
-      : new Set(fluidColValues || []);
-  if (fluidSet.has(colValue)) return applyFluidCellSize(col);
-  return applyLockCellSize(col);
-}
-
-/**
  * 构建序号列（含分页偏移的 customRender）
  * @param {import('./colPreset.js').ColDef} def 列定义
  * @param {Object} ctx 含 pagination 的上下文
- * @param {boolean} [lockCellSize=false] 是否锁定单元格宽
- * @param {string[]|Set<string>|null} [fluidColValues=null] 流体列 value 集合
  * @returns {Object} Ant Table 列配置
  */
-function buildIndexCol(def, ctx, lockCellSize = false, fluidColValues = null) {
+function buildIndexCol(def, ctx) {
   const pagination = ctx?.pagination || { pageSize: 20, current: 1 };
   const col = {
     ...getColumnLayout("index"),
@@ -124,7 +57,7 @@ function buildIndexCol(def, ctx, lockCellSize = false, fluidColValues = null) {
     customRender: (text) =>
       text.index + 1 + pagination.pageSize * (pagination.current - 1),
   };
-  return applyCellSizeMode(col, def.value, lockCellSize, fluidColValues);
+  return col;
 }
 
 /**
@@ -189,8 +122,8 @@ function applyValueBehaviors(col, def, needFilter) {
   if (v === "isExist") {
     col.filteredValue = null;
     col.filters = [
-      { text: "已存在", value: 1 },
-      { text: "新建", value: 0 },
+      { text: getIsExistLabel(1), value: 1 },
+      { text: getIsExistLabel(0), value: 0 },
     ];
     col.onFilter = (value, record) => record.isExist === value;
   }
@@ -209,20 +142,16 @@ function applyValueBehaviors(col, def, needFilter) {
  * @param {Object} ctx buildCol 上下文
  * @param {number} [normalWidth=100] 默认列宽
  * @param {boolean} [needFilter=false] 是否启用列头筛选
- * @param {boolean} [lockCellSize=false] 是否锁定单元格宽并关闭原生 title
- * @param {string[]|Set<string>|null} [fluidColValues=null] 流体列 value（仅 minWidth）
  * @returns {Object} Ant Table 列配置（含 colValue）
  */
 export function buildCol(
   def,
   ctx,
   normalWidth = 100,
-  needFilter = false,
-  lockCellSize = false,
-  fluidColValues = null
+  needFilter = false
 ) {
   if (def.value === "index") {
-    return buildIndexCol(def, ctx, lockCellSize, fluidColValues);
+    return buildIndexCol(def, ctx);
   }
 
   const layout = getColumnLayout(def.layout || def.value);
@@ -241,7 +170,7 @@ export function buildCol(
   };
 
   applyValueBehaviors(col, def, needFilter);
-  return applyCellSizeMode(col, def.value, lockCellSize, fluidColValues);
+  return col;
 }
 
 /**
@@ -264,8 +193,6 @@ export function filterWbColsForCtx(cols, ctx) {
  * @param {number} [normalWidth=100] 默认列宽
  * @param {boolean} [needFilter=false] 是否启用列头筛选
  * @param {Function|null} [filterCols] 二次过滤函数 (resolvedCols, ctx) => cols
- * @param {boolean} [lockCellSize=false] 是否锁定单元格宽并关闭原生 title
- * @param {string[]|Set<string>|null} [fluidColValues=null] 流体列 value
  * @returns {{ columnSettingsList: Array, columns: Array }}
  */
 export function buildTable(
@@ -274,9 +201,7 @@ export function buildTable(
   ctx,
   normalWidth = 100,
   needFilter = false,
-  filterCols = null,
-  lockCellSize = false,
-  fluidColValues = null
+  filterCols = null
 ) {
   const resolved = resolvePresetCols(preset, allCols);
   const filtered = filterCols ? filterCols(resolved, ctx) : resolved;
@@ -303,7 +228,7 @@ export function buildTable(
     .map((v) => defMap.get(v))
     .filter(Boolean)
     .map((def) =>
-      buildCol(def, ctx, normalWidth, needFilter, lockCellSize, fluidColValues)
+      buildCol(def, ctx, normalWidth, needFilter)
     )
     .sort((a, b) => a.index - b.index);
 

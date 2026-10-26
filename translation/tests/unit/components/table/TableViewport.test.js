@@ -2,12 +2,31 @@ import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { nextTick } from "vue";
 import TableViewport from "@/components/table/TableViewport.vue";
+import { Table as AntTable } from "ant-design-vue";
 
 const tableStub = {
   name: "ATable",
   props: ["scroll", "columns", "dataSource", "pagination", "rowSelection"],
   template: '<div class="table-wrapper-stub"><div class="ant-table-content"><table><thead><tr><th>标题</th></tr></thead><tbody><tr class="ant-table-placeholder"><td><div class="ant-empty">原生空态</div></td></tr></tbody></table></div><slot name="bodyCell" /></div>',
 };
+
+/**
+ * 在共享视口上模拟一次真实的 resize 手势。
+ * @param {Object} wrapper TableViewport 测试包装器。
+ * @param {Object} column 待调整列。
+ * @param {number} width Ant Table 回调返回的目标宽度。
+ * @returns {void} 无返回值。
+ */
+function resizeColumn(wrapper, column, width) {
+  const header = {};
+  const handle = {
+    closest: (selector) => (selector === ".ant-table-resize-handle" ? handle : header),
+  };
+  wrapper.vm.onResizeStart({ button: 0, clientX: 100, clientY: 0, target: handle });
+  wrapper.vm.onResizeMove({ clientX: 110, clientY: 0 });
+  wrapper.vm.handleResizeColumn(width, column);
+  wrapper.vm.onResizeEnd();
+}
 
 function mountViewport(props = {}, options = {}) {
   return mount(TableViewport, {
@@ -20,6 +39,42 @@ function mountViewport(props = {}, options = {}) {
 }
 
 describe("TableViewport", () => {
+  it("真实 Ant Table resize handle 会触发共享回调", async () => {
+    window.matchMedia = window.matchMedia || (() => ({
+      matches: false,
+      addListener() {},
+      removeListener() {},
+      addEventListener() {},
+      removeEventListener() {},
+    }));
+    const wrapper = mount(TableViewport, {
+      props: {
+        columns: [{ title: "词条", dataIndex: "entry", width: 220, resizable: true }],
+        dataSource: [{ key: "1", entry: "text" }],
+        pagination: false,
+      },
+      global: {
+        components: { ATable: AntTable },
+        stubs: { "a-table": false, "a-spin": false },
+      },
+    });
+    await nextTick();
+    const handle = wrapper.find(".ant-table-resize-handle");
+    expect(handle.exists()).toBe(true);
+    const rect = { width: 220, height: 20, top: 0, left: 0, right: 220, bottom: 20 };
+    handle.element.parentNode.getBoundingClientRect = () => rect;
+    const downEvent = new MouseEvent("mousedown", { bubbles: true, button: 0, clientX: 100 });
+    Object.defineProperty(downEvent, "which", { value: 1 });
+    Object.defineProperty(downEvent, "pageX", { value: 100 });
+    handle.element.dispatchEvent(downEvent);
+    document.documentElement.dispatchEvent(new MouseEvent("mousemove", { bubbles: true, clientX: 120, pageX: 120 }));
+    await nextTick();
+    document.documentElement.dispatchEvent(new MouseEvent("mouseup", { bubbles: true, clientX: 120, pageX: 120 }));
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    await nextTick();
+    expect(wrapper.vm.tableLayoutState.manualWidths.get("entry")).toBe(240);
+    wrapper.unmount();
+  });
   it("只向 Ant Table 传递横向滚动配置", () => {
     const wrapper = mountViewport({
       scroll: { x: "max-content", y: 400 },
@@ -105,11 +160,51 @@ describe("TableViewport", () => {
     await nextTick();
 
     expect(wrapper.vm.resolvedColumns[1].width).toBe(452);
-    wrapper.vm.handleResizeColumn(50, wrapper.vm.resolvedColumns[1]);
+    expect(wrapper.vm.tableScroll).toEqual({ x: 600 });
+    await wrapper.vm.$forceUpdate();
+    await nextTick();
+    expect(wrapper.findComponent({ name: "ATable" }).props("scroll")).toEqual({
+      x: 600,
+    });
+    resizeColumn(wrapper, wrapper.vm.resolvedColumns[1], 50);
     await nextTick();
 
     expect(wrapper.vm.resolvedColumns[1].width).toBe(50);
-    expect(wrapper.vm.resolvedColumns[1].customCell({}).style.minWidth).toBe("50px");
+    expect(wrapper.vm.resolvedColumns[1].customCell({}).style).toMatchObject({
+      width: "50px",
+      minWidth: "50px",
+      maxWidth: "50px",
+    });
+  });
+
+  /**
+   * 验证视口不足时自适应列保持原有固定尺寸回调。
+   * @returns {Promise<void>} 断言完成。
+   */
+  it("视口不足时不把自适应列改成流体列", async () => {
+    const customCell = () => ({
+      style: { width: "260px", minWidth: "260px", maxWidth: "260px" },
+    });
+    const wrapper = mountViewport({
+      columns: [
+        { title: "序号", dataIndex: "index", width: 100 },
+        { title: "翻译", dataIndex: "english", width: 260, customCell },
+      ],
+      adaptiveColumnKeys: ["english"],
+      rowSelection: {},
+    });
+    Object.defineProperty(wrapper.find(".ant-table-content").element, "clientWidth", {
+      configurable: true,
+      value: 400,
+    });
+    wrapper.vm.syncMetrics();
+    await nextTick();
+
+    expect(wrapper.vm.resolvedColumns[1].width).toBe(260);
+    expect(wrapper.vm.resolvedColumns[1].customCell({}).style.width).toBe("260px");
+    expect(wrapper.findComponent({ name: "ATable" }).props("scroll")).toEqual({
+      x: 408,
+    });
   });
 
   it("只从显式 adaptive 列配置推导自适应列", async () => {
@@ -175,6 +270,39 @@ describe("TableViewport", () => {
     expect(wrapper.find(".table-overlay-scrollbar-horizontal").exists()).toBe(true);
     expect(wrapper.vm.metrics.scrollTop).toBe(40);
     expect(wrapper.vm.metrics.scrollLeft).toBe(20);
+  });
+
+  /**
+   * 验证布局键变化会清理手动宽度并将表格滚动回最左侧。
+   * @returns {Promise<void>} 断言完成。
+   */
+  it("列布局重建后恢复默认宽度和最左侧滚动位置", async () => {
+    const wrapper = mountViewport({
+      layoutKey: "task-a:0",
+      columns: [{ title: "词条", dataIndex: "entry", width: 220 }],
+      adaptiveColumnKeys: ["entry"],
+      scroll: { x: "max-content" },
+    });
+    const target = wrapper.find(".ant-table-content").element;
+    Object.defineProperties(target, {
+      scrollLeft: { configurable: true, writable: true, value: 32 },
+      scrollWidth: { configurable: true, value: 600 },
+      clientWidth: { configurable: true, value: 200 },
+      scrollHeight: { configurable: true, value: 100 },
+      clientHeight: { configurable: true, value: 100 },
+    });
+    wrapper.vm.scrollTarget = target;
+    wrapper.vm.syncMetrics();
+    resizeColumn(wrapper, wrapper.vm.resolvedColumns[0], 360);
+    expect(wrapper.vm.tableLayoutState.manualWidths.get("entry")).toBe(360);
+
+    await wrapper.setProps({ layoutKey: "task-b:1" });
+    await nextTick();
+
+    expect(wrapper.vm.tableLayoutState.manualWidths.size).toBe(0);
+    expect(target.scrollLeft).toBe(0);
+    expect(wrapper.vm.metrics.scrollLeft).toBe(0);
+    expect(wrapper.vm.resolvedColumns[0].width).toBe(220);
   });
 
   it("滚动时显示覆盖滚动条并按内容区定位轨道", async () => {

@@ -4,11 +4,14 @@
     class="table-viewport"
     :class="{
       'table-viewport-dragging': dragging,
+      'table-viewport--resizing': resizing,
       'table-viewport-scrolling': scrolling,
       'table-viewport-empty': showEmptyOverlay,
       'table-viewport-fill-height': fillHeight,
     }"
     :style="viewportStyle"
+    @mousedown.capture="onResizeStart"
+    @click.capture="onHeaderClickCapture"
   >
     <a-table
       ref="table"
@@ -16,6 +19,7 @@
       :class="{ 'table-native-empty-hidden': showEmptyOverlay }"
       :columns="resolvedColumns"
       :scroll="tableScroll"
+      :table-layout="tableLayout"
       @resize-column="handleResizeColumn"
     >
       <template v-for="(_, slotName) in tableSlots" #[slotName]="slotProps">
@@ -61,7 +65,7 @@
 </template>
 
 <script>
-import { useAdaptiveColumnWidths } from "./useAdaptiveColumnWidths";
+import { useTableColumnLayout } from "./useTableColumnLayout";
 import { getAdaptiveColumnKeys, getColumnLayout } from "./columnLayout";
 
 const TABLE_HEADER_HEIGHT = 40;
@@ -69,11 +73,13 @@ const TABLE_PAGINATION_HEIGHT = 48;
 const DEFAULT_ADAPTIVE_COLUMN_WIDTH = 220;
 
 /**
- * 将 Ant Table 的滚动参数转换为仅包含横向滚动的参数。
+ * 将 Ant Table 的滚动参数转换为共享布局计算后的横向滚动宽度。
  * @param {Object|undefined} scroll - 调用方传入的滚动配置。
+ * @param {number|undefined} tableWidth 共享布局计算后的表格总宽度。
  * @returns {Object|undefined} 传递给 Ant Table 的滚动配置。
  */
-function getTableScroll(scroll) {
+function getTableScroll(scroll, tableWidth) {
+  if (tableWidth > 0) return { x: tableWidth };
   if (!scroll || scroll.x == null) return undefined;
   return { x: scroll.x };
 }
@@ -133,22 +139,6 @@ function flattenColumns(columns) {
   );
 }
 
-/**
- * 覆盖自适应列的固定尺寸回调，避免原列配置锁死拖拽最小宽度。
- * @param {Function|undefined} original 原列尺寸回调。
- * @returns {Function} 仅保留最小宽度的尺寸回调。
- */
-function createFluidCellSize(original) {
-  return (...args) => {
-    const cell = original?.(...args) || {};
-    const style = { ...(cell.style || {}) };
-    delete style.width;
-    delete style.minWidth;
-    delete style.maxWidth;
-    return { ...cell, style: { ...style, minWidth: "50px", maxWidth: "none" } };
-  };
-}
-
 export default {
   name: "TableViewport",
   inheritAttrs: false,
@@ -164,6 +154,10 @@ export default {
     columns: {
       type: Array,
       default: () => [],
+    },
+    layoutKey: {
+      type: [String, Number],
+      default: null,
     },
     adaptiveColumnKeys: {
       type: Array,
@@ -201,12 +195,12 @@ export default {
       scrollTarget: null,
       resizeObserver: null,
       dragging: false,
+      resizing: false,
       scrolling: false,
       dragState: null,
       scrollbarTimer: null,
       adaptiveWidthRevision: 0,
-      baseColumnWidths: {},
-      adaptiveWidthState: useAdaptiveColumnWidths(),
+      tableLayoutState: useTableColumnLayout(),
       metrics: {
         scrollTop: 0,
         scrollLeft: 0,
@@ -252,14 +246,31 @@ export default {
      * @returns {Object|undefined} 表格横向滚动配置。
      */
     tableScroll() {
-      return getTableScroll(this.scroll);
+      this.metrics.clientWidth;
+      return getTableScroll(this.scroll, this.resolvedLayout?.tableWidth);
     },
     /**
-     * 根据可用表格宽度解析长文本列宽，并保持其他列定义不变。
-     * @returns {Array} 传递给 Ant Table 的列定义。
+     * 受共享列宽管理的表格固定使用 fixed 布局，避免文本反向撑开列。
+     * @returns {string|undefined} Ant Table 的 table-layout 值。
      */
-    resolvedColumns() {
+    tableLayout() {
+      return this.isManagedLayout ? "fixed" : this.$attrs.tableLayout ?? this.$attrs["table-layout"];
+    },
+    /**
+     * 判断当前表格是否需要统一管理列宽。
+     * @returns {boolean} 是否启用了共享列布局。
+     */
+    isManagedLayout() {
+      return flattenColumns(this.columns).some((column) => getColumnKey(column));
+    },
+    /**
+     * 解析本次渲染所需的列宽、总宽度和自适应状态。
+     * @returns {{columns: Array, adaptiveKeys: Set<string>, widths: Object<string, number>, tableWidth: number, distributing: boolean}|null} 布局解析结果。
+     */
+    resolvedLayout() {
       this.adaptiveWidthRevision;
+      if (!this.isManagedLayout) return null;
+
       const leaves = flattenColumns(this.columns);
       const requestedKeys = new Set(this.adaptiveColumnKeys.map(String));
       if (requestedKeys.size === 0 && this.adaptiveColumns) {
@@ -267,13 +278,10 @@ export default {
         if (requestedKeys.size === 0) {
           leaves.forEach((column) => {
             const key = getColumnKey(column);
-            if (key && getColumnLayout(key).adaptive) {
-              requestedKeys.add(key);
-            }
+            if (key && getColumnLayout(key).adaptive) requestedKeys.add(key);
           });
         }
       }
-      if (requestedKeys.size === 0) return this.columns;
 
       const adaptiveKeys = new Set();
       const widthColumns = leaves.map((column) => {
@@ -281,12 +289,11 @@ export default {
         if (!key) return null;
         const matches = [column.colValue, column.dataIndex, column.key]
           .some((value) => value != null && requestedKeys.has(String(value)));
-        const baseWidth = this.getBaseColumnWidth(column, key);
         if (matches) adaptiveKeys.add(key);
         return {
           colValue: key,
-          width: baseWidth,
-          minWidth: matches ? 50 : column.minWidth,
+          width: this.getBaseColumnWidth(column, key),
+          minWidth: column.minWidth,
         };
       }).filter(Boolean);
 
@@ -294,13 +301,30 @@ export default {
       const rowSelectionWidth = rowSelection
         ? Number.parseFloat(rowSelection.columnWidth) || 48
         : 0;
-      const widths = this.adaptiveWidthState.resolve(
-        this.metrics.clientWidth || this.$el?.clientWidth || 0,
-        widthColumns,
-        Array.from(adaptiveKeys),
-        this.reservedWidth + rowSelectionWidth
+      const layout = this.tableLayoutState.resolve({
+        viewportWidth: this.metrics.clientWidth || this.$el?.clientWidth || 0,
+        columns: widthColumns,
+        adaptiveKeys: Array.from(adaptiveKeys),
+        reservedWidth: this.reservedWidth + rowSelectionWidth,
+        adaptiveBaseWidth: this.adaptiveBaseWidth,
+      });
+      return {
+        columns: widthColumns,
+        adaptiveKeys,
+        ...layout,
+      };
+    },
+    /**
+     * 根据可用表格宽度解析长文本列宽，并保持其他列定义不变。
+     * @returns {Array} 传递给 Ant Table 的列定义。
+     */
+    resolvedColumns() {
+      if (!this.resolvedLayout) return this.columns;
+      return this.tableLayoutState.applyFixedWidths(
+        this.columns,
+        this.resolvedLayout.widths,
+        getColumnKey
       );
-      return this.applyResolvedWidths(this.columns, widths, adaptiveKeys);
     },
     /**
      * 返回视口高度 CSS 变量。
@@ -425,10 +449,43 @@ export default {
    */
   beforeUnmount() {
     this.unbindScrollTarget();
+    this.onResizeEnd();
+    this.tableLayoutState.reset();
     this.stopDrag();
     clearTimeout(this.scrollbarTimer);
   },
+  watch: {
+    /**
+     * 在调用方重建列布局时丢弃上一布局的拖拽宽度和横向偏移。
+     * @param {string|number|null} newKey - 当前布局标识。
+     * @param {string|number|null} oldKey - 上一个布局标识。
+     * @returns {void} 无返回值。
+     */
+    layoutKey(newKey, oldKey) {
+      if (newKey === oldKey) return;
+      this.resetColumnLayout();
+    },
+  },
   methods: {
+    /**
+     * 清空上一套列配置的缓存，并在渲染完成后回到表格最左侧。
+     * @returns {void} 无返回值。
+     */
+    resetColumnLayout() {
+      this.tableLayoutState.reset();
+      this.adaptiveWidthRevision += 1;
+      this.$nextTick(() => this.resetHorizontalScroll());
+    },
+    /**
+     * 将共享表格内容区的横向滚动位置归零并同步覆盖滚动条状态。
+     * @returns {void} 无返回值。
+     */
+    resetHorizontalScroll() {
+      this.bindScrollTarget();
+      if (!this.scrollTarget) return;
+      this.scrollTarget.scrollLeft = 0;
+      this.syncMetrics();
+    },
     /**
      * 保留每列初始宽度作为后续自适应分配的基准。
      * @param {Object} column Ant Table 列定义。
@@ -436,54 +493,20 @@ export default {
      * @returns {number} 列基准宽度。
      */
     getBaseColumnWidth(column, key) {
-      if (this.baseColumnWidths[key] == null) {
-        const semanticLayout = getColumnLayout(key);
-        const width =
-          this.adaptiveColumns &&
-          column.adaptive !== true &&
-          column.adaptive !== false &&
-          semanticLayout.adaptive
-            ? semanticLayout.width
-            : Number.parseFloat(column.width ?? semanticLayout.width);
-        this.baseColumnWidths[key] = Number.isFinite(width) && width > 0
-          ? width
-          : this.adaptiveBaseWidth;
-      }
-      return this.baseColumnWidths[key];
+      const semanticLayout = getColumnLayout(key);
+      const width =
+        this.adaptiveColumns &&
+        column.adaptive !== true &&
+        column.adaptive !== false &&
+        semanticLayout.adaptive
+          ? semanticLayout.width
+          : Number.parseFloat(column.width ?? semanticLayout.width);
+      return Number.isFinite(width) && width > 0
+        ? width
+        : this.adaptiveBaseWidth;
     },
     /**
-     * 将已解析宽度应用到列副本，允许自适应列收窄至 50px。
-     * @param {Array} columns 原 Ant Table 列定义。
-     * @param {Object<string, number>} widths 按列标识索引的解析宽度。
-     * @param {Set<string>} adaptiveKeys 自适应列标识。
-     * @returns {Array} 更新宽度后的列定义。
-     */
-    applyResolvedWidths(columns, widths, adaptiveKeys) {
-      return (columns || []).map((column) => {
-        if (column.children?.length) {
-          return {
-            ...column,
-            children: this.applyResolvedWidths(column.children, widths, adaptiveKeys),
-          };
-        }
-        const key = getColumnKey(column);
-        if (!key || widths[key] == null) return column;
-        const adaptive = adaptiveKeys.has(key);
-        return {
-          ...column,
-          width: widths[key],
-          ...(adaptive
-            ? {
-                minWidth: 50,
-                customCell: createFluidCellSize(column.customCell),
-                customHeaderCell: createFluidCellSize(column.customHeaderCell),
-              }
-            : {}),
-        };
-      });
-    },
-    /**
-     * 记录拖拽后的列宽并将尺寸事件交回调用页面。
+     * 记录真实拖拽后的列宽并将尺寸事件交回调用页面。
      * @param {number} width 拖拽后的列宽。
      * @param {Object} column Ant Table 返回的列定义。
      * @returns {void} 无返回值。
@@ -493,11 +516,46 @@ export default {
       const sourceColumn = flattenColumns(this.columns).find(
         (item) => getColumnKey(item) === key
       );
-      if (key) {
-        this.adaptiveWidthState.setManualWidth(key, width);
-        this.adaptiveWidthRevision += 1;
-      }
+      const changed = this.tableLayoutState.commitResize(width, column);
+      if (!changed) return;
+      this.adaptiveWidthRevision += 1;
       this.$emit("resizeColumn", width, sourceColumn || column);
+    },
+    /**
+     * 捕获 resize handle 按下，并为真实拖拽安装文档级手势监听。
+     * @param {MouseEvent} event 表格容器捕获到的鼠标按下事件。
+     * @returns {void} 无返回值。
+     */
+    onResizeStart(event) {
+      if (!this.tableLayoutState.beginResize(event)) return;
+      document.addEventListener("mousemove", this.onResizeMove);
+      document.addEventListener("mouseup", this.onResizeEnd);
+    },
+    /**
+     * 同步当前 resize 手势的真实拖拽状态。
+     * @param {MouseEvent} event 文档级鼠标移动事件。
+     * @returns {void} 无返回值。
+     */
+    onResizeMove(event) {
+      this.resizing = this.tableLayoutState.trackResize(event);
+    },
+    /**
+     * 结束 resize 手势并清理文档级监听。
+     * @returns {void} 无返回值。
+     */
+    onResizeEnd() {
+      this.tableLayoutState.finishResize();
+      this.resizing = false;
+      document.removeEventListener("mousemove", this.onResizeMove);
+      document.removeEventListener("mouseup", this.onResizeEnd);
+    },
+    /**
+     * 拦截真实拖拽完成后同一表头产生的一次排序点击。
+     * @param {MouseEvent} event 表头 click 事件。
+     * @returns {void} 无返回值。
+     */
+    onHeaderClickCapture(event) {
+      this.tableLayoutState.consumeResizeClick(event);
     },
     /**
      * 查找 Ant Table 内容滚动容器并安装监听器。
@@ -543,7 +601,7 @@ export default {
       if (!target) return;
       const targetRect = target.getBoundingClientRect();
       const viewportRect = this.$el.getBoundingClientRect();
-      this.metrics = {
+      const nextMetrics = {
         scrollTop: target.scrollTop,
         scrollLeft: target.scrollLeft,
         scrollHeight: target.scrollHeight,
@@ -555,6 +613,11 @@ export default {
         viewportHeight: this.$el.clientHeight,
         viewportWidth: this.$el.clientWidth,
       };
+      const layoutChanged =
+        nextMetrics.clientWidth !== this.metrics.clientWidth ||
+        nextMetrics.viewportWidth !== this.metrics.viewportWidth;
+      this.metrics = nextMetrics;
+      if (layoutChanged) this.adaptiveWidthRevision += 1;
     },
     /**
      * 同步滚动位置并短暂显示覆盖滚动条。
@@ -645,6 +708,11 @@ export default {
 
 .table-viewport-fill-height {
   flex: 1 1 0;
+}
+
+.table-viewport--resizing :deep(.ant-table-column-sorters),
+.table-viewport--resizing :deep(.ant-table-column-sorter) {
+  pointer-events: none;
 }
 
 .table-viewport :deep(.ant-table-wrapper) {

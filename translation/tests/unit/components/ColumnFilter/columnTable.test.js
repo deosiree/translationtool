@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   buildCol,
   buildTable,
@@ -50,6 +50,18 @@ describe('columnBuilder', () => {
     expect(col.fixed).toBe('right')
   })
 
+  it('buildCol translate 保留按词条比较的 sorter', () => {
+    const col = buildCol(
+      { label: '翻译', value: 'translate', index: 5 },
+      { transMap: { value: 'english' } },
+      100
+    )
+
+    expect(typeof col.sorter).toBe('function')
+    expect(col.sorter({ entry: 'a' }, { entry: 'b' })).toBeLessThan(0)
+    expect(col.sortDirections).toEqual(['ascend', 'descend'])
+  })
+
   it('buildCol 在 needFilter 时为 entrySource 添加筛选', () => {
     const col = buildCol(
       { label: '词条来源', value: 'entrySource', index: 2 },
@@ -85,49 +97,6 @@ describe('columnBuilder', () => {
     expect(col.customFilterDropdown).toBe(true)
   })
 
-  it('lockCellSize + fluidColValues：流体列仅 minWidth，刚性列含 maxWidth', () => {
-    const fluid = buildCol(
-      { label: '词条', value: 'entry', index: 1, width: 200 },
-      {},
-      100,
-      false,
-      true,
-      ['entry', 'translate']
-    )
-    const rigid = buildCol(
-      { label: '存在状态', value: 'isExist', index: 2, width: 100 },
-      {},
-      100,
-      false,
-      true,
-      ['entry', 'translate']
-    )
-    const fluidStyle = fluid.customCell()
-    const rigidStyle = rigid.customCell()
-    expect(fluidStyle.style.minWidth).toBe('50px')
-    expect(fluidStyle.style.maxWidth).toBeUndefined()
-    expect(rigidStyle.style.minWidth).toBe('100px')
-    expect(rigidStyle.style.maxWidth).toBe('100px')
-    expect(rigidStyle.style.width).toBe('100px')
-  })
-
-  it('buildTable 传入 fluidColValues 时 entry 为流体、index 仍锁死', () => {
-    const { columns } = buildTable(
-      wbAllCols,
-      { ovrd: [], defaults: null },
-      { pagination: { pageSize: 20, current: 1 } },
-      100,
-      false,
-      null,
-      true,
-      ['entry', 'translate']
-    )
-    const entry = columns.find((c) => c.colValue === 'entry')
-    const index = columns.find((c) => c.colValue === 'index')
-    expect(entry.customCell().style.maxWidth).toBeUndefined()
-    expect(index.customCell().style.maxWidth).toBe('56px')
-  })
-
   it('buildTable 应解析动态 dataIndex 并排除当前语种列', () => {
     const task = {
       transMap: {
@@ -150,44 +119,11 @@ describe('columnBuilder', () => {
     })
   })
 
-  it('默认不应锁定单元格宽，ellipsis 仍为 true', () => {
+  it('只保留列宽元数据，不在 ColumnFilter 注入运行时尺寸回调', () => {
     const col = buildCol({ label: '词条', value: 'entry', index: 1 }, {}, 100)
     expect(col.ellipsis).toBe(true)
     expect(col.customCell).toBeUndefined()
     expect(col.customHeaderCell).toBeUndefined()
-  })
-
-  it('lockCellSize 应为列设置 ellipsis.showTitle=false 与三宽', () => {
-    const col = buildCol(
-      { label: '词条', value: 'entry', index: 1, width: 200 },
-      {},
-      100,
-      false,
-      true
-    )
-    expect(col.ellipsis).toEqual({ showTitle: false })
-    expect(col.customCell()).toEqual({
-      style: { width: '200px', minWidth: '200px', maxWidth: '200px' },
-    })
-    expect(col.customHeaderCell()).toEqual({
-      style: { width: '200px', minWidth: '200px', maxWidth: '200px' },
-    })
-  })
-
-  it('lockCellSize 序号列同样锁定宽并关闭原生 title', () => {
-    const col = buildCol(
-      { label: '序号', value: 'index', index: 0 },
-      { pagination: { pageSize: 20, current: 1 } },
-      100,
-      false,
-      true
-    )
-    expect(col.ellipsis).toEqual({ showTitle: false })
-    expect(col.customCell().style).toEqual({
-      width: '56px',
-      minWidth: '56px',
-      maxWidth: '56px',
-    })
   })
 
   it('buildCol 应按列定义允许序号列拖拽调整宽度', () => {
@@ -197,19 +133,6 @@ describe('columnBuilder', () => {
     )
 
     expect(col.resizable).toBe(true)
-  })
-
-  it('lockCellSize 下 customCell 应读取拖列后的 col.width', () => {
-    const col = buildCol(
-      { label: '词条', value: 'entry', index: 1, width: 100 },
-      {},
-      100,
-      false,
-      true
-    )
-    col.width = 180
-    expect(col.customCell().style.minWidth).toBe('180px')
-    expect(col.customHeaderCell().style.width).toBe('180px')
   })
 })
 
@@ -327,7 +250,7 @@ describe('columnTable', () => {
       ])
     })
 
-    it('应从 $columnFilterPref.lockCellSize 给新增列锁定宽', () => {
+    it('新增展示列只生成列元数据，由 TableViewport 统一锁定运行时尺寸', () => {
       const vm = {
         checkedColumn: [],
         colBuildCtx: { pagination: { pageSize: 20, current: 1 } },
@@ -337,7 +260,6 @@ describe('columnTable', () => {
           { dataIndex: 'entry', colValue: 'entry', index: 2 },
           { dataIndex: 'operation', colValue: 'operation', index: 100 },
         ],
-        $columnFilterPref: { lockCellSize: true },
       }
 
       changeColumn(
@@ -350,38 +272,8 @@ describe('columnTable', () => {
       )
 
       const tagCol = vm.columns.find((c) => c.colValue === 'tag')
-      expect(tagCol.ellipsis).toEqual({ showTitle: false })
-      expect(tagCol.customCell().style.width).toBe('128px')
-    })
-
-    it('fluidColValues 含 english 时新增英文列为流体（无 maxWidth）', () => {
-      const vm = {
-        checkedColumn: [],
-        colBuildCtx: { pagination: { pageSize: 20, current: 1 } },
-        columnSettingsList: mockColumnSettingsList,
-        columns: [
-          { dataIndex: 'index', colValue: 'index', index: 0 },
-          { dataIndex: 'entry', colValue: 'entry', index: 2 },
-          { dataIndex: 'operation', colValue: 'operation', index: 100 },
-        ],
-        $columnFilterPref: {
-          lockCellSize: true,
-          fluidColValues: ['entry', 'translate', 'english'],
-        },
-      }
-
-      changeColumn(
-        colPrefName,
-        100,
-        ['index', 'entry', 'english', 'operation'],
-        vm,
-        false,
-        mockColumnSettingsList
-      )
-
-      const eng = vm.columns.find((c) => c.colValue === 'english')
-      expect(eng.customCell().style.minWidth).toBe('50px')
-      expect(eng.customCell().style.maxWidth).toBeUndefined()
+      expect(tagCol.width).toBe(128)
+      expect(tagCol.customCell).toBeUndefined()
     })
   })
 
