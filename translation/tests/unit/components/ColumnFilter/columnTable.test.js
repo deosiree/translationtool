@@ -50,7 +50,7 @@ describe('columnBuilder', () => {
     expect(col.fixed).toBe('right')
   })
 
-  it('buildCol translate 保留按词条比较的 sorter', () => {
+  it('buildCol translate 应按当前语种翻译值比较并将空值置前', () => {
     const col = buildCol(
       { label: '翻译', value: 'translate', index: 5 },
       { transMap: { value: 'english' } },
@@ -58,7 +58,15 @@ describe('columnBuilder', () => {
     )
 
     expect(typeof col.sorter).toBe('function')
-    expect(col.sorter({ entry: 'a' }, { entry: 'b' })).toBeLessThan(0)
+    expect(col.dataIndex).toBe('english')
+    expect(
+      col.sorter(
+        { entry: 'z', english: 'alpha' },
+        { entry: 'a', english: 'beta' }
+      )
+    ).toBeLessThan(0)
+    expect(col.sorter({ entry: 'a', english: null }, { entry: 'z', english: 'alpha' })).toBeLessThan(0)
+    expect(col.sorter({ entry: 'a', english: '' }, { entry: 'z', english: 'alpha' })).toBeLessThan(0)
     expect(col.sortDirections).toEqual(['ascend', 'descend'])
   })
 

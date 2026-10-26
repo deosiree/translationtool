@@ -116,7 +116,16 @@ function applyValueBehaviors(col, def, needFilter) {
     }
   }
   if (v === "translate") {
-    col.sorter = (a, b) => a.entry.localeCompare(b.entry);
+    col.sorter = (a, b) => {
+      const aValue = a?.[col.dataIndex];
+      const bValue = b?.[col.dataIndex];
+      const aEmpty = aValue == null || aValue === "";
+      const bEmpty = bValue == null || bValue === "";
+
+      if (aEmpty) return bEmpty ? 0 : -1;
+      if (bEmpty) return 1;
+      return String(aValue).localeCompare(String(bValue));
+    };
     col.sortDirections = ["ascend", "descend"];
   }
   if (v === "isExist") {
