@@ -1,6 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
 
 const TextareaStub = {
   name: "TextAreaIME",

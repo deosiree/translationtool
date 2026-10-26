@@ -1,6 +1,12 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { mount } from "@vue/test-utils";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
+
+const tooltipStub = {
+  name: "TooltipStub",
+  props: ["title"],
+  template: '<div class="tooltip-stub"><slot /></div>',
+};
 
 describe("CellOverflowTooltip 空值展示", () => {
   let wrapper;
@@ -14,7 +20,7 @@ describe("CellOverflowTooltip 空值展示", () => {
       props: { content },
       global: {
         stubs: {
-          "a-tooltip": { template: '<div class="tooltip-stub"><slot /></div>' },
+          "a-tooltip": tooltipStub,
         },
       },
     });
@@ -28,9 +34,35 @@ describe("CellOverflowTooltip 空值展示", () => {
     expect(wrapper.text()).toBe("");
   });
 
+  it("纯空白内容应按空文本显示", () => {
+    wrapper = mountTooltip("   ");
+
+    expect(wrapper.vm.display).toBe("");
+    expect(wrapper.element.textContent).toBe("");
+  });
+
   it("词条值为 - 时应原样显示，不与空白混淆", () => {
     wrapper = mountTooltip("-");
     expect(wrapper.text()).toBe("-");
+  });
+
+  it("Tooltip 内容应保留文本首尾空格", () => {
+    wrapper = mountTooltip(" 原始词条 ");
+
+    expect(wrapper.vm.tooltipContent).toBe(" 原始词条 ");
+    expect(wrapper.element.textContent).toBe(" 原始词条 ");
+  });
+
+  it("文本未溢出时不启用 Tooltip 内容", async () => {
+    wrapper = mountTooltip("短文本");
+    const content = wrapper.find(".cell-overflow-tooltip").element;
+    Object.defineProperty(content, "scrollWidth", { configurable: true, value: 100 });
+    Object.defineProperty(content, "clientWidth", { configurable: true, value: 100 });
+
+    await wrapper.find(".cell-overflow-tooltip").trigger("mouseenter");
+
+    expect(wrapper.vm.isOverflow).toBe(false);
+    expect(wrapper.findComponent({ name: "TooltipStub" }).props("title")).toBeUndefined();
   });
 
   /**
@@ -43,10 +75,7 @@ describe("CellOverflowTooltip 空值展示", () => {
       slots: { default: '<span class="text">一段超出单元格宽度的长文本</span>' },
       global: {
         stubs: {
-          "a-tooltip": {
-            props: ["title"],
-            template: '<div class="tooltip-stub"><slot /></div>',
-          },
+          "a-tooltip": tooltipStub,
         },
       },
     });
@@ -57,5 +86,6 @@ describe("CellOverflowTooltip 空值展示", () => {
     await wrapper.find(".cell-overflow-tooltip").trigger("mouseenter");
 
     expect(wrapper.vm.isOverflow).toBe(true);
+    expect(wrapper.findComponent({ name: "TooltipStub" }).props("title")).toBe("一段超出单元格宽度的长文本");
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { mount } from "@vue/test-utils";
 import { nextTick } from "vue";
-import TableViewport from "@/components/table/TableViewport.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import { Table as AntTable } from "ant-design-vue";
 
 const tableStub = {

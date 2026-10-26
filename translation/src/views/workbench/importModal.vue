@@ -978,8 +978,8 @@ import {
 import { loading, startLoading, endLoading, resetLoading } from "@/composables/useLoading";
 import { interpretation2value } from "@/utils/translationUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
-import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import {
   formatEntryText,
   formatCellText,

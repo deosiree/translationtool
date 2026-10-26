@@ -88,8 +88,8 @@ import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import InputIME from "@/components/cellEditor/input_IME.vue";
-import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
 import { cloneDeep, iteratee } from "lodash-es";
 import {

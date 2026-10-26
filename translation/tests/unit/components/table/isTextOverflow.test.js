@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isTextOverflow } from "@/components/table/isTextOverflow.js";
+import { isTextOverflow } from "@/components/table/CellOverflowTooltip/isTextOverflow.js";
 
 describe("isTextOverflow", () => {
   it("元素为空时应返回 false", () => {

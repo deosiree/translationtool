@@ -88,7 +88,7 @@ import CustomModal from "@/components/modal/index.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import { formatCellText } from "@/components/table/cellText";
 import CreateVersionForm from "./CreateVersionForm.vue";
 import ExamineTaskForm from "./ExamineTaskForm.vue";

@@ -109,7 +109,7 @@ import { defineComponent, ref, createVNode } from "vue";
 import { setTableHeight } from "@/utils/tableUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
 import TextArea from "@/components/cellEditor/textarea_IME.vue";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import { formatCellText } from "@/components/table/cellText";
 import { applyLockCellSize } from "@/components/ColumnFilter";
 import { createQueryVersionGuard } from "@/utils/queryVersionGuard";

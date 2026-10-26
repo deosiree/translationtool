@@ -38,12 +38,27 @@ export default {
     };
   },
   computed: {
+    /**
+     * 返回保留原始字符的 Tooltip 内容，避免首尾空格在浏览态丢失。
+     * @returns {string} 用于展示完整文本的内容。
+     */
     tooltipContent() {
       const raw = this.content == null ? "" : String(this.content);
-      return raw.trim();
+      return raw;
     },
+    /**
+     * 判断当前内容是否包含可展示字符，避免空文本生成 Tooltip。
+     * @returns {boolean} 是否允许显示 Tooltip。
+     */
+    hasTooltipContent() {
+      return Boolean(this.tooltipContent.trim());
+    },
+    /**
+     * 返回单元格浏览态显示文本，空白内容保持为空。
+     * @returns {string} 单元格中显示的文本。
+     */
     display() {
-      return this.tooltipContent || this.emptyText;
+      return this.hasTooltipContent ? this.tooltipContent : this.emptyText;
     },
   },
   methods: {
@@ -59,7 +74,7 @@ export default {
       const el = event.currentTarget;
       const contentEl = el.firstElementChild || el;
       this.isOverflow =
-        Boolean(this.tooltipContent) &&
+        this.hasTooltipContent &&
         (isTextOverflow(el) || isTextOverflow(contentEl));
     },
     onMouseLeave() {

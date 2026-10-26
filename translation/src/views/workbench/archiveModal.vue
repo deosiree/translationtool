@@ -128,7 +128,7 @@ import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import { formatEntryText, formatCellText } from "@/components/table/cellText";
 import "@/assets/style/common.less";
 import { cloneDeep, iteratee } from "lodash-es";

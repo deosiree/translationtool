@@ -117,8 +117,8 @@
 
 <script>
 import CustomModal from "@/components/modal/index.vue";
-import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import PreTranslateForm from "./PreTranslateForm.vue";

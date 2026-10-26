@@ -25,8 +25,8 @@
 </template>
 
 <script>
-import CellOverflowTooltip from "./CellOverflowTooltip.vue";
-import TableCellTextArea from "./TableCellTextArea.vue";
+import CellOverflowTooltip from "../CellOverflowTooltip/CellOverflowTooltip.vue";
+import TableCellTextArea from "../TableCellTextArea/TableCellTextArea.vue";
 
 export default {
   name: "TableCellText",

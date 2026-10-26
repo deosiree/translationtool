@@ -87,7 +87,7 @@ import {
   CaretDownOutlined,
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 
 const FILTER_ACTIVE = "#108ee9";
 const FILTER_PAD = "8px";

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   resolveTableColumnLayout,
   useTableColumnLayout,
-} from "@/components/table/useTableColumnLayout";
+} from "@/components/table/TableViewport/useTableColumnLayout";
 
 const columns = [
   { colValue: "entry", width: 220, minWidth: 50 },

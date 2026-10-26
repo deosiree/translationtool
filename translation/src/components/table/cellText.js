@@ -23,6 +23,27 @@ export function formatCellText(text) {
 }
 
 /**
+ * 将 Tag 文本按中英文分号拆分为非空标签。
+ * @param {*} text - 原始 Tag 文本。
+ * @returns {string[]} 可用于标签展示的文本数组。
+ */
+export function splitTagText(text) {
+  if (text == null || text === "") return [];
+  return String(text)
+    .split(/[;；]/)
+    .filter((item) => item !== "");
+}
+
+/**
+ * 将 Tag 文本归一为单行 Tooltip 内容。
+ * @param {*} text - 原始 Tag 文本。
+ * @returns {string} 使用英文分号分隔的完整 Tag 文本。
+ */
+export function formatTagText(text) {
+  return splitTagText(text).join("; ");
+}
+
+/**
  * 翻译最大长度：0 / "0" / 空视为无限制，浏览态留空
  * @param {*} text
  * @returns {string}

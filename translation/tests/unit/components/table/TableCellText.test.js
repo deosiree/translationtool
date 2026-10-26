@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { mount } from "@vue/test-utils";
-import TableCellText from "@/components/table/TableCellText.vue";
+import TableCellText from "@/components/table/TableCellText/TableCellText.vue";
 
 const tooltipStub = {
   name: "CellOverflowTooltip",

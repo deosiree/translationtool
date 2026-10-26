@@ -43,7 +43,7 @@ import { createUserStoreMock } from '../../testUtils/userStoreMock'
 import { resetLoading } from '@/composables/useLoading'
 import CreateVersionModal from '@/views/entry/createVersionModal/index.vue'
 import BatchEditModal from '@/views/entry/createVersionModal/BatchEditModal.vue'
-import CellOverflowTooltip from '@/components/table/CellOverflowTooltip.vue'
+import CellOverflowTooltip from '@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue'
 import EntryStateBadge from '@/components/stateBadge/entryStateBadge.vue'
 import TransStateBadge from '@/components/stateBadge/transStateBadge.vue'
 

@@ -66,7 +66,7 @@
 
 <script>
 import { useTableColumnLayout } from "./useTableColumnLayout";
-import { getAdaptiveColumnKeys, getColumnLayout } from "./columnLayout";
+import { getAdaptiveColumnKeys, getColumnLayout } from "../columnLayout";
 
 const TABLE_HEADER_HEIGHT = 40;
 const TABLE_PAGINATION_HEIGHT = 48;

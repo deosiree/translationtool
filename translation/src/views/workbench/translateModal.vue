@@ -273,8 +273,8 @@ import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import InputIME from "@/components/cellEditor/input_IME.vue";
-import TableCellTextArea from "@/components/table/TableCellTextArea.vue";
-import CellOverflowTooltip from "@/components/table/CellOverflowTooltip.vue";
+import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
+import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
 import { cloneDeep } from "lodash-es";
 import {
