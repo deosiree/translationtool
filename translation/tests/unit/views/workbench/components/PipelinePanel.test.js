@@ -94,6 +94,11 @@ const makeWrapper = (props = {}, slots = {}) =>
         CaretDownOutlined: { template: "<span class='down-icon' />" },
         CaretRightOutlined: { template: "<span class='right-icon' />" },
         CellOverflowTooltip: tooltipStub,
+        TableTagCell: {
+          name: "TableTagCell",
+          props: ["text"],
+          template: '<span class="table-tag-cell-stub">{{ text }}</span>',
+        },
         ColumnActions: { template: "<div class='column-actions-stub' />" },
         TableCellTextArea: {
           props: ["value", "errorMessage"],
@@ -152,5 +157,19 @@ describe("PipelinePanel", () => {
     });
 
     expect(wrapper.find(".ime-stub").exists()).toBe(true);
+    expect(wrapper.findComponent({ name: "TableTagCell" }).exists()).toBe(false);
+  });
+
+  it("tag 浏览态复用共享 TableTagCell", () => {
+    const wrapper = makeWrapper({
+      columns: [{ dataIndex: "tag", colValue: "tag", width: 128 }],
+      edit: [],
+      editableData: {},
+    });
+
+    const tagCell = wrapper.findComponent({ name: "TableTagCell" });
+
+    expect(tagCell.exists()).toBe(true);
+    expect(tagCell.props("text")).toBe("foo;bar");
   });
 });

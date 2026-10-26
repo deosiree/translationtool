@@ -115,18 +115,7 @@
           </a-tooltip>
         </template>
         <template v-else>
-          <CellOverflowTooltip :content="formatTagText(text)">
-            <span>
-              <a-tag
-                v-for="(tag, index) in companyCut(text)"
-                :key="index"
-                color="cyan"
-                class="tag-content"
-              >
-                {{ tag }}
-              </a-tag>
-            </span>
-          </CellOverflowTooltip>
+          <TableTagCell :text="text" />
         </template>
       </template>
       <!-- isExist：库内是否已存在（0 新建 / 1 已存在）→ IsExistBadge -->
@@ -277,13 +266,13 @@ import commonParam from "@/constants/commonParam.js";
 import ColumnActions from "./ColumnActions.vue";
 import AuditTags from "./AuditTags.vue";
 import InputIME from "@/components/cellEditor/input_IME.vue";
+import TableTagCell from "@/components/table/TableTagCell/TableTagCell.vue";
 import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import { formatEntryText, formatCellText, formatMaxLengthText } from "@/components/table/cellText";
-import { companyCut, formatTagText } from "@/views/workbench/utils/tagFmt";
 import { handleFilterSearch } from "@/views/workbench/composables/filterClear";
 import {
   handleReset as tableHandleReset,
@@ -318,6 +307,7 @@ export default {
     ColumnActions,
     AuditTags,
     InputIME,
+    TableTagCell,
     TableCellTextArea,
     CellOverflowTooltip,
     IsExistBadge,
@@ -435,8 +425,6 @@ export default {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    formatTagText,
-    companyCut,
     isExistLabel(value) {
       if (value === 0) return "新建";
       if (value === 1) return "已存在";
