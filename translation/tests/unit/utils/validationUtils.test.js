@@ -964,6 +964,25 @@ describe('validationUtils - 表单校验工具函数', () => {
       expect(vm.editableData.ok).toBeUndefined()
       expect(record.english).toBe('new ok')
     })
+
+    it('查询版本失效后不再写入过期复检的编辑态', async () => {
+      const record = { id: 'stale', entry: '%1', english: '% 1', maxLength: 200 }
+      const vm = {
+        editableData: {},
+        rules: {},
+        cellErrors: {},
+        dataSource: [record],
+        columns: [{ dataIndex: 'english' }],
+        showEditOperation: vi.fn(),
+        rulesOptions: [{ key: 'special', checked: true }],
+      }
+      let checks = 0
+      await revalidateLoaded(vm, 'english', () => ++checks === 1)
+
+      expect(vm.editableData).toEqual({})
+      expect(vm.cellErrors).toEqual({})
+      expect(vm.showEditOperation).not.toHaveBeenCalled()
+    })
   })
 
   describe('saveEdit / cancelEdit / showEditOperation', () => {

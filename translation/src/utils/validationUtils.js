@@ -462,12 +462,17 @@ export async function classifyArr(vm, array, language, methods) {
 }
 
 /**
- * 仅对 classifyArr 得到的 errorIds 开编辑态并写红字
- * 红字由 toLongIds / specialIds 直接 setCellError，不再 applyCell（避免 special 再打单条接口）
- * 两者都失败时优先超长文案，与 validateRefRules 先 toLong 再 special 一致
+ * 仅对 classifyArr 得到的 errorIds 开编辑态并写红字。
+ * @param {Object} vm - 当前工作台弹窗实例。
+ * @param {Object[]} array - 本次待校验的记录。
+ * @param {Object} arr - classifyArr 返回的分类结果。
+ * @param {string} language - 当前翻译列。
+ * @param {() => boolean} [isCurrent] - 查询版本仍有效时返回 true。
+ * @returns {Promise<void>} 错误行编辑态处理完成。
  */
-export async function openFailRows(vm, array, arr, language) {
+export async function openFailRows(vm, array, arr, language, isCurrent = () => true) {
   for (const record of array) {
+    if (!isCurrent()) return;
     if (!arr.errorIds.has(record.id)) continue;
     await openSetEdit(record, [language], vm);
     if (arr.toLongIds.has(record.id)) {
@@ -501,15 +506,19 @@ export async function verifyArray_workbench(vm, array, language, methods) {
 }
 
 /**
- * 勾选变化 / 导入后：按展示值对已加载表一人一行复检
- * 通过：编辑态退回浏览并写回展示译文；失败：浏览态进编辑打红字
- * methods 为空全部视为通过，不调 special
+ * 勾选变化 / 导入后：按展示值对已加载表一人一行复检。
+ * 通过：编辑态退回浏览并写回展示译文；失败：浏览态进编辑打红字。
+ * @param {Object} vm - 当前工作台弹窗实例。
+ * @param {string} transCol - 当前任务的译文列名。
+ * @param {() => boolean} [isCurrent] - 查询版本仍有效时返回 true。
+ * @returns {Promise<void>} 复检完成或已被过期查询放弃。
  */
-export async function revalidateLoaded(vm, transCol) {
+export async function revalidateLoaded(vm, transCol, isCurrent = () => true) {
   const rows = flattenLoaded(vm);
   if (!rows.length) return;
   // 修改校验规则/导入后/保存后复检：触发全局遮罩（引用计数由 withLoading 保证成对）
   await withLoading(async () => {
+    if (!isCurrent()) return;
     clearCellErrorsForRecords(vm, rows.map((r) => r.id));
     const methods = getMethods(vm);
     const acceptIds = new Set();
@@ -517,9 +526,11 @@ export async function revalidateLoaded(vm, transCol) {
       for (const r of rows) acceptIds.add(r.id);
     } else {
       const arr = await classifyArr(vm, rows, transCol, methods);
-      await openFailRows(vm, rows, arr, transCol);
+      if (!isCurrent()) return;
+      await openFailRows(vm, rows, arr, transCol, isCurrent);
       for (const id of arr.acceptIds) acceptIds.add(id);
     }
+    if (!isCurrent()) return;
     const byId = new Map(rows.map((r) => [r.id, r]));
     for (const id of acceptIds) {
       const edit = vm.editableData?.[id];
@@ -529,7 +540,7 @@ export async function revalidateLoaded(vm, transCol) {
       delete vm.editableData[id];
       clearCellError(vm, id, transCol);
     }
-    hideEditOperation(vm);
+    if (isCurrent()) hideEditOperation(vm);
   });
 }
 
