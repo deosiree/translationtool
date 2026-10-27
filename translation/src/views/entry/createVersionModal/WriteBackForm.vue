@@ -107,16 +107,24 @@ export default {
     handleClose() {
       this.$emit("handleClose");
     },
+    /**
+     * 校验回写表单并执行已选词条的回写操作。
+     * @param {void} none - 本方法不接收参数。
+     * @returns {Promise<void>} 校验及回写流程结束后完成。
+     */
     async handleOK() {
+      if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
+        message.info("请选择" + this.writeBack.label + "!");
+        return;
+      }
+
       try {
-        if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
-          message.info("请选择" + this.writeBack.label + "!");
-          return;
-        }
-
-        // 验证表单
         await this.$refs.writeBackForm.validate();
+      } catch {
+        return;
+      }
 
+      try {
         this.writeBackLoading = true;
         let successLanguages = [];
         let failedLanguages = [];
