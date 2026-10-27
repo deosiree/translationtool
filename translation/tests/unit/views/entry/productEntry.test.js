@@ -1480,6 +1480,87 @@ describe('ProductEntry - 选择范围', () => {
     vi.clearAllMocks()
   })
 
+  /**
+   * 验证连续切换查询全选时各请求都按点击时的结果集提交。
+   * @param {boolean} resolveOldFirst - 是否先完成旧查询的全选响应。
+   * @returns {Promise<void>} 全局选择结果断言完成后结束。
+   */
+  it.each([true, false])(
+    '切换来源连续全选后保留两边完整结果（旧请求先返回：%s）',
+    async (resolveOldFirst) => {
+      wrapper = mountProductEntry()
+      await flushPromises()
+      getEntryByClassfyMock.mockClear()
+
+      const oldRequest = createDeferred()
+      const newRequest = createDeferred()
+      getEntryByClassfyMock
+        .mockReturnValueOnce(oldRequest.promise)
+        .mockReturnValueOnce(newRequest.promise)
+      wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+
+      const trPage = [
+        { id: 'tr-page', entry: 'tr 当前页', productID: 'product-a' },
+        { id: 'shared', entry: 'tr 旧值', productID: 'product-a' },
+      ]
+      const tsPage = [
+        { id: 'ts-page', entry: 'ts 当前页', productID: 'product-a' },
+        { id: 'shared', entry: 'ts 新值', productID: 'product-a' },
+      ]
+      wrapper.vm.search.entrySource = 'tr'
+      wrapper.vm.dataSource = trPage
+      wrapper.vm.onSelectAll(true, [], trPage)
+
+      wrapper.vm.search.entrySource = 'ts'
+      wrapper.vm.dataSource = tsPage
+      wrapper.vm.onSelectAll(true, [], tsPage)
+
+      const resolveOldRequest = () =>
+        oldRequest.resolve({
+          data: {
+            list: [
+              ...trPage,
+              { id: 'tr-other', entry: 'tr 其他页', productID: 'product-a' },
+            ],
+            totalNum: 3,
+          },
+        })
+      const resolveNewRequest = () =>
+        newRequest.resolve({
+          data: {
+            list: [
+              ...tsPage,
+              { id: 'ts-other', entry: 'ts 其他页', productID: 'product-a' },
+            ],
+            totalNum: 3,
+          },
+        })
+
+      if (resolveOldFirst) {
+        resolveOldRequest()
+        await flushPromises()
+        resolveNewRequest()
+      } else {
+        resolveNewRequest()
+        await flushPromises()
+        resolveOldRequest()
+      }
+      await flushPromises()
+
+      expect(wrapper.vm.selectEntry.map((entry) => entry.id).sort()).toEqual([
+        'shared',
+        'tr-other',
+        'tr-page',
+        'ts-other',
+        'ts-page',
+      ])
+      expect(wrapper.vm.selectEntry.find((entry) => entry.id === 'shared')).toEqual(
+        tsPage[1],
+      )
+      expect(wrapper.vm.selectAllLoading).toBe(false)
+    },
+  )
+
   it('表格保留全局已选键，当前数据只命中自身已选行', () => {
     wrapper = mountProductEntry()
     wrapper.vm.product = { type: 'product', key: 'product-1', title: '产品一' }
@@ -1711,7 +1792,12 @@ describe('ProductEntry - 选择范围', () => {
     expect(wrapper.vm.selectedRowKeys).toEqual([savedEntry.id])
   })
 
-  it('产品切换后忽略旧取勾响应并保留历史产品选择', async () => {
+  /**
+   * 验证切换产品后旧范围取勾仍移除发起范围内的选择。
+   * @param {void} none - 无参数。
+   * @returns {Promise<void>} 断言完成后结束。
+   */
+  it('产品切换后旧取勾仍按发起范围提交', async () => {
     wrapper = mountProductEntry()
     await flushPromises()
     const productA = {
@@ -1740,7 +1826,7 @@ describe('ProductEntry - 选择范围', () => {
     await nextTick()
 
     wrapper.vm.product = productB
-    expect(wrapper.vm.selectionOperations.pendingCount).toBe(0)
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(1)
     expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(2)
     expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
 
@@ -1754,12 +1840,17 @@ describe('ProductEntry - 选择范围', () => {
     })
     await flushPromises()
 
-    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual(['a-1', 'a-2'])
-    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(2)
-    expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
+    expect(wrapper.vm.selectEntry).toEqual([])
+    expect(wrapper.vm.selectedProducts.products.has('product-a')).toBe(false)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(0)
   })
 
-  it('切回原产品后旧取勾不提交并保留最新全局清单', async () => {
+  /**
+   * 验证切换期间较新的单行勾选覆盖旧取勾对同一词条的操作。
+   * @param {void} none - 无参数。
+   * @returns {Promise<void>} 断言完成后结束。
+   */
+  it('切回原产品后旧取勾仍提交且较新的单行勾选优先', async () => {
     wrapper = mountProductEntry()
     await flushPromises()
     const productA = { type: 'product', key: 'product-a', title: '产品 A' }
@@ -1790,9 +1881,9 @@ describe('ProductEntry - 选择范围', () => {
     })
     await flushPromises()
 
-    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual(['a-1', 'a-2'])
-    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(2)
-    expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
+    expect(wrapper.vm.selectEntry).toEqual([remainingEntry])
+    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(1)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
   })
 
   it('普通查询表头取勾只移除当前查询结果', async () => {
@@ -1995,7 +2086,12 @@ describe('ProductEntry - 选择范围', () => {
     expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
   })
 
-  it('产品切换并返回后，旧取勾响应失效且保留已提交清单', async () => {
+  /**
+   * 验证切换离开并返回原范围时待处理取勾继续投影并完成。
+   * @param {void} none - 无参数。
+   * @returns {Promise<void>} 断言完成后结束。
+   */
+  it('产品切换并返回后旧取勾仍有效且在原范围投影', async () => {
     wrapper = mountProductEntry(undefined, {
       stubs: {
         DataBox: {
@@ -2056,8 +2152,8 @@ describe('ProductEntry - 选择范围', () => {
     await nextTick()
     expect(wrapper.vm.product.key).toBe('product-b')
     expect(wrapper.vm.getCurrentSelectionScopeKey()).not.toBe(pendingClearScope)
-    expect(wrapper.vm.selectionOperations.pendingCount).toBe(0)
-    expect(wrapper.vm.selectAllLoading).toBe(false)
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(1)
+    expect(wrapper.vm.selectAllLoading).toBe(true)
     expect(wrapper.vm.tableSelectedRowKeys).toContain('shared-id')
     expect(wrapper.vm.tableSelectedRowKeys).toContain('other-product-id')
 
@@ -2079,10 +2175,10 @@ describe('ProductEntry - 选择范围', () => {
     ).toEqual({
       scopeMatches: true,
       visibleIds: ['shared-id'],
-      projectedSelected: true,
+      projectedSelected: false,
       selectedIds: ['shared-id', 'next-page-id', 'other-product-id'],
     })
-    expect(wrapper.vm.tableSelectedRowKeys).toContain('shared-id')
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain('shared-id')
 
     pendingClear.resolve({
       data: {
@@ -2095,16 +2191,19 @@ describe('ProductEntry - 选择范围', () => {
     await flushPromises()
 
     expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
-      'shared-id',
-      'next-page-id',
       'other-product-id',
     ])
-    expect(wrapper.vm.selectedProducts.totalNum).toBe(3)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
     expect(wrapper.vm.selectAllLoading).toBe(false)
     expect(wrapper.vm.loading).toBe(false)
   })
 
-  it('查询条件变化后旧全选响应失效，即使随后返回原条件也不提交', async () => {
+  /**
+   * 验证查询条件变化后旧全选请求继续使用点击时的条件快照。
+   * @param {void} none - 无参数。
+   * @returns {Promise<void>} 断言完成后结束。
+   */
+  it('查询条件变化后旧全选仍按发起范围提交', async () => {
     wrapper = mountProductEntry()
     await flushPromises()
     const pendingSelection = createDeferred()
@@ -2117,11 +2216,13 @@ describe('ProductEntry - 选择范围', () => {
     wrapper.vm.search.entry = '原条件'
 
     wrapper.vm.selectAllEntry()
+    const [, requestData] = getEntryByClassfyMock.mock.calls.at(-1)
+    expect(requestData.entry).toBe('原条件')
     expect(wrapper.vm.selectAllLoading).toBe(true)
 
     wrapper.vm.search.entry = '新条件'
-    expect(wrapper.vm.selectionOperations.pendingCount).toBe(0)
-    expect(wrapper.vm.selectAllLoading).toBe(false)
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(1)
+    expect(wrapper.vm.selectAllLoading).toBe(true)
     wrapper.vm.search.entry = '原条件'
 
     pendingSelection.resolve({
@@ -2129,9 +2230,44 @@ describe('ProductEntry - 选择范围', () => {
     })
     await flushPromises()
 
-    expect(wrapper.vm.selectEntry).toEqual([committedEntry])
-    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
+    expect(wrapper.vm.selectEntry).toEqual([
+      committedEntry,
+      { id: 'stale-entry', productID: 'product-a' },
+    ])
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
     expect(message.error).not.toHaveBeenCalled()
+  })
+
+  /**
+   * 验证查询条件切换后待处理取勾仍按点击时的筛选结果提交。
+   * @param {void} none - 无输入参数。
+   * @returns {Promise<void>} 取勾结果断言完成后结束。
+   */
+  it('查询条件变化后旧取勾仍按发起范围提交', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const pendingDeselect = createDeferred()
+    const oldScopeEntry = { id: 'old-scope-entry', productID: 'product-a' }
+    const retainedEntry = { id: 'retained-entry', productID: 'product-a' }
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingDeselect.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+    wrapper.vm.search.entrySource = 'tr'
+    wrapper.vm.selectEntry = [oldScopeEntry, retainedEntry]
+    wrapper.vm.syncSelectedProducts()
+
+    wrapper.vm.clearCurrentQuerySelection()
+    const [, requestData] = getEntryByClassfyMock.mock.calls.at(-1)
+    expect(requestData.entrySource).toBe('tr')
+
+    wrapper.vm.search.entrySource = 'ts'
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(1)
+
+    pendingDeselect.resolve({ data: { list: [oldScopeEntry] } })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry).toEqual([retainedEntry])
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
   })
 
   it('工具栏显示取消选择按钮，空列表时禁用，有选择时清空全局清单', async () => {
@@ -2389,6 +2525,11 @@ describe('ProductEntry - 选择范围', () => {
     )
   })
 
+  /**
+   * 验证分类取勾与子产品全选交错时按词条保留最后一次操作。
+   * @param {void} none - 无参数。
+   * @returns {Promise<void>} 断言完成后结束。
+   */
   it('分类取勾与子产品全选交错时保留较新的子产品选择，响应顺序不影响结果', async () => {
     for (const clearFirst of [true, false]) {
       wrapper = mountProductEntry()
@@ -2454,7 +2595,6 @@ describe('ProductEntry - 选择范围', () => {
       await flushPromises()
 
       expect(wrapper.vm.selectEntry.map((entry) => entry.id).sort()).toEqual([
-        'category-only',
         'product-only',
         'shared-id',
         'sibling-kept',

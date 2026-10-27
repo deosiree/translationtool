@@ -1192,7 +1192,7 @@ export default {
   },
   computed: {
     /**
-     * 返回当前词条查询范围，用于隔离切换范围前启动的选择请求。
+     * 返回当前词条查询范围，作为选择操作的范围快照。
      * @returns {string} 当前查询范围的序列化键。
      */
     selectionScopeKey() {
@@ -1286,7 +1286,7 @@ export default {
     });
   },
   /**
-   * 组件卸载时结束冗余校验状态轮询。
+   * 组件卸载时失效在途查询与选择请求，并结束冗余校验轮询。
    * @param {void} none - 无参数。
    * @returns {void}
    */
@@ -1296,20 +1296,6 @@ export default {
     this.stopRedundantPolling();
   },
   watch: {
-    selectionScopeKey: {
-      /**
-       * 查询范围变化时立即作废旧范围内尚未完成的全量选择操作。
-       * @param {string} newScope - 新的查询范围。
-       * @param {string} oldScope - 原查询范围。
-       * @returns {void}
-       */
-      handler(newScope, oldScope) {
-        if (oldScope !== undefined && newScope !== oldScope) {
-          this.selectionOperations.invalidate();
-        }
-      },
-      flush: "sync",
-    },
     "search.searchType": "handleRedundantSearchContextChange",
     "search.i18nURL": "handleRedundantSearchContextChange",
     hasEditingRows(editing) {
@@ -2560,14 +2546,14 @@ export default {
       return this.selectionOperations.begin(scopeKey, action === "select");
     },
     /**
-     * 判断选择请求是否仍属于当前查询范围。
+     * 按点击时保存的范围判断选择请求是否仍有效。
      * @param {Object} request - 需要校验的选择操作。
      * @returns {boolean} 请求是否仍有效。
      */
     isCurrentSelectionRequest(request) {
       return this.selectionOperations.isCurrent(
         request,
-        this.selectionScopeKey
+        request.scope
       );
     },
     /**
@@ -2576,16 +2562,12 @@ export default {
      * @param {Object} request - 当前取勾请求。
      * @returns {void}
      */
-    removeCurrentQuerySelection(
-      rows,
-      request,
-      currentScope = this.selectionScopeKey
-    ) {
+    removeCurrentQuerySelection(rows, request) {
       this.selectEntry = this.selectionOperations.resolve(
         request,
         rows,
         this.selectEntry,
-        currentScope
+        request.scope
       );
       this.selectedRows = this.selectEntry;
       this.selectedRowKeys = this.selectEntry.map((item) => item.id);
@@ -2606,13 +2588,8 @@ export default {
       const { params, data } = this.getCurrentSelectionQuery();
       getEntryByClassfy(params, data)
         .then((res) => {
-          const currentScope = this.selectionScopeKey;
           if (!this.isCurrentSelectionRequest(request)) return;
-          this.removeCurrentQuerySelection(
-            res.data?.list || [],
-            request,
-            currentScope
-          );
+          this.removeCurrentQuerySelection(res.data?.list || [], request);
         })
         .catch((err) => {
           if (!this.isCurrentSelectionRequest(request)) return;
@@ -2705,13 +2682,12 @@ export default {
       const { params, data } = this.getCurrentSelectionQuery();
       getEntryByClassfy(params, data)
         .then((res) => {
-          const currentScope = this.selectionScopeKey;
           if (!this.isCurrentSelectionRequest(request)) return;
           this.selectEntry = this.selectionOperations.resolve(
             request,
             res.data?.list || [],
             this.selectEntry,
-            currentScope
+            request.scope
           );
           this.selectedRows = this.selectEntry;
           this.selectedRowKeys = this.selectedRows.map((item) => item.id);
