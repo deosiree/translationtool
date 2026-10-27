@@ -171,6 +171,70 @@ function mountProductEntry(storeMock = createUserStoreMock(), options = {}) {
   })
 }
 
+describe('ProductEntry - 翻译状态详情投影', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+  })
+
+  it('仅为 1/2/3 状态写入公共翻译标签，并兼容数值状态码', () => {
+    wrapper = mountProductEntry()
+    const record = {
+      id: 'entry-1',
+      englishTranslateState: 2,
+      russianTranslateState: '3',
+      spanishTranslateState: 0,
+      frenchTranslateState: 'unknown',
+    }
+
+    wrapper.vm.entryDetails(record)
+
+    expect(wrapper.vm.currentEntry.englishChineseState).toBe('审核不通过')
+    expect(wrapper.vm.currentEntry.russianChineseState).toBe('已审核')
+    expect(wrapper.vm.currentEntry.spanishChineseState).toBeUndefined()
+    expect(wrapper.vm.currentEntry.frenchChineseState).toBeUndefined()
+  })
+})
+
+describe('ProductEntry - 表格空态', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+  })
+
+  it('空数据时保留完整表格高度并启用共享空态插槽', async () => {
+    wrapper = mountProductEntry(undefined, {
+      stubs: {
+        DataBox: {
+          template: '<div><slot name="data" /></div>',
+        },
+        'a-config-provider': {
+          template: '<div><slot /></div>',
+        },
+        TableViewport: {
+          name: 'TableViewport',
+          props: ['dataSource', 'scroll', 'emptyOverlay'],
+          template: '<section class="table-viewport-stub" :data-scroll-y="scroll?.y" :data-empty-overlay="emptyOverlay ? \'enabled\' : \'disabled\'"><slot name="empty" /></section>',
+        },
+        'a-empty': {
+          props: ['image'],
+          template: '<div class="entry-empty-stub" />',
+        },
+      },
+    })
+    wrapper.vm.dataSource = []
+    wrapper.vm.tableHeight = { x: 'max-content', y: 360 }
+    await nextTick()
+
+    const table = wrapper.find('.table-viewport-stub')
+    expect(table.attributes('data-scroll-y')).toBe('360')
+    expect(table.attributes('data-empty-overlay')).toBe('enabled')
+    expect(table.find('.entry-empty-stub').exists()).toBe(true)
+  })
+})
+
 describe('ProductEntry - user 属性重构测试', () => {
   let wrapper
 
@@ -222,7 +286,7 @@ describe('ProductEntry - user 属性重构测试', () => {
         allCols: entryAllCols,
         preset: entryPresets.productEntry,
         colPrefName: 'colPref-productEntry',
-        lockCellSize: true,
+        needFilter: false,
       })
     )
   })
@@ -361,6 +425,8 @@ describe('ProductEntry - 浏览省略与编辑文本域', () => {
       <div class="table-stub">
         <div class="header-cell">
           <slot name="headerCell" :title="'词条'" :column="{ colValue: 'entry', dataIndex: 'entry', title: '词条' }" />
+          <slot name="headerCell" :title="'tag'" :column="{ dataIndex: 'tag' }" />
+          <slot name="headerCell" :title="'comment'" :column="{ dataIndex: 'comment' }" />
         </div>
         <template v-for="record in (dataSource || [])" :key="record.id">
           <div
@@ -427,6 +493,10 @@ describe('ProductEntry - 浏览省略与编辑文本域', () => {
             props: ['content'],
             template: '<span class="cell-overflow-tooltip-stub"><slot /></span>',
           },
+          TableHeaderHint: {
+            props: ['title'],
+            template: '<span class="table-header-hint-stub">{{ title }}</span>',
+          },
           ...extra.stubs,
         },
       },
@@ -460,6 +530,33 @@ describe('ProductEntry - 浏览省略与编辑文本域', () => {
     await nextTick()
     expect(wrapper.findAll('.cell-overflow-tooltip-stub').length).toBeGreaterThan(0)
     expect(wrapper.find('[data-col="index"]').find('.cell-overflow-tooltip-stub').exists()).toBe(false)
+  })
+
+  it('浏览态 tag 列使用共享 TableTagCell 渲染', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.dataSource = [
+      {
+        id: 'entry-1',
+        tag: '前端;后端；测试',
+      },
+    ]
+    wrapper.vm.columns = [
+      { dataIndex: 'tag', title: 'tag', colValue: 'tag' },
+    ]
+    await nextTick()
+
+    expect(wrapper.findComponent({ name: 'TableTagCell' }).exists()).toBe(true)
+  })
+
+  it('tag/comment 列头使用统一提示组件', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+
+    expect(wrapper.findAll('.table-header-hint-stub').map((node) => node.text())).toEqual([
+      'tag',
+      'comment',
+    ])
   })
 
   it('编辑态 entry/translate 使用 TextArea 且传 autoSize.maxRows，不包浏览 Tooltip', async () => {
@@ -802,10 +899,12 @@ describe('ProductEntry - 操作列编辑态加宽', () => {
     wrapper.vm.editableData = { e1: { id: 'e1', entry: '断路器' } }
     await nextTick()
     expect(wrapper.vm.columns.find((c) => c.dataIndex === 'operation').width).toBe(130)
+    expect(wrapper.vm.columns.find((c) => c.dataIndex === 'operation').resizable).toBe(false)
 
     wrapper.vm.editableData = {}
     await nextTick()
     expect(wrapper.vm.columns.find((c) => c.dataIndex === 'operation').width).toBe(80)
+    expect(wrapper.vm.columns.find((c) => c.dataIndex === 'operation').resizable).toBe(false)
   })
 })
 
@@ -1612,7 +1711,7 @@ describe('ProductEntry - 选择范围', () => {
     expect(wrapper.vm.selectedRowKeys).toEqual([savedEntry.id])
   })
 
-  it('取勾响应晚于产品切换时同步历史产品计数', async () => {
+  it('产品切换后忽略旧取勾响应并保留历史产品选择', async () => {
     wrapper = mountProductEntry()
     await flushPromises()
     const productA = {
@@ -1641,6 +1740,7 @@ describe('ProductEntry - 选择范围', () => {
     await nextTick()
 
     wrapper.vm.product = productB
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(0)
     expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(2)
     expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
 
@@ -1654,12 +1754,12 @@ describe('ProductEntry - 选择范围', () => {
     })
     await flushPromises()
 
-    expect(wrapper.vm.selectEntry).toEqual([])
-    expect(wrapper.vm.selectedProducts.products.has('product-a')).toBe(false)
-    expect(wrapper.vm.selectedProducts.totalNum).toBe(0)
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual(['a-1', 'a-2'])
+    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(2)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
   })
 
-  it('切回原产品后取勾按当前全局清单同步产品计数', async () => {
+  it('切回原产品后旧取勾不提交并保留最新全局清单', async () => {
     wrapper = mountProductEntry()
     await flushPromises()
     const productA = { type: 'product', key: 'product-a', title: '产品 A' }
@@ -1690,9 +1790,9 @@ describe('ProductEntry - 选择范围', () => {
     })
     await flushPromises()
 
-    expect(wrapper.vm.selectEntry).toEqual([remainingEntry])
-    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(1)
-    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual(['a-1', 'a-2'])
+    expect(wrapper.vm.selectedProducts.products.get('product-a')).toBe(2)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
   })
 
   it('普通查询表头取勾只移除当前查询结果', async () => {
@@ -1895,7 +1995,7 @@ describe('ProductEntry - 选择范围', () => {
     expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
   })
 
-  it('异步取勾立即更新表格投影但不触发表格 loading，且按钮 loading 保持到响应结束', async () => {
+  it('产品切换并返回后，旧取勾响应失效且保留已提交清单', async () => {
     wrapper = mountProductEntry(undefined, {
       stubs: {
         DataBox: {
@@ -1917,13 +2017,15 @@ describe('ProductEntry - 选择范围', () => {
       { id: 'next-page-id', productID: 'product-a' },
       { id: 'other-product-id', productID: 'product-b' },
     ]
+    wrapper.vm.syncSelectedProducts()
 
+    const pendingClearScope = wrapper.vm.getCurrentSelectionScopeKey()
     wrapper.vm.clearCurrentQuerySelection()
-    const pendingClearScope = wrapper.vm.selectAllPendingRequests[0].scopeKey
     await nextTick()
 
     expect(wrapper.vm.loading).toBe(false)
     expect(wrapper.vm.selectAllLoading).toBe(true)
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(1)
     expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
       'shared-id',
       'next-page-id',
@@ -1953,33 +2055,34 @@ describe('ProductEntry - 选择范围', () => {
     ]
     await nextTick()
     expect(wrapper.vm.product.key).toBe('product-b')
-    expect(wrapper.vm.getCurrentSelectionScopeKey()).not.toBe(
-      wrapper.vm.selectAllPendingRequests[0].scopeKey,
-    )
+    expect(wrapper.vm.getCurrentSelectionScopeKey()).not.toBe(pendingClearScope)
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(0)
+    expect(wrapper.vm.selectAllLoading).toBe(false)
     expect(wrapper.vm.tableSelectedRowKeys).toContain('shared-id')
     expect(wrapper.vm.tableSelectedRowKeys).toContain('other-product-id')
 
     wrapper.vm.product = productA
     wrapper.vm.dataSource = [{ id: 'shared-id' }]
     await nextTick()
-    const pendingClearRequest = wrapper.vm.selectAllPendingRequests[0]
     expect(
       {
-        action: pendingClearRequest.action,
         scopeMatches:
           wrapper.vm.getCurrentSelectionScopeKey() === pendingClearScope,
         visibleIds: wrapper.vm.dataSource.map((entry) => entry.id),
-        includedIds: pendingClearRequest.includedIds,
+        projectedSelected: wrapper.vm.selectionOperations.project(
+          'shared-id',
+          pendingClearScope,
+          true,
+        ),
         selectedIds: wrapper.vm.selectEntry.map((entry) => entry.id),
       },
     ).toEqual({
-      action: 'deselect',
       scopeMatches: true,
       visibleIds: ['shared-id'],
-      includedIds: [],
+      projectedSelected: true,
       selectedIds: ['shared-id', 'next-page-id', 'other-product-id'],
     })
-    expect(wrapper.vm.tableSelectedRowKeys).not.toContain('shared-id')
+    expect(wrapper.vm.tableSelectedRowKeys).toContain('shared-id')
 
     pendingClear.resolve({
       data: {
@@ -1992,11 +2095,43 @@ describe('ProductEntry - 选择范围', () => {
     await flushPromises()
 
     expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual([
+      'shared-id',
+      'next-page-id',
       'other-product-id',
     ])
-    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(3)
     expect(wrapper.vm.selectAllLoading).toBe(false)
     expect(wrapper.vm.loading).toBe(false)
+  })
+
+  it('查询条件变化后旧全选响应失效，即使随后返回原条件也不提交', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    const pendingSelection = createDeferred()
+    const committedEntry = { id: 'already-selected', productID: 'product-b' }
+    getEntryByClassfyMock.mockClear()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingSelection.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+    wrapper.vm.selectEntry = [committedEntry]
+    wrapper.vm.syncSelectedProducts()
+    wrapper.vm.search.entry = '原条件'
+
+    wrapper.vm.selectAllEntry()
+    expect(wrapper.vm.selectAllLoading).toBe(true)
+
+    wrapper.vm.search.entry = '新条件'
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(0)
+    expect(wrapper.vm.selectAllLoading).toBe(false)
+    wrapper.vm.search.entry = '原条件'
+
+    pendingSelection.resolve({
+      data: { list: [{ id: 'stale-entry', productID: 'product-a' }] },
+    })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry).toEqual([committedEntry])
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(1)
+    expect(message.error).not.toHaveBeenCalled()
   })
 
   it('工具栏显示取消选择按钮，空列表时禁用，有选择时清空全局清单', async () => {
@@ -2008,6 +2143,9 @@ describe('ProductEntry - 选择范围', () => {
         'a-button': {
           props: ['disabled'],
           template: '<button :disabled="disabled"><slot /></button>',
+        },
+        'a-badge': {
+          template: '<div><slot /></div>',
         },
       },
     })
@@ -2080,7 +2218,9 @@ describe('ProductEntry - 选择范围', () => {
      * @returns {any} 已选词条按钮包装器。
      */
     const selectedButton = () =>
-      wrapper.find('.entry-toolbar-selected-button')
+      wrapper
+        .findAll('.select-toolbar-button')
+        .find((button) => button.text().includes('已选词条'))
     /**
      * 按文案查找工具栏按钮。
      * @param {string} text - 按钮文案。
@@ -2092,12 +2232,13 @@ describe('ProductEntry - 选择范围', () => {
         .find((button) => button.text().trim() === text)
 
     expect(selectedButton().element.disabled).toBe(false)
-    expect(selectedButton().attributes('data-button-type')).toBe('default')
+    expect(selectedButton().attributes('data-button-type')).toBe('primary')
+    expect(selectedButton().classes()).toContain('resetBtn')
     expect(toolbarButton('取消选择').attributes('data-button-type')).toBe('default')
     expect(toolbarButton('新增').attributes('data-button-type')).toBe('primary')
-    expect(toolbarButton('二级分类管理').attributes('data-button-type')).toBe('default')
-    expect(toolbarButton('git推送').classes()).toContain('entry-toolbar-git-button')
-    expect(toolbarButton('更新翻译').attributes('data-button-type')).toBe('default')
+    expect(toolbarButton('二级分类管理').attributes('data-button-type')).toBe('primary')
+    expect(toolbarButton('git推送').classes()).toContain('yellowBtn')
+    expect(toolbarButton('更新翻译').attributes('data-button-type')).toBe('primary')
     expect(
       wrapper
         .findAll('.column-filter-button')
@@ -2105,26 +2246,35 @@ describe('ProductEntry - 选择范围', () => {
         .attributes('data-button-type')
     ).toBe('text')
     expect(wrapper.find('.badge-count').text()).toBe('1')
-    expect(wrapper.find('.entry-toolbar-selected-label').exists()).toBe(true)
+    const selectedLabel = selectedButton().find('.select-toolbar-button-content').text()
+    expect(selectedLabel).toBeTruthy()
 
-    wrapper.vm.selectAllLoading = true
+    const loadingOperation = wrapper.vm.selectionOperations.begin(
+      'toolbar-loading',
+      true,
+    )
     await nextTick()
 
     expect(selectedButton().element.disabled).toBe(true)
-    expect(wrapper.find('.entry-toolbar-selected-spinner').exists()).toBe(true)
+    expect(wrapper.find('.select-toolbar-button-spinner').exists()).toBe(true)
     expect(
       wrapper
-        .find('.entry-toolbar-selected-button-loading .entry-toolbar-selected-label')
+        .find('.select-toolbar-button-content-hidden')
         .exists()
     ).toBe(true)
     expect(wrapper.find('.badge-count').exists()).toBe(false)
 
-    wrapper.vm.selectAllLoading = false
+    wrapper.vm.selectionOperations.resolve(
+      loadingOperation,
+      [],
+      wrapper.vm.selectEntry,
+      'toolbar-loading',
+    )
     await nextTick()
 
     expect(selectedButton().element.disabled).toBe(false)
-    expect(wrapper.find('.entry-toolbar-selected-spinner').exists()).toBe(false)
-    expect(wrapper.find('.entry-toolbar-selected-label').text()).toBe('已选词条')
+    expect(wrapper.find('.select-toolbar-button-spinner').exists()).toBe(false)
+    expect(selectedButton().find('.select-toolbar-button-content').text()).toBe(selectedLabel)
     expect(wrapper.find('.badge-count').text()).toBe('1')
   })
 
@@ -2162,7 +2312,13 @@ describe('ProductEntry - 选择范围', () => {
     expect(wrapper.vm.tableSelectedRowKeys).not.toContain(row.id)
 
     wrapper.vm.onSelect(row, true)
-    expect(wrapper.vm.selectAllPendingRequests[0].includedIds).toContain(row.id)
+    expect(
+      wrapper.vm.selectionOperations.project(
+        row.id,
+        wrapper.vm.getCurrentSelectionScopeKey(),
+        false,
+      ),
+    ).toBe(true)
     expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
 
     pendingClear.resolve({
@@ -2257,6 +2413,7 @@ describe('ProductEntry - 选择范围', () => {
         { id: 'category-only', productID: 'product-a' },
         { id: 'sibling-kept', productID: 'product-c' },
       ]
+      wrapper.vm.syncSelectedProducts()
 
       wrapper.vm.clearCurrentQuerySelection()
       wrapper.vm.product = { type: 'product', key: 'product-b', title: '产品 B' }
@@ -2297,6 +2454,7 @@ describe('ProductEntry - 选择范围', () => {
       await flushPromises()
 
       expect(wrapper.vm.selectEntry.map((entry) => entry.id).sort()).toEqual([
+        'category-only',
         'product-only',
         'shared-id',
         'sibling-kept',
@@ -2426,5 +2584,24 @@ describe('ProductEntry - 选择范围', () => {
       wrapper.unmount()
       wrapper = null
     }
+  })
+
+  it('tracks full-selection requests through the shared selection operations hook', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    getEntryByClassfyMock.mockClear()
+    const pending = createDeferred()
+    getEntryByClassfyMock.mockReturnValueOnce(pending.promise)
+    wrapper.vm.product = { type: 'product', key: 'product-a', title: 'Product A' }
+
+    wrapper.vm.selectAllEntry()
+
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(1)
+
+    pending.resolve({ data: { list: [{ id: 'selected', productID: 'product-a' }] } })
+    await flushPromises()
+
+    expect(wrapper.vm.selectionOperations.pendingCount).toBe(0)
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual(['selected'])
   })
 })

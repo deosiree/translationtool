@@ -362,7 +362,7 @@
               />
             </div>
           </div>
-          <div class="entry-toolbar-right">
+          <SelectionToolbar class="entry-toolbar-right">
             <GitCommitButton
               v-if="$currentDepartment && $currentDepartment.ops.has('needIP')"
               size="small"
@@ -371,24 +371,22 @@
               :treeTitle="product.title"
             />
 
-            <a-button
-              type="primary"
-              size="small"
-              class="entry-toolbar-add-button"
+            <SelectionToolbarButton
+              text="新增"
+              preset="primary"
+              :icon="toolbarIcons.add"
+              button-class="entry-toolbar-add-button"
               :disabled="!isProduct()"
               @click="addEntry"
-            >
-              <template #icon> <PlusOutlined /> </template>新增
-            </a-button>
+            />
 
-            <a-button
-              type="primary"
-              size="small"
+            <SelectionToolbarButton
+              text="二级分类管理"
+              preset="primary"
               @click="setSecondClassify"
               v-if="admin"
               :disabled="!isProduct()"
-              >二级分类管理</a-button
-            >
+            />
             <!-- 更新翻译(异步) -->
             <BackFillModal_v3
               v-if="
@@ -405,40 +403,22 @@
               @importSuccess="refreshTable"
             />
 
-            <a-badge
-              :count="selectAllLoading ? 0 : selectEntry.length"
-              :overflow-count="99"
-            >
-              <a-button
-                type="primary"
-                size="small"
-                class="entry-toolbar-selected-button"
-                :class="{
-                  'entry-toolbar-selected-button-loading': selectAllLoading,
-                }"
-                :disabled="selectAllLoading"
-                :aria-label="selectAllLoading ? '正在选择词条' : '已选词条'"
-                :aria-busy="selectAllLoading"
-                @click="viewCreateVersionEntry"
-              >
-                <span class="entry-toolbar-selected-label">已选词条</span>
-                <span
-                  v-if="selectAllLoading"
-                  class="entry-toolbar-selected-spinner"
-                  aria-hidden="true"
-                >
-                  <LoadingOutlined />
-                </span>
-              </a-button>
-            </a-badge>
+            <SelectionToolbarButton
+              text="已选词条"
+              preset="selected"
+              :badge-count="selectionToolbarState.badgeCount"
+              :loading="selectionToolbarState.loading"
+              :disabled="selectionToolbarState.loading"
+              :aria-label="selectionToolbarState.loading ? '正在选择词条' : '已选词条'"
+              @click="viewCreateVersionEntry"
+            />
 
-            <a-button
-              type="default"
-              size="small"
-              :disabled="selectEntry.length === 0 && !selectAllLoading"
+            <SelectionToolbarButton
+              text="取消选择"
+              preset="default"
+              :disabled="selectionToolbarState.clearDisabled"
               @click="cancelSelection"
-              >取消选择</a-button
-            >
+            />
 
             <ColumnFilter
               v-model="checkedColumn"
@@ -447,22 +427,21 @@
               col-pref-name="colPref-productEntry"
               :normal-width="200"
               :need-filter="false"
-              button-type="default"
+              button-type="text"
               @change="syncColumnsFromPref"
             />
-          </div>
+          </SelectionToolbar>
         </div>
       </template>
       <template v-slot:data>
-        <div
-          class="entry-table-holder"
-          :style="{ '--entry-empty-body-height': `${tableHeight.y}px` }"
-        >
+        <div class="entry-table-holder">
           <a-config-provider :locale="locale">
-            <a-table
+            <TableViewport
               bordered
               class="ant-table-striped table-cell-overflow"
+              :empty-overlay="true"
               :columns="columns"
+              :adaptive-column-keys="adaptiveColumnKeys"
               :data-source="dataSource"
               :row-selection="{
                 columnWidth: 48,
@@ -472,19 +451,21 @@
                 onSelectAll: onSelectAll,
               }"
               :row-key="(record) => record.id"
-              :scroll="
-                dataSource.length > 0 ? tableHeight : { x: tableHeight.x }
-              "
+              :scroll="tableHeight"
               :loading="loading"
               :rowClassName="getRowClassName"
               :pagination="pagination"
               ref="entryTable"
-              @resizeColumn="handleResizeColumn"
               :customRow="customRow"
               @change="handleTableChange"
             >
               <template #headerCell="{ title, column }">
-                <a-tooltip v-if="column.dataIndex === 'maxLength'">
+                <TableHeaderHint
+                  v-if="['tag', 'comment'].includes(column.dataIndex)"
+                  :title="title"
+                  :column="column"
+                />
+                <a-tooltip v-else-if="column.dataIndex === 'maxLength'">
                   <template #title>
                     译文字符数上限，最多可输入相应数量的字或字母；空格也计数，首尾空格不忽略。
                   </template>
@@ -500,34 +481,26 @@
               </template>
               <template #bodyCell="{ column, record, text }">
                 <template v-if="column.dataIndex === 'entry'">
-                  <template v-if="editableData[record.id]">
-                    <TableCellTextArea
-                      :value="editableData[record.id][column.dataIndex] ?? ''"
-                      @update:value="(val) => onCellInput(val, record, column)"
-                      @blur="() => onCellBlur(record, column)"
-                      :error-message="cellErrors[record.id]?.[column.dataIndex]"
-                    />
-                  </template>
-                  <template v-else>
-                    <CellOverflowTooltip :content="formatEntryText(text)">
-                      <span v-html="text"></span>
-                    </CellOverflowTooltip>
-                  </template>
+                  <TableCellText
+                    :text="formatEntryText(text)"
+                    :value="editableData[record.id]?.[column.dataIndex] ?? ''"
+                    :editing="!!editableData[record.id]"
+                    :error-message="cellErrors[record.id]?.[column.dataIndex]"
+                    @update:value="(val) => onCellInput(val, record, column)"
+                    @blur="() => onCellBlur(record, column)"
+                  />
                 </template>
                 <template
                   v-else-if="editableTextAreaColumns.includes(column.dataIndex)"
                 >
-                  <template v-if="editableData[record.id]">
-                    <TableCellTextArea
-                      :value="editableData[record.id][column.dataIndex] ?? ''"
-                      @update:value="(val) => onCellInput(val, record, column)"
-                      @blur="() => onCellBlur(record, column)"
-                      :error-message="cellErrors[record.id]?.[column.dataIndex]"
-                    />
-                  </template>
-                  <template v-else>
-                    <CellOverflowTooltip :content="formatCellText(text)" />
-                  </template>
+                  <TableCellText
+                    :text="formatCellText(text)"
+                    :value="editableData[record.id]?.[column.dataIndex] ?? ''"
+                    :editing="!!editableData[record.id]"
+                    :error-message="cellErrors[record.id]?.[column.dataIndex]"
+                    @update:value="(val) => onCellInput(val, record, column)"
+                    @blur="() => onCellBlur(record, column)"
+                  />
                 </template>
                 <template v-else-if="column.dataIndex === 'entryLength'">
                   <template v-if="editableData[record.id]">
@@ -626,29 +599,18 @@
                     </a-tooltip>
                   </template>
                   <template v-else>
-                    <CellOverflowTooltip :content="formatTagText(text)">
-                      <span>
-                        <a-tag
-                          v-for="(tag, index) in companyCut(text)"
-                          :key="index"
-                          color="cyan"
-                          class="tag-content"
-                        >
-                          <span>{{ tag }}</span>
-                        </a-tag>
-                      </span>
-                    </CellOverflowTooltip>
+                    <TableTagCell :text="text" />
                   </template>
                 </template>
                 <template v-else-if="column.dataIndex === 'entryState'">
-                  <CellOverflowTooltip :content="entryStateLabel(text)">
+                  <CellOverflowTooltip :content="getEntryStateLabel(text)">
                     <EntryStateBadge :entryState="text" />
                   </CellOverflowTooltip>
                 </template>
                 <template
                   v-else-if="langTranslateStateList.includes(column.dataIndex)"
                 >
-                  <CellOverflowTooltip :content="translateStateLabel(text)">
+                  <CellOverflowTooltip :content="getTranslateStateLabel(text)">
                     <TransStateBadge :translateState="text" />
                   </CellOverflowTooltip>
                 </template>
@@ -773,14 +735,11 @@
                   :style="{ color: filtered ? '#108ee9' : undefined }"
                 />
               </template>
-            </a-table>
+              <template #empty>
+                <a-empty :image="simpleEmptyImage" />
+              </template>
+            </TableViewport>
           </a-config-provider>
-          <div
-            v-if="dataSource.length === 0"
-            class="entry-empty-overlay"
-          >
-            <a-empty :image="simpleEmptyImage" />
-          </div>
           <!-- <a-pagination
                     style="float:right"
                     v-model:current="pagination.current"
@@ -827,13 +786,9 @@
                 v-for="lang in commonParam.languageList"
                 :key="lang.value"
               >
-                <template v-if="currentEntry[lang.state] === '3'">
-                  <a-badge color="#36BF7D" /><span style="color: #36bf7d">{{
-                    currentEntry[lang.chineseState]
-                  }}</span>
-                </template>
-                <template v-else-if="currentEntry[lang.state] != null">
-                  <a-badge color="#FBB31F" /><span style="color: #fbb31f">{{
+                <template v-if="currentEntry[lang.chineseState]">
+                  <a-badge :color="getTranslateStateStatus(currentEntry[lang.state]).color" />
+                  <span :style="{ color: getTranslateStateStatus(currentEntry[lang.state]).color }">{{
                     currentEntry[lang.chineseState]
                   }}</span>
                 </template>
@@ -926,7 +881,11 @@ import EntryStateSelect from "@/components/select/entryStateSelect.vue";
 import TransStateSelect from "@/components/select/transStateSelect.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
-import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
+import TableCellText from "@/components/table/TableCellText/TableCellText.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
+import TableTagCell from "@/components/table/TableTagCell/TableTagCell.vue";
+import { getAdaptiveColumnKeys } from "@/components/table/columnLayout.js";
 import Input from "@/components/cellEditor/input_IME.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import CreateVersionModal from "@/views/entry/createVersionModal/index.vue";
@@ -974,9 +933,13 @@ import {
   SearchOutlined,
   CaretDownOutlined,
   CaretRightOutlined,
-  LoadingOutlined,
 } from "@ant-design/icons-vue";
-import { pageChange, mergeSelectedEntriesById } from "@/utils/selectionUtils";
+import { pageChange } from "@/utils/selectionUtils";
+import SelectionToolbar from "@/components/selectToolBar/SelectionToolbar.vue";
+import SelectionToolbarButton from "@/components/selectToolBar/SelectionToolbarButton.vue";
+import { useSelectionOperations } from "@/components/selectToolBar/composables/useSelectionOperations";
+import { useSelectedEntries } from "@/components/selectToolBar/composables/useSelectedEntries";
+import { useSelectionToolbarState } from "@/components/selectToolBar/composables/useSelectionToolbarState";
 import {
   applyTable,
   mergeColumnSelection,
@@ -1016,9 +979,15 @@ import commonParam, {
   entryAllCols,
   entryPresets,
 } from "@/constants/commonParam.js";
-import transStateBadgeVue from "@/components/stateBadge/transStateBadge.vue";
+import {
+  getEntryStateLabel,
+  getTranslateStateLabel,
+  getTranslateStateStatus,
+} from "@/constants/statusMaps.js";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
+
+const DETAIL_TRANSLATE_STATE_CODES = new Set(["1", "2", "3"]);
 
 /**
  * 解析产品或模块节点关联的产品 ID，过滤空值与字符串 null。
@@ -1051,7 +1020,10 @@ export default {
     TransStateSelect,
     EntryStateBadge,
     TransStateBadge,
-    TableCellTextArea,
+    TableViewport,
+    TableCellText,
+    TableHeaderHint,
+    TableTagCell,
     Input,
     CellOverflowTooltip,
     CreateVersionModal,
@@ -1071,7 +1043,8 @@ export default {
     SearchOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
-    LoadingOutlined,
+    SelectionToolbar,
+    SelectionToolbarButton,
   },
   emits: [],
   props: {
@@ -1174,8 +1147,9 @@ export default {
         products: new Map(), // 全局已选词条按 productID 分组的数量
         totalNum: 0, // 全局已选词条数量
       },
-      selectedEntryRevisions: new Map(),
-      savedEntriesById: new Map(),
+      selectionOperations: useSelectionOperations(),
+      selectedEntryOperations: useSelectedEntries(),
+      toolbarIcons: { add: PlusOutlined },
       currentEntry: {},
       showOperationArea: false,
       operationAreaTitle: "详情信息",
@@ -1192,10 +1166,6 @@ export default {
       classify2Option: [],
       rowClassify2Option: {},
       dictionaryVisible: false,
-      selectAllLoading: false,
-      selectAllClearVersion: 0,
-      selectAllRequestId: 0,
-      selectAllPendingRequests: [],
       redundantPollingController: null,
       redundantPollingRequestId: null,
       redundantPollingToken: 0,
@@ -1222,39 +1192,50 @@ export default {
   },
   computed: {
     /**
+     * 返回当前词条查询范围，用于隔离切换范围前启动的选择请求。
+     * @returns {string} 当前查询范围的序列化键。
+     */
+    selectionScopeKey() {
+      return this.getCurrentSelectionScopeKey();
+    },
+    /**
+     * 返回是否有全量选择操作仍在请求中。
+     * @returns {boolean} 是否显示选择 loading。
+     */
+    selectAllLoading() {
+      this.selectionOperations.revision;
+      return this.selectionOperations.pendingCount > 0;
+    },
+    /**
+     * 返回选择工具栏的数量、徽标和清空按钮状态。
+     * @returns {Object} 工具栏选择状态。
+     */
+    selectionToolbarState() {
+      this.selectionOperations.revision;
+      return useSelectionToolbarState(
+        this.selectEntry,
+        this.selectionOperations.pendingCount > 0
+      );
+    },
+    /**
      * 按操作顺序将当前查询的待全选和待取勾状态投影到当前页。
      * @param {undefined} [_unused] 计算属性不接收参数。
      * @returns {Array} 当前表格用于显示勾选状态的词条 ID。
      */
     tableSelectedRowKeys() {
+      this.selectionOperations.revision;
       const selectedIds = new Set(this.selectEntry.map((item) => item.id));
-      const currentScopeKey = this.getCurrentSelectionScopeKey();
-      const visibleIds = new Set(
-        this.dataSource.map((item) => item?.id).filter((id) => id != null)
-      );
-
-      this.selectAllPendingRequests
-        .filter((request) => request.scopeKey === currentScopeKey)
-        .sort((left, right) => left.id - right.id)
-        .forEach((request) => {
-          const affectedIds = new Set(
-            request.action === "select"
-              ? request.excludedIds
-              : request.includedIds
-          );
-
-          visibleIds.forEach((id) => {
-            const isSelected =
-              request.action === "select"
-                ? !affectedIds.has(id)
-                : affectedIds.has(id);
-            if (isSelected) {
-              selectedIds.add(id);
-            } else {
-              selectedIds.delete(id);
-            }
-          });
-        });
+      const currentScopeKey = this.selectionScopeKey;
+      this.dataSource.forEach((row) => {
+        if (row?.id == null) return;
+        const selected = this.selectionOperations.project(
+          row.id,
+          currentScopeKey,
+          selectedIds.has(row.id)
+        );
+        if (selected) selectedIds.add(row.id);
+        else selectedIds.delete(row.id);
+      });
       return Array.from(selectedIds);
     },
     /**
@@ -1270,6 +1251,15 @@ export default {
         ...(this.translateColumn || []),
         ...(this.textareaInputColumn || []),
       ];
+    },
+    /**
+     * 返回词条、译文和说明等长文本列标识，供共享表格分配剩余宽度。
+     * @returns {Array<string>} 当前显示的自适应列标识。
+     */
+    adaptiveColumnKeys() {
+      return getAdaptiveColumnKeys(
+        (this.columns || []).filter((column) => !column.fixed)
+      );
     },
     /** 有行内编辑词条时才显示校验规则下拉 */
     hasEditingRows() {
@@ -1302,9 +1292,24 @@ export default {
    */
   beforeUnmount() {
     this.queryVersionGuard.invalidate();
+    this.selectionOperations.invalidate();
     this.stopRedundantPolling();
   },
   watch: {
+    selectionScopeKey: {
+      /**
+       * 查询范围变化时立即作废旧范围内尚未完成的全量选择操作。
+       * @param {string} newScope - 新的查询范围。
+       * @param {string} oldScope - 原查询范围。
+       * @returns {void}
+       */
+      handler(newScope, oldScope) {
+        if (oldScope !== undefined && newScope !== oldScope) {
+          this.selectionOperations.invalidate();
+        }
+      },
+      flush: "sync",
+    },
     "search.searchType": "handleRedundantSearchContextChange",
     "search.i18nURL": "handleRedundantSearchContextChange",
     hasEditingRows(editing) {
@@ -2151,20 +2156,11 @@ export default {
     entryDetails(record) {
       this.selectedRowIndex = record.id;
       this.currentEntry = record;
-      // 将翻译状态转换为中文
+      // 仅投影原有的待审核、审核不通过、已审核三种详情状态。
       commonParam.languageList.forEach((item) => {
-        if (this.currentEntry[item.state] != null) {
-          switch (this.currentEntry[item.state]) {
-            case "1":
-              this.currentEntry[item.chineseState] = "待审核";
-              break;
-            case "2":
-              this.currentEntry[item.chineseState] = "审核不通过";
-              break;
-            case "3":
-              this.currentEntry[item.chineseState] = "已审核";
-              break;
-          }
+        const state = this.currentEntry[item.state];
+        if (DETAIL_TRANSLATE_STATE_CODES.has(String(state))) {
+          this.currentEntry[item.chineseState] = getTranslateStateLabel(state);
         }
       });
 
@@ -2324,15 +2320,7 @@ export default {
     afterSave(entry) {
       delete this.editableData[entry.id];
       delete this.rules[entry.id];
-      const revision = ++this.selectAllRequestId;
-      this.selectedEntryRevisions.set(entry.id, revision);
-      if (
-        this.selectAllPendingRequests.some(
-          (request) => request.action === "select" && request.id < revision
-        )
-      ) {
-        this.savedEntriesById.set(entry.id, { entry, revision });
-      }
+      this.selectionOperations.refresh(entry);
       const index = this.dataSource.findIndex((item) => item.id === entry.id);
       if (index !== -1) {
         this.dataSource.splice(index, 1, entry);
@@ -2341,7 +2329,10 @@ export default {
         (item) => item.id === entry.id
       );
       if (selectedIndex !== -1) {
-        this.selectEntry.splice(selectedIndex, 1, entry);
+        this.selectEntry = this.selectedEntryOperations.update(
+          this.selectEntry,
+          entry
+        );
         this.selectedRows = this.selectEntry;
         this.selectedRowKeys = this.selectEntry.map((item) => item.id);
       }
@@ -2350,10 +2341,6 @@ export default {
       this.getEntryByClassfy(false, this.accurSearch);
     },
 
-    // 表格列可伸缩
-    handleResizeColumn: (w, col) => {
-      col.width = w;
-    },
     // 关闭流程操作区
     closeOperationArea() {
       this.showOperationArea = false;
@@ -2443,7 +2430,6 @@ export default {
         colPrefName: "colPref-productEntry",
         normalWidth: 200,
         needFilter: false,
-        lockCellSize: true,
       });
       this.syncOperationColumnWidth();
     },
@@ -2452,17 +2438,24 @@ export default {
       this.syncOperationColumnWidth();
     },
     /**
-     * 浏览态仅「详情」用 80；编辑态「保存·取消」加宽，避免 lockCellSize 裁切按钮。
-     * @param {boolean} [editing=this.hasEditingRows]
+     * 按编辑状态更新不可拖拽操作列的业务基准宽度，避免按钮被裁切。
+     * @param {boolean} [editing=this.hasEditingRows] 当前是否存在编辑行。
+     * @returns {void} 无返回值。
      */
     syncOperationColumnWidth(editing = this.hasEditingRows) {
-      const col = (this.columns || []).find((c) => c.dataIndex === "operation");
-      if (!col) return;
       const next = editing ? 130 : 80;
-      if (col.width === next) return;
-      col.width = next;
-      // 触发 ant-table 列宽重算（lockCellSize 的 customCell 读 col.width）
-      this.columns = [...this.columns];
+      const operationColumn = (this.columns || []).find(
+        (column) => column.dataIndex === "operation"
+      );
+      if (
+        !operationColumn ||
+        (operationColumn.width === next && operationColumn.resizable === false)
+      ) return;
+      this.columns = this.columns.map((column) =>
+        column.dataIndex === "operation"
+          ? { ...column, width: next, resizable: false }
+          : column
+      );
     },
     clickInput(event) {
       event.stopPropagation();
@@ -2562,36 +2555,20 @@ export default {
      */
     createSelectionRequest(
       action,
-      scopeKey = this.getCurrentSelectionScopeKey()
+      scopeKey = this.selectionScopeKey
     ) {
-      const request = {
-        id: ++this.selectAllRequestId,
-        clearVersion: this.selectAllClearVersion,
-        action,
-        scopeKey,
-        excludedIds: [],
-        includedIds: [],
-      };
-      this.selectAllPendingRequests.push(request);
-      this.selectAllLoading = true;
-      return request;
+      return this.selectionOperations.begin(scopeKey, action === "select");
     },
     /**
-     * 将较新的全量勾选记录为较早取勾请求的行级例外。
-     * @param {Array} rows - 本次全量勾选的词条。
-     * @param {number} requestId - 本次勾选的顺序号。
-     * @returns {void}
+     * 判断选择请求是否仍属于当前查询范围。
+     * @param {Object} request - 需要校验的选择操作。
+     * @returns {boolean} 请求是否仍有效。
      */
-    preserveSelectionForPendingClears(rows, requestId) {
-      const includedIds = (rows || [])
-        .map((item) => item?.id)
-        .filter((id) => id != null);
-      this.selectAllPendingRequests.forEach((request) => {
-        if (request.action !== "deselect" || request.id >= requestId) return;
-        request.includedIds = Array.from(
-          new Set([...request.includedIds, ...includedIds])
-        );
-      });
+    isCurrentSelectionRequest(request) {
+      return this.selectionOperations.isCurrent(
+        request,
+        this.selectionScopeKey
+      );
     },
     /**
      * 从全局清单移除当前完整查询结果，并保护请求期间较新的行级勾选。
@@ -2599,35 +2576,17 @@ export default {
      * @param {Object} request - 当前取勾请求。
      * @returns {void}
      */
-    removeCurrentQuerySelection(rows, request) {
-      const protectedIds = new Set(request.includedIds);
-      const resultIds = new Set(
-        (rows || [])
-          .map((item) => item?.id)
-          .filter((id) => id != null && !protectedIds.has(id))
+    removeCurrentQuerySelection(
+      rows,
+      request,
+      currentScope = this.selectionScopeKey
+    ) {
+      this.selectEntry = this.selectionOperations.resolve(
+        request,
+        rows,
+        this.selectEntry,
+        currentScope
       );
-      this.selectAllPendingRequests.forEach((pendingRequest) => {
-        if (
-          pendingRequest.action !== "select" ||
-          pendingRequest.id >= request.id ||
-          pendingRequest.clearVersion !== request.clearVersion
-        ) {
-          return;
-        }
-        pendingRequest.excludedIds = Array.from(
-          new Set([...pendingRequest.excludedIds, ...resultIds])
-        );
-      });
-      const removedEntries = this.selectEntry.filter((item) =>
-        resultIds.has(item.id)
-      );
-      this.selectEntry = this.selectEntry.filter(
-        (item) => !resultIds.has(item.id)
-      );
-      removedEntries.forEach((item) => {
-        this.selectedEntryRevisions.delete(item.id);
-        this.savedEntriesById.delete(item.id);
-      });
       this.selectedRows = this.selectEntry;
       this.selectedRowKeys = this.selectEntry.map((item) => item.id);
       this.syncSelectedProducts();
@@ -2641,40 +2600,30 @@ export default {
       const request = this.createSelectionRequest("deselect");
       if (this.lastSearchType === "checkNotUseEntry") {
         this.removeCurrentQuerySelection(this.dataSource, request);
-        this.finishSelectionRequest(request);
         return;
       }
 
       const { params, data } = this.getCurrentSelectionQuery();
       getEntryByClassfy(params, data)
         .then((res) => {
-          if (request.clearVersion !== this.selectAllClearVersion) return;
-          this.removeCurrentQuerySelection(res.data?.list || [], request);
+          const currentScope = this.selectionScopeKey;
+          if (!this.isCurrentSelectionRequest(request)) return;
+          this.removeCurrentQuerySelection(
+            res.data?.list || [],
+            request,
+            currentScope
+          );
         })
         .catch((err) => {
-          if (request.clearVersion !== this.selectAllClearVersion) return;
+          if (!this.isCurrentSelectionRequest(request)) return;
+          this.selectionOperations.reject(request);
           message.error(err?.message || "取消当前查询选择失败");
         })
-        .finally(() => this.finishSelectionRequest(request));
-    },
-    /**
-     * 完成一次全量选择请求并同步工具栏 loading 状态。
-     * @param {Object} request - 已完成的选择请求。
-     * @returns {void}
-     */
-    finishSelectionRequest(request) {
-      this.selectAllPendingRequests = this.selectAllPendingRequests.filter(
-        (pendingRequest) => pendingRequest.id !== request.id
-      );
-      this.savedEntriesById.forEach((saved, id) => {
-        const hasOlderPendingSelect = this.selectAllPendingRequests.some(
-          (pendingRequest) =>
-            pendingRequest.action === "select" &&
-            pendingRequest.id < saved.revision
-        );
-        if (!hasOlderPendingSelect) this.savedEntriesById.delete(id);
-      });
-      this.selectAllLoading = this.selectAllPendingRequests.length > 0;
+        .finally(() => {
+          if (this.isCurrentSelectionRequest(request)) {
+            this.selectionOperations.reject(request);
+          }
+        });
     },
     // 已选词条按钮点击事件
     viewCreateVersionEntry() {
@@ -2711,32 +2660,6 @@ export default {
       }
     },
     /**
-     * 解析全量查询结果，保留晚于本次请求的选择或保存结果。
-     * @param {Object} request - 当前全量选择请求。
-     * @param {Array} rows - 接口返回的全量词条。
-     * @returns {Array} 按请求版本过滤后的词条。
-     */
-    preserveNewerSelectionEntries(request, rows) {
-      const currentEntries = new Map(
-        this.selectEntry.map((item) => [item.id, item])
-      );
-      const resolvedRows = [];
-      (rows || []).forEach((row) => {
-        if (!row || row.id == null) return;
-        const revision = this.selectedEntryRevisions.get(row.id) || 0;
-        if (revision > request.id) {
-          const saved = this.savedEntriesById.get(row.id);
-          const latestEntry = currentEntries.get(row.id) || saved?.entry;
-          if (latestEntry) resolvedRows.push(latestEntry);
-          return;
-        }
-        this.selectedEntryRevisions.set(row.id, request.id);
-        this.savedEntriesById.delete(row.id);
-        resolvedRows.push(row);
-      });
-      return resolvedRows;
-    },
-    /**
      * 按全局已选词条的 productID 重建弹窗需要的产品计数。
      * @param {void} none - 无参数。
      * @returns {void} 无返回值。
@@ -2765,54 +2688,45 @@ export default {
         return;
       }
 
+      const request = this.createSelectionRequest("select");
       if (this.lastSearchType === "checkNotUseEntry") {
-        const rows = this.dataSource;
-        this.updatePendingSelectAllExclusions(
-          [],
-          rows.map((item) => item.id)
+        this.selectEntry = this.selectionOperations.resolve(
+          request,
+          this.dataSource,
+          this.selectEntry,
+          request.scope
         );
-        const revision = ++this.selectAllRequestId;
-        rows.forEach((item) => {
-          this.selectedEntryRevisions.set(item.id, revision);
-          this.savedEntriesById.delete(item.id);
-        });
-        this.selectEntry = mergeSelectedEntriesById(this.selectEntry, rows);
         this.selectedRows = this.selectEntry;
         this.selectedRowKeys = this.selectEntry.map((item) => item.id);
         this.syncSelectedProducts();
         return;
       }
 
-      const request = this.createSelectionRequest("select");
       const { params, data } = this.getCurrentSelectionQuery();
       getEntryByClassfy(params, data)
         .then((res) => {
-          if (request.clearVersion !== this.selectAllClearVersion) return;
-          const list = res.data?.list || [];
-          const excludedIds = new Set(request.excludedIds);
-          const selectedList = this.preserveNewerSelectionEntries(
+          const currentScope = this.selectionScopeKey;
+          if (!this.isCurrentSelectionRequest(request)) return;
+          this.selectEntry = this.selectionOperations.resolve(
             request,
-            list.filter((item) => !excludedIds.has(item.id))
-          );
-          this.preserveSelectionForPendingClears(selectedList, request.id);
-          this.selectEntry = mergeSelectedEntriesById(
+            res.data?.list || [],
             this.selectEntry,
-            selectedList
+            currentScope
           );
           this.selectedRows = this.selectEntry;
           this.selectedRowKeys = this.selectedRows.map((item) => item.id);
           this.syncSelectedProducts();
         })
         .catch((err) => {
-          if (request.clearVersion !== this.selectAllClearVersion) return;
+          if (!this.isCurrentSelectionRequest(request)) return;
+          this.selectionOperations.reject(request);
           message.error(err?.message || "全量选择失败");
-          this.$nextTick(() => {
-            if (request.clearVersion !== this.selectAllClearVersion) return;
-            this.selectedRows = this.selectEntry;
-            this.selectedRowKeys = this.selectEntry.map((item) => item.id);
-          });
         })
-        .finally(() => this.finishSelectionRequest(request));
+        .finally(() => {
+          if (this.isCurrentSelectionRequest(request)) {
+            this.selectionOperations.reject(request);
+          }
+        });
     },
     /**
      * 清空跨页、跨产品的已选词条数组。
@@ -2820,14 +2734,10 @@ export default {
      * @returns {void}
      */
     clearSelectedEntries() {
-      this.selectAllClearVersion += 1;
-      this.selectAllPendingRequests = [];
-      this.selectAllLoading = false;
-      this.selectEntry = [];
+      this.selectionOperations.invalidate();
+      this.selectEntry = this.selectedEntryOperations.clear();
       this.selectedRowKeys = [];
       this.selectedRows = [];
-      this.selectedEntryRevisions.clear();
-      this.savedEntriesById.clear();
     },
     /**
      * 清空全部已选词条并关闭已选词条弹窗。
@@ -2856,26 +2766,18 @@ export default {
      * @returns {void}
      */
     updateSelectedEntries(rows) {
-      const previousIds = new Set(this.selectEntry.map((item) => item.id));
       const nextIds = new Set(rows.map((item) => item.id));
       const removedRows = this.selectEntry.filter(
         (item) => !nextIds.has(item.id)
       );
-      const addedRows = rows.filter((item) => !previousIds.has(item.id));
-      this.updatePendingSelectAllExclusions(
+      this.recordPendingSelectionChanges(
         removedRows.map((item) => item.id),
-        addedRows.map((item) => item.id)
+        rows.map((item) => item.id)
       );
-      const revision = ++this.selectAllRequestId;
-      removedRows.forEach((item) => {
-        this.selectedEntryRevisions.delete(item.id);
-        this.savedEntriesById.delete(item.id);
-      });
       rows.forEach((item) => {
-        this.selectedEntryRevisions.set(item.id, revision);
-        this.savedEntriesById.delete(item.id);
+        this.selectionOperations.refresh(item);
       });
-      this.selectEntry = mergeSelectedEntriesById([], rows);
+      this.selectEntry = this.selectedEntryOperations.merge([], rows);
       this.selectedRows = this.selectEntry;
       this.selectedRowKeys = this.selectEntry.map((item) => item.id);
       this.syncSelectedProducts();
@@ -2884,22 +2786,16 @@ export default {
      * 将单行或弹窗中的选择变化同步到所有进行中的全量请求。
      * @param {Array} excludedIds - 用户主动取消选择的词条 ID。
      * @param {Array} includedIds - 用户主动恢复选择的词条 ID。
+     * @param {string|null} scope - 查询范围；null 表示弹窗中的全局选择变更。
      * @returns {void}
      */
-    updatePendingSelectAllExclusions(excludedIds = [], includedIds = []) {
-      this.selectAllPendingRequests.forEach((request) => {
-        if (request.action === "deselect") {
-          const requestIncludedIds = new Set(request.includedIds);
-          excludedIds.forEach((id) => requestIncludedIds.delete(id));
-          includedIds.forEach((id) => requestIncludedIds.add(id));
-          request.includedIds = Array.from(requestIncludedIds);
-          return;
-        }
-        const requestExcludedIds = new Set(request.excludedIds);
-        excludedIds.forEach((id) => requestExcludedIds.add(id));
-        includedIds.forEach((id) => requestExcludedIds.delete(id));
-        request.excludedIds = Array.from(requestExcludedIds);
-      });
+    recordPendingSelectionChanges(excludedIds = [], includedIds = [], scope = null) {
+      excludedIds.forEach((id) =>
+        this.selectionOperations.record(id, false, scope)
+      );
+      includedIds.forEach((id) =>
+        this.selectionOperations.record(id, true, scope)
+      );
     },
     //新增词条
     /**
@@ -3130,39 +3026,9 @@ export default {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    formatTagText(text) {
-      return this.companyCut(text).join("; ");
-    },
-    entryStateLabel(value) {
-      const map = {
-        0: "新建",
-        1: "审核中",
-        2: "审核不通过",
-        3: "已审核",
-        "-1": "禁用",
-      };
-      return map[value] ?? "";
-    },
-    translateStateLabel(value) {
-      const map = {
-        0: "未翻译",
-        1: "待审核",
-        2: "审核不通过",
-        3: "已审核",
-      };
-      return map[value] ?? "未翻译";
-    },
-    // 切割字符串
-    companyCut(message) {
-      let res = [];
-      if (!message || message === "") {
-        return res;
-      }
-      const regex = /[;；]/;
-      res = message.split(regex);
-      res = res.filter((item) => item != "");
-      return res;
-    },
+    getEntryStateLabel,
+    getTranslateStateLabel,
+    getTranslateStateStatus,
     // 查看辞典
     viewDictionary() {
       this.dictionaryVisible = true;
@@ -3205,20 +3071,20 @@ export default {
      * @returns {void}
      */
     onSelect(record, selected) {
-      this.updatePendingSelectAllExclusions(
+      this.recordPendingSelectionChanges(
         selected ? [] : [record.id],
-        selected ? [record.id] : []
+        selected ? [record.id] : [],
+        this.getCurrentSelectionScopeKey()
       );
       if (selected) {
-        const revision = ++this.selectAllRequestId;
-        this.selectedEntryRevisions.set(record.id, revision);
-        this.savedEntriesById.delete(record.id);
-        this.selectEntry = mergeSelectedEntriesById(this.selectEntry, [record]);
+        this.selectEntry = this.selectedEntryOperations.update(
+          this.selectEntry,
+          record
+        );
       } else {
-        this.selectedEntryRevisions.delete(record.id);
-        this.savedEntriesById.delete(record.id);
-        this.selectEntry = this.selectEntry.filter(
-          (item) => item.id !== record.id
+        this.selectEntry = this.selectedEntryOperations.remove(
+          this.selectEntry,
+          [record.id]
         );
       }
       this.selectedRows = this.selectEntry;
@@ -3233,17 +3099,15 @@ export default {
      * @returns {void}
      */
     onSelectAll(selected, _selectedRows, changeRows) {
+      const changedIds = (changeRows || []).map((item) => item.id);
+      const scope = this.getCurrentSelectionScopeKey();
       if (selected) {
-        this.updatePendingSelectAllExclusions(
+        this.recordPendingSelectionChanges(
           [],
-          (changeRows || []).map((item) => item.id)
+          changedIds,
+          scope
         );
-        const revision = ++this.selectAllRequestId;
-        (changeRows || []).forEach((item) => {
-          this.selectedEntryRevisions.set(item.id, revision);
-          this.savedEntriesById.delete(item.id);
-        });
-        this.selectEntry = mergeSelectedEntriesById(
+        this.selectEntry = this.selectedEntryOperations.merge(
           this.selectEntry,
           changeRows || []
         );
@@ -3253,6 +3117,7 @@ export default {
         this.selectAllEntry();
         return;
       }
+      this.recordPendingSelectionChanges(changedIds, [], scope);
       this.clearCurrentQuerySelection();
     },
     /**
@@ -3293,32 +3158,6 @@ export default {
 .entry-table-holder {
   width: 100%;
   position: absolute;
-}
-
-:deep(.entry-table-holder .ant-table-placeholder > td) {
-  height: var(--entry-empty-body-height);
-  vertical-align: middle;
-}
-
-:deep(.entry-table-holder .ant-table-placeholder .ant-empty) {
-  visibility: hidden;
-}
-
-.entry-empty-overlay {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  bottom: 16px;
-  left: 0;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-}
-
-:deep(.entry-empty-overlay .ant-empty) {
-  margin: 0;
 }
 
 .entryDetails {
@@ -3448,11 +3287,7 @@ export default {
 .entry-toolbar-right {
   flex: 0 0 50%;
   max-width: 50%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
   justify-content: flex-end;
-  align-items: center;
 }
 
 .entry-toolbar-right :deep(.entry-toolbar-add-button.ant-btn-primary:disabled),
@@ -3465,46 +3300,4 @@ export default {
   cursor: not-allowed;
 }
 
-.entry-toolbar-selected-button {
-  position: relative;
-  white-space: nowrap;
-}
-
-.entry-toolbar-right :deep(.ant-badge-count) {
-  z-index: 999;
-}
-
-.entry-toolbar-selected-button-loading .entry-toolbar-selected-label {
-  visibility: hidden;
-}
-
-.entry-toolbar-selected-spinner {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  transform: translate(-50%, -50%);
-}
-
-.entry-toolbar-right :deep(.entry-toolbar-git-button.ant-btn-primary) {
-  color: rgba(0, 0, 0, 0.88);
-  background: #fff;
-  border-color: #d9d9d9;
-  box-shadow: none;
-}
-
-.entry-toolbar-right :deep(.entry-toolbar-git-button.ant-btn-primary:hover),
-.entry-toolbar-right :deep(.entry-toolbar-git-button.ant-btn-primary:focus) {
-  color: #4096ff;
-  background: #fff;
-  border-color: #4096ff;
-}
-
-.entry-toolbar-right :deep(.entry-toolbar-git-button.ant-btn-primary:active) {
-  color: #0958d9;
-  background: #fff;
-  border-color: #0958d9;
-}
 </style>
