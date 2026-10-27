@@ -18,6 +18,18 @@
 
 更新时必须传 `-Build`。不传时会启动已有镜像；若本地镜像或打包产物不存在，入口脚本会按需构建。
 
+## 前端使用本地后端
+
+`translation/.env.development.local` 是 Git 忽略的本地开发配置，其中 `VUE_APP_SERVER_URL` 指向 `http://localhost:18001/`。仓库默认后端地址仍保留给其他环境和同事。
+
+启动前端开发服务器：
+
+```powershell
+npm -C translation run serve -- --port 8091
+```
+
+Vue CLI 在启动时读取本地环境文件；修改该文件后需要重启前端开发服务器。若本机已有 `8090` 服务，可用 `8091` 并访问 `http://localhost:8091`。
+
 ## 环境与数据
 
 - Docker Desktop 必须已启动。
