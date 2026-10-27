@@ -1,7 +1,8 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { isReactive, nextTick } from 'vue'
+import { nextTick } from 'vue'
 import GlossaryIndex from '@/views/glossary/index.vue'
+import { getTranslateStateLabel } from '@/constants/statusMaps.js'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
 import { getSykEntry, getSykEntryRelation } from '@/http/api/glossary'
 import { cancelRequest } from '@/http/request'
@@ -11,6 +12,14 @@ vi.mock('@/utils/domUtils', () => ({
   clickInput: vi.fn(),
   setModalAriaHidden: vi.fn(),
 }))
+
+vi.mock('@/constants/statusMaps.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    getTranslateStateLabel: vi.fn(actual.getTranslateStateLabel),
+  }
+})
 
 vi.mock('@/http/api/glossary', () => ({
   getSykEntry: vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } })),
@@ -35,10 +44,7 @@ vi.mock('@/http/api/userPartiality', () => ({
   updateUserPartiality: vi.fn(),
 }))
 
-vi.mock('@/utils/tableUtils', () => ({
-  handleResizeColumn: vi.fn(),
-  getRowClassName: vi.fn(),
-}))
+vi.mock('@/utils/tableUtils', () => ({ getRowClassName: vi.fn() }))
 
 vi.mock('ant-design-vue', () => ({
   default: { install: vi.fn() },
@@ -404,6 +410,7 @@ describe('Glossary - 浏览省略与编辑文本域', () => {
     )
     expect(wrapper.find('[data-col="entry"]').findComponent({ name: 'TableCellText' }).exists()).toBe(true)
     expect(wrapper.find('[data-col="translateState"]').find('.cell-overflow-tooltip-stub').exists()).toBe(true)
+    expect(getTranslateStateLabel).toHaveBeenCalledWith(0)
     expect(wrapper.find('[data-col="operation"]').find('.cell-overflow-tooltip-stub').exists()).toBe(false)
     expect(wrapper.find('[data-col="index"]').find('.cell-overflow-tooltip-stub').exists()).toBe(false)
 
@@ -417,14 +424,17 @@ describe('Glossary - 浏览省略与编辑文本域', () => {
     expect(wrapper.find('[data-col="translateState"]').find('.trans-state-badge-stub').exists()).toBe(true)
   })
 
-  it('applyTable 应锁定单元格宽且表格带 table-cell-overflow', async () => {
+  it('applyTable 只生成列元数据且表格带 table-cell-overflow', async () => {
     wrapper = mountWithTableStub()
     await flushPromises()
-    expect(wrapper.vm.$columnFilterPref?.lockCellSize).toBe(true)
+    expect(wrapper.vm.$columnFilterPref).toEqual(expect.objectContaining({
+      colPrefName: 'colPref-glossary',
+      needFilter: false,
+    }))
     expect(wrapper.find('.table-stub').classes()).toContain('table-cell-overflow')
   })
 
-  it('术语库使用共享视口并只保留横向滚动配置', async () => {
+  it('术语库使用共享视口处理固定布局和内部横向滚动', async () => {
     wrapper = mountWithTableStub()
     await flushPromises()
 
@@ -432,10 +442,8 @@ describe('Glossary - 浏览省略与编辑文本域', () => {
     const table = wrapper.findComponent({ name: 'ATable' })
     expect(viewport.exists()).toBe(true)
     expect(viewport.props('scroll')).toEqual(wrapper.vm.tableHeight)
-    expect(viewport.props('scroll').x).toBeGreaterThan(0)
     expect(table.props('tableLayout')).toBe('fixed')
     expect(table.props('bordered')).toBe(true)
-    expect(wrapper.vm.tableHeight.x).toBeGreaterThan(0)
   })
 
   it('tag/comment 列头使用统一提示组件', async () => {
@@ -484,150 +492,17 @@ describe('Glossary - 浏览省略与编辑文本域', () => {
     expect(wrapper.vm.columns.find((column) => column.colValue === 'translate')).toEqual(
       expect.objectContaining({ align: 'left', minWidth: 50 })
     )
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'entry').customHeaderCell().style.minWidth).toBe('50px')
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'translate').customCell().style.minWidth).toBe('50px')
+    expect(wrapper.vm.columns.find((column) => column.colValue === 'entry').customHeaderCell).toBeUndefined()
+    expect(wrapper.vm.columns.find((column) => column.colValue === 'translate').customCell).toBeUndefined()
   })
 
-  /**
-   * 验证术语库的自适应文本列按基础宽度比例填充分配后的视口。
-   * @returns {Promise<void>} 完成 Vue 页面测试。
-   */
-  it('词条和翻译列按基础宽度比例填充分配后的视口', async () => {
+  it('术语库不再维护页面级列宽状态', async () => {
     wrapper = mountWithTableStub()
     await flushPromises()
 
-    wrapper.vm.recomputeAdaptiveColumnWidths(1400)
-
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'entry').width).toBe(331)
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'translate').width).toBe(393)
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'translateState').width).toBe(108)
-    expect(wrapper.vm.tableHeight.x).toBe(1400)
-  })
-
-  /**
-   * 验证自适应列宽以 Ant Table 内容滚动区为基准，避免边框造成的横向溢出。
-   * @returns {Promise<void>} 完成 Vue 页面测试。
-   */
-  it('按表格内容滚动区宽度计算总宽，避免边框产生多余横向滚动', async () => {
-    wrapper = mountWithTableStub()
-    await flushPromises()
-
-    const viewport = wrapper.findComponent({ name: 'TableViewport' }).element
-    vi.spyOn(viewport, 'querySelector').mockReturnValue({ clientWidth: 1399 })
-    wrapper.vm.recomputeAdaptiveColumnWidths(1400)
-
-    expect(wrapper.vm.tableHeight.x).toBe(1399)
-  })
-
-  /**
-   * 验证拖拽后的列宽保持固定，窗口变窄时不被自动压缩。
-   * @returns {Promise<void>} 完成 Vue 页面测试。
-   */
-  it('拖拽后固定该列宽度并在视口变窄时保留横向溢出', async () => {
-    wrapper = mountWithTableStub()
-    await flushPromises()
-
-    const entryColumn = wrapper.vm.columns.find((column) => column.colValue === 'entry')
-    wrapper.vm.handleResizeColumn(300, entryColumn)
-    wrapper.vm.recomputeAdaptiveColumnWidths(1400)
-
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'entry').width).toBe(300)
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'translate').width).toBe(424)
-    expect(wrapper.vm.tableHeight.x).toBe(1400)
-
-    wrapper.vm.recomputeAdaptiveColumnWidths(1000)
-
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'entry').width).toBe(300)
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'translate').width).toBe(260)
-    expect(wrapper.vm.tableHeight.x).toBeGreaterThan(1000)
-  })
-
-  /**
-   * 验证列隐藏期间保留手动宽度，恢复显示后仍应用该宽度。
-   * @returns {Promise<void>} 完成 Vue 页面测试。
-   */
-  it('列隐藏后恢复时保留已拖拽宽度', async () => {
-    wrapper = mountWithTableStub()
-    await flushPromises()
-
-    const allColumns = [...wrapper.vm.columns]
-    const entryColumn = allColumns.find((column) => column.colValue === 'entry')
-    wrapper.vm.handleResizeColumn(300, entryColumn)
-    wrapper.vm.columns = allColumns.filter((column) => column.colValue !== 'translate')
-    wrapper.vm.recomputeAdaptiveColumnWidths(1400)
-    expect(wrapper.vm.columns.some((column) => column.colValue === 'translate')).toBe(false)
-
-    wrapper.vm.columns = allColumns
-    wrapper.vm.recomputeAdaptiveColumnWidths(1400)
-
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'entry').width).toBe(300)
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'translate').width).toBe(424)
-  })
-
-  /**
-   * 验证视口观察器响应宽度变化，并在页面卸载时断开且忽略旧回调。
-   * @returns {Promise<void>} 完成 Vue 页面测试。
-   */
-  it('响应视口变化并在卸载时清理过期观察回调', async () => {
-    class ResizeObserverStub {
-      /**
-       * 记录观察器回调及独立观察目标。
-       * @param {Function} callback 尺寸变化回调。
-       * @returns {void} 初始化观察器状态。
-       */
-      constructor(callback) {
-        this.callback = callback
-        this.targets = []
-        this.disconnected = false
-      }
-
-      /**
-       * 记录本观察器订阅的节点。
-       * @param {Element} element 表格视口节点。
-       * @returns {void} 无返回值。
-       */
-      observe(element) {
-        this.targets.push(element)
-      }
-
-      /**
-       * 记录观察器是否已清理。
-       * @returns {void} 无返回值。
-       */
-      disconnect() {
-        this.disconnected = true
-      }
-    }
-    vi.stubGlobal('ResizeObserver', ResizeObserverStub)
-    wrapper = mountWithTableStub()
-    await flushPromises()
-
-    const viewport = wrapper.findComponent({ name: 'TableViewport' }).element
-    const pageObserver = wrapper.vm.columnWidthObserver
-    expect(pageObserver).toBeDefined()
-    expect(pageObserver.targets).toContain(viewport)
-    expect(isReactive(pageObserver)).toBe(false)
-    pageObserver.callback([{ contentRect: { width: 1400 } }])
-    await nextTick()
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'entry').width).toBe(331)
-    expect(wrapper.vm.columns.find((column) => column.colValue === 'translate').width).toBe(393)
-    expect(wrapper.vm.tableHeight.x).toBe(1400)
-
-    wrapper.vm.observeColumnWidth()
-    const activeObserver = wrapper.vm.columnWidthObserver
-    const widthsAfterReplacement = wrapper.vm.columns.map((column) => column.width)
-    expect(activeObserver).not.toBe(pageObserver)
-    expect(pageObserver.disconnected).toBe(true)
-    pageObserver.callback([{ contentRect: { width: 1600 } }])
-    expect(wrapper.vm.columns.map((column) => column.width)).toEqual(widthsAfterReplacement)
-
-    const viewModel = wrapper.vm
-    const widthsBeforeUnmount = viewModel.columns.map((column) => column.width)
-    wrapper.unmount()
-    wrapper = null
-    expect(activeObserver.disconnected).toBe(true)
-    activeObserver.callback([{ contentRect: { width: 1600 } }])
-    expect(viewModel.columns.map((column) => column.width)).toEqual(widthsBeforeUnmount)
+    expect(wrapper.vm.handleResizeColumn).toBeUndefined()
+    expect(wrapper.vm.recomputeAdaptiveColumnWidths).toBeUndefined()
+    expect(wrapper.vm.columnWidthObserver).toBeUndefined()
   })
 
   it('关联信息未完成时保持表格 loading，全部渲染完成后才关闭', async () => {

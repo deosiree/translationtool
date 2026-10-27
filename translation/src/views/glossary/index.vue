@@ -153,7 +153,6 @@
           class="ant-table-striped table-cell-overflow"
           :bordered="true"
           adaptive-columns
-          table-layout="fixed"
           :height="'100%'"
           :scroll="tableHeight"
           :columns="columns"
@@ -163,7 +162,6 @@
           :loading="loading"
           :rowClassName="getRowClassName"
           ref="glossaryTable"
-          @resizeColumn="handleResizeColumn"
           :row-selection="{
             columnWidth: 48,
             selectedRowKeys: tableSelectedRowKeys,
@@ -197,7 +195,7 @@
                 />
               </template>
               <template v-else-if="column.dataIndex === 'translateState'">
-                <CellOverflowTooltip :content="translateStateLabel(text)">
+                <CellOverflowTooltip :content="getTranslateStateLabel(text)">
                   <TransStateBadge :translateState="text" />
                 </CellOverflowTooltip>
               </template>
@@ -259,8 +257,9 @@ import RelationModal from "@/views/glossary/relationModal.vue";
 import Input from "@/components/cellEditor/input_IME.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import TableCellText from "@/components/table/TableCellText/TableCellText.vue";
-import TableHeaderHint from "@/components/table/TableHeaderHint.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import { formatCellText } from "@/components/table/cellText";
+import { getTranslateStateLabel } from "@/constants/statusMaps.js";
 import { updateUserPartiality } from "@/http/api/userPartiality";
 import { cloneDeep, flatMap } from "lodash-es";
 import { onEditableCellInput } from "@/utils/validationUtils";
@@ -285,10 +284,7 @@ import {
   getSameEntryRelation,
 } from "@/http/api/glossary";
 import { cancelRequest } from "@/http/request";
-import {
-  handleResizeColumn,
-  getRowClassName,
-} from "@/utils/tableUtils";
+import { getRowClassName } from "@/utils/tableUtils";
 import { applyTable, syncColumnsFromPref as applyTableColumnsFromPref } from "@/components/ColumnFilter";
 import {
   pageChange,
@@ -301,7 +297,6 @@ import SelectionToolbarButton from "@/components/selectToolBar/SelectionToolbarB
 import { useSelectedEntries } from "@/components/selectToolBar/composables/useSelectedEntries";
 import { useSelectionOperations } from "@/components/selectToolBar/composables/useSelectionOperations";
 import { useSelectionToolbarState } from "@/components/selectToolBar/composables/useSelectionToolbarState";
-import { useAdaptiveColumnWidths } from "@/components/table/useAdaptiveColumnWidths";
 import { clickInput, setModalAriaHidden } from "@/utils/domUtils";
 import commonParam, {
   glossaryParams,
@@ -309,7 +304,7 @@ import commonParam, {
   glossaryPresets,
 } from "@/constants/commonParam.js";
 import ColumnFilter from "@/components/ColumnFilter/ColumnFilter.vue";
-import { defineComponent, ref, createVNode, nextTick, markRaw } from "vue";
+import { defineComponent, ref, createVNode, nextTick } from "vue";
 
 const SEARCH_APIS = {
   getSykEntry,
@@ -317,9 +312,6 @@ const SEARCH_APIS = {
   checkSameEntry,
   checkSykEntry,
 };
-
-const ADAPTIVE_COLUMN_KEYS = ["entry", "translate"];
-const SELECTION_COLUMN_WIDTH = 48;
 
 /**
  * 等待 Vue 更新和浏览器下一帧布局完成。
@@ -410,8 +402,6 @@ export default {
       selectionSettlingCount: 0,
       activeSelectionRequestIds: [],
       requestSequence: 0,
-      adaptiveColumnWidthState: useAdaptiveColumnWidths(),
-      columnWidthObserver: null,
       editableData: {},
       translateTypes: [],
       pagination: {
@@ -486,10 +476,7 @@ export default {
         colPrefName: "colPref-glossary",
         normalWidth: 150,
         needFilter: false,
-        lockCellSize: true,
-        fluidColValues: ["entry", "translate"],
       });
-      this.$nextTick(() => this.observeColumnWidth());
     });
   },
   /**
@@ -509,8 +496,6 @@ export default {
    */
   beforeUnmount() {
     this.stopSelectionCollection();
-    this.columnWidthObserver?.disconnect();
-    this.columnWidthObserver = null;
   },
   watch: {
     "search.searchType": {
@@ -536,76 +521,6 @@ export default {
      */
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
-      this.$nextTick(() => this.recomputeAdaptiveColumnWidths());
-    },
-    /**
-     * 观察表格视口宽度并在布局变化时重新计算自适应列宽。
-     * @returns {void} 无返回值。
-     */
-    observeColumnWidth() {
-      const viewport = this.$refs.glossaryTable?.$el;
-      if (!viewport) return;
-
-      if (typeof ResizeObserver === "undefined") {
-        this.recomputeAdaptiveColumnWidths(viewport.clientWidth);
-        return;
-      }
-
-      this.columnWidthObserver?.disconnect();
-      const observer = new ResizeObserver((entries) => {
-        if (this.columnWidthObserver !== observer) return;
-        const width = entries[0]?.contentRect?.width ?? viewport.clientWidth;
-        this.recomputeAdaptiveColumnWidths(width);
-      });
-      this.columnWidthObserver = markRaw(observer);
-      observer.observe(viewport);
-      this.recomputeAdaptiveColumnWidths(viewport.clientWidth);
-    },
-    /**
-     * 按可见列定义、手动宽度和表格内容视口宽度更新列宽。
-     * @param {number} [viewportWidth] 表格视口可用宽度。
-     * @returns {void} 无返回值。
-     */
-    recomputeAdaptiveColumnWidths(viewportWidth) {
-      const viewport = this.$refs.glossaryTable?.$el;
-      const contentWidth = viewport?.querySelector?.(".ant-table-content")?.clientWidth;
-      const availableWidth = contentWidth > 0
-        ? contentWidth
-        : viewportWidth ?? viewport?.clientWidth ?? 0;
-      const settingsByValue = new Map(
-        this.columnSettingsList.map((column) => [column.value, column])
-      );
-      const visibleColumns = this.columns.map((column) => {
-        const settings = settingsByValue.get(column.colValue);
-        return {
-          colValue: column.colValue,
-          width: settings?.width ?? column.width,
-          minWidth: settings?.minWidth ?? column.minWidth,
-        };
-      });
-      const resolvedWidths = this.adaptiveColumnWidthState.resolve(
-        availableWidth,
-        visibleColumns,
-        ADAPTIVE_COLUMN_KEYS,
-        SELECTION_COLUMN_WIDTH
-      );
-      const nextColumns = this.columns.map((column) => {
-        const width = resolvedWidths[column.colValue];
-        return width == null || width === column.width
-          ? column
-          : { ...column, width };
-      });
-      const tableWidth = nextColumns.reduce(
-        (total, column) => total + (Number(column.width) || 0),
-        SELECTION_COLUMN_WIDTH
-      );
-
-      if (nextColumns.some((column, index) => column !== this.columns[index])) {
-        this.columns = nextColumns;
-      }
-      if (this.tableHeight.x !== tableWidth) {
-        this.tableHeight = { x: tableWidth };
-      }
     },
     // 初始化
     init() {
@@ -886,15 +801,7 @@ export default {
       delete this.editableData[id];
     },
     formatCellText,
-    translateStateLabel(value) {
-      const map = {
-        0: "未翻译",
-        1: "待审核",
-        2: "审核不通过",
-        3: "已审核",
-      };
-      return map[value] ?? "未翻译";
-    },
+    getTranslateStateLabel,
     // 回车编辑框
     editOK(record) {
       this.save(record.id);
@@ -966,19 +873,6 @@ export default {
     // 阻止事件冒泡，防止事件传播到父元素
     clickInput(event) {
       clickInput(this, event);
-    },
-    /**
-     * 保存列拖拽宽度，并将其从后续的自动扩宽分配中固定下来。
-     * @param {number} width 拖拽后的列宽。
-     * @param {Object} column 被拖拽的表格列。
-     * @returns {void} 无返回值。
-     */
-    handleResizeColumn(width, column) {
-      handleResizeColumn(width, column);
-      if (column?.colValue) {
-        this.adaptiveColumnWidthState.setManualWidth(column.colValue, width);
-      }
-      this.recomputeAdaptiveColumnWidths();
     },
     // 设置表格每一行的 class
     getRowClassName(record, index) {
