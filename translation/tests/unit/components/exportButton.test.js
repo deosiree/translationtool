@@ -236,5 +236,70 @@ describe('ExportButton - user 属性重构测试', () => {
       expect(wrapper.vm.exportVisible).toBe(true)
       expect(setModalAriaHidden).toHaveBeenCalled()
     })
+
+    it('异常明细表使用共享视口并限制高度', async () => {
+      wrapper = mount(ExportButton, {
+        props: {
+          buttonTitle: '瀵煎嚭',
+          dataSource: [],
+          fieldOptions_: []
+        },
+        global: {
+          mocks: createUserStoreMock(),
+          stubs: {
+            'a-modal': {
+              template: '<div><slot /><slot name="footer" /></div>'
+            },
+            'a-spin': {
+              template: '<div><slot /></div>'
+            },
+            'TableViewport': {
+              name: 'TableViewport',
+              props: ['height', 'scroll', 'pagination'],
+              template: '<div class="table-viewport-stub" />'
+            },
+            'a-button': true,
+            'a-form': true,
+            'a-form-item': true,
+            'a-select': true,
+            'a-input': true,
+            'a-checkbox': true
+          }
+        }
+      })
+
+      wrapper.vm.exportModal.exportType = 'xml'
+      wrapper.vm.xmlExportIssues = {
+        duplicates: [{ abbr: 'one', count: 2 }],
+        emptyCount: 0
+      }
+      await nextTick()
+
+      const table = wrapper.findComponent({ name: 'TableViewport' })
+      expect(table.exists()).toBe(true)
+      expect(table.props('height')).toBe(100)
+      expect(table.props('scroll')).toEqual({ x: 'max-content' })
+      expect(table.props('pagination')).toBe(false)
+
+      wrapper.vm.xmlExportIssues = {
+        duplicates: Array.from({ length: 3 }, (_, index) => ({
+          abbr: `abbr-${index}`,
+          count: 2
+        })),
+        emptyCount: 0
+      }
+      await nextTick()
+      expect(table.props('height')).toBe(160)
+
+      wrapper.vm.xmlExportIssues = {
+        duplicates: Array.from({ length: 10 }, (_, index) => ({
+          abbr: `abbr-${index}`,
+          count: 2
+        })),
+        emptyCount: 0
+      }
+      await nextTick()
+      expect(table.props('height')).toBe(300)
+    })
   })
 })

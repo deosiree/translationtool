@@ -38,17 +38,17 @@
         class="xml-export-issues"
       >
         <a-alert message="发现异常 abbr，已阻止 XML 生成。（注意，导出xml的abbr对应“词条”列）" type="error" show-icon />
-        <div class="xml-export-issues-table">
-          <a-table
-            :columns="xmlExportIssueColumns"
-            :data-source="xmlExportIssueRows"
-            :pagination="false"
-            :row-key="record => record.key"
-            :scroll="{ x: 'max-content', y: 52 }"
-            size="small"
-            :bordered="true"
-          />
-        </div>
+        <TableViewport
+          class="xml-export-issues-table"
+          :columns="xmlExportIssueColumns"
+          :data-source="xmlExportIssueRows"
+          :pagination="false"
+          :row-key="record => record.key"
+          :height="xmlExportIssueTableHeight"
+          :scroll="{ x: 'max-content' }"
+          size="small"
+          :bordered="true"
+        />
         <a-button
           v-if="xmlExportIssues.duplicates.length"
           type="link"
@@ -73,6 +73,7 @@ import { create } from "xmlbuilder2";
 // import builder from "xmlbuilder"; // 注意：这是 xmlbuilder 的常见导入方式
 import { ref } from "vue";
 import CustomModal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import {
   entryExportByCondition,
   checkBeforeExportEntry,
@@ -88,6 +89,7 @@ import { analyzeXmlExportAbbrs } from "@/utils/xmlExportUtils.js";
 export default {
   components: {
     CustomModal,
+    TableViewport,
   },
   emits: ["afterClose"],
   props: {
@@ -179,6 +181,15 @@ export default {
       }
 
       return rows;
+    },
+    /**
+     * 按异常行数计算导出异常表格的总高度，并限制在可用范围内。
+     * @param {void} none - 无参数。
+     * @returns {number} 包含表头的表格总高度，单位为像素。
+     */
+    xmlExportIssueTableHeight() {
+      const estimatedHeight = 40 + this.xmlExportIssueRows.length * 40;
+      return Math.min(300, Math.max(100, estimatedHeight));
     },
   },
   mounted() {
@@ -638,10 +649,3 @@ export default {
   },
 };
 </script>
-
-<style lang="less" scoped>
-.xml-export-issues-table {
-  max-height: 100px;
-  overflow: auto;
-}
-</style>
