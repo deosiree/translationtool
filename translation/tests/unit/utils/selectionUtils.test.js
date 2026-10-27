@@ -14,10 +14,14 @@ import {
   updateTableSelectionById,
   getSelectionScopeRows,
   getCurrentSelectionRows,
+  clearTableRowsContext,
+  clearTableQueryContext,
+  resetTableQuerySession,
   collectAllPages,
   createSelectionOperationGuard,
 } from '@/utils/selectionUtils'
 import { partitionSubmittedRows } from '@/utils/batchUpdateResults.js'
+import { createQueryVersionGuard } from '@/utils/queryVersionGuard'
 
 describe('selectionUtils - 表格选择/分页工具函数', () => {
   let mockVm
@@ -350,6 +354,115 @@ describe('selectionUtils - 表格选择/分页工具函数', () => {
         { id: 'outside', value: 'keep' },
       ])
       expect(vm.selectedRowKeys).toEqual(['child', 'outside'])
+    })
+
+    it('刷新查询时按仅存的行键恢复当前范围内的已选行', () => {
+      const vm = {
+        selectedRows: [{ id: 'outside', value: 'keep' }],
+        selectedRowKeys: ['current', 'outside'],
+      }
+
+      refreshTableSelectionById(vm, [{ id: 'current', value: 'server' }])
+
+      expect(vm.selectedRows).toEqual([
+        { id: 'current', value: 'server' },
+        { id: 'outside', value: 'keep' },
+      ])
+      expect(vm.selectedRowKeys).toEqual(['current', 'outside'])
+    })
+
+    it('clearTableRowsContext retains cross-query selections while clearing rows', () => {
+      const vm = {
+        dataSource: [{ id: 'old-row' }],
+        allData: [{ id: 'old-row' }],
+        selectedRows: [{ id: 'old-row' }],
+        selectedRowKeys: ['old-row'],
+        editableData: { 'old-row': { value: 'draft' } },
+        cellErrors: { 'old-row': { value: 'invalid' } },
+        selectedRowIndex: 'old-row',
+      }
+
+      clearTableRowsContext(vm)
+
+      expect(vm.dataSource).toEqual([])
+      expect(vm.allData).toEqual([])
+      expect(vm.selectedRows).toEqual([{ id: 'old-row' }])
+      expect(vm.selectedRowKeys).toEqual(['old-row'])
+      expect(vm.editableData).toEqual({})
+      expect(vm.cellErrors).toEqual({})
+      expect(vm.selectedRowIndex).toBeNull()
+    })
+
+    it('clearTableQueryContext clears selections when query context is discarded', () => {
+      const vm = {
+        dataSource: [{ id: 'old-row' }],
+        allData: [{ id: 'old-row' }],
+        selectedRows: [{ id: 'old-row' }],
+        selectedRowKeys: ['old-row'],
+      }
+
+      clearTableQueryContext(vm)
+
+      expect(vm.dataSource).toEqual([])
+      expect(vm.allData).toEqual([])
+      expect(vm.selectedRows).toEqual([])
+      expect(vm.selectedRowKeys).toEqual([])
+    })
+
+    it('resetTableQuerySession使单个查询守卫失效并清空完整会话', () => {
+      const queryGuard = createQueryVersionGuard()
+      const oldToken = queryGuard.next()
+      const vm = {
+        queryGuard,
+        queryLoading: true,
+        queryScope: 'old-query',
+        dataSource: [{ id: 'old-row' }],
+        allData: [{ id: 'old-row' }],
+        dataSourceAll: [{ id: 'old-row' }],
+        selectedRows: [{ id: 'old-row' }],
+        selectedRowKeys: ['old-row'],
+        selectedRowIndex: 'old-row',
+        editableData: { 'old-row': { value: 'draft' } },
+        cellErrors: { 'old-row': { value: 'invalid' } },
+      }
+
+      resetTableQuerySession(vm)
+
+      expect(queryGuard.isCurrent(oldToken)).toBe(false)
+      expect(vm.queryLoading).toBe(false)
+      expect(vm.queryScope).toBe('')
+      expect(vm.dataSource).toEqual([])
+      expect(vm.allData).toEqual([])
+      expect(vm.dataSourceAll).toEqual([])
+      expect(vm.selectedRows).toEqual([])
+      expect(vm.selectedRowKeys).toEqual([])
+      expect(vm.selectedRowIndex).toBeNull()
+      expect(vm.editableData).toEqual({})
+      expect(vm.cellErrors).toEqual({})
+    })
+
+    it('resetTableQuerySession支持同时失效多个查询守卫', () => {
+      const queryGuard = createQueryVersionGuard()
+      const importGuard = createQueryVersionGuard()
+      const queryToken = queryGuard.next()
+      const importToken = importGuard.next()
+      const vm = {
+        queryLoading: true,
+        queryScope: 'old-query',
+        dataSource: [{ id: 'old-row' }],
+        selectedRows: [{ id: 'old-row' }],
+        selectedRowKeys: ['old-row'],
+      }
+
+      resetTableQuerySession(vm, [queryGuard, importGuard])
+
+      expect(queryGuard.isCurrent(queryToken)).toBe(false)
+      expect(importGuard.isCurrent(importToken)).toBe(false)
+      expect(vm.queryLoading).toBe(false)
+      expect(vm.queryScope).toBe('')
+      expect(vm.dataSource).toEqual([])
+      expect(vm.selectedRows).toEqual([])
+      expect(vm.selectedRowKeys).toEqual([])
     })
 
     it('应忽略空数组与无 id 的项', () => {

@@ -23,6 +23,13 @@ export function createQueryVersionGuard() {
       return token === version;
     },
     /**
+     * 返回当前查询版本，用于把跨请求操作绑定到启动时的会话。
+     * @returns {number} 当前查询版本号。
+     */
+    current() {
+      return version;
+    },
+    /**
      * 使所有已发起查询失效。
      * @returns {number} 失效后的当前版本号。
      */

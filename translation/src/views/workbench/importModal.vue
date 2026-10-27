@@ -17,7 +17,7 @@
         :table-host="this"
         :columns="columns"
         :data-source="dataSource"
-        :loading="loading"
+        :loading="loading || queryLoading"
         :pagination="pagination"
         :scroll="tableHeight"
         :row-selection="importRowSelection"
@@ -953,13 +953,20 @@ import commonParam, {
   workbenchParams,
 } from "@/constants/commonParam.js";
 import {
-  onSelectChange,
-  onSelect,
-  onSelectAll,
+  applyTableSelectionById,
+  invalidateSelectionWhenFiltersChange,
+  clearTableSelection,
+  clearTableRowsContext,
+  resetTableQuerySession,
+  flattenRowsById,
+  getCurrentSelectionRows,
+  removeSelectedEntriesById,
   pageChange,
-  selectAllEntry as selectAllEntryUtil,
-  clearAllEntry as clearAllEntryUtil,
+  refreshTableSelectionById,
+  updateTableSelectionById,
 } from "@/utils/selectionUtils";
+import { createQueryVersionGuard } from "@/utils/queryVersionGuard";
+import { partitionSubmittedRows } from "@/utils/batchUpdateResults.js";
 import {
   getMaxLength,
   byteLength,
@@ -991,6 +998,7 @@ import {
 } from "@/components/ColumnFilter";
 import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import { wbAllCols, wbPresets } from "@/constants/commonParam.js";
+import { getIsExistLabel } from "@/constants/statusMaps.js";
 import {
   PipelinePanel,
   ColumnActions,
@@ -1005,15 +1013,12 @@ import {
   handleFilterSearch,
   resetOnClose,
 } from "@/views/workbench/composables/filterClear";
-import { companyCut, formatTagText } from "@/views/workbench/utils/tagFmt";
 import { editTextCols } from "@/views/workbench/utils/editCols";
 import {
-  handleResizeColumn,
   getRowClassName,
   handleReset as tableHandleReset,
 } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
-import { filter_arr, filter_arr_keys } from "@/utils/dataStructureUtils";
 import { handleAsyncRequest } from "@/utils/requestUtils";
 import FileSelectWithEncoding from "@/components/FileSelectWithEncoding/index.vue";
 import {
@@ -1088,8 +1093,8 @@ export default {
       isExist: ALL_ISEXIST,
       isExistOptions: [
         { label: "全部", value: ALL_ISEXIST },
-        { label: "已存在", value: "1" },
-        { label: "新建", value: "0" },
+        { label: getIsExistLabel("1"), value: "1" },
+        { label: getIsExistLabel("0"), value: "0" },
       ],
       dataType: "file",
       tableHeight: { x: "max-content", y: "300px" },
@@ -1164,6 +1169,10 @@ export default {
       filters: null,
       // 历史字段 filteredData：曾由 handleTableChange 写入，仓库内无读取方；批量勾选走 this.filters + selectionUtils（AND）。
       antClearFilter: null,
+      queryGuard: createQueryVersionGuard(),
+      importGuard: createQueryVersionGuard(),
+      queryScope: "",
+      queryLoading: false,
       filterLanguage: null,
       filterSource: [],
       templateVisible: false,
@@ -1215,26 +1224,26 @@ export default {
       return {
         columnWidth: 48,
         selectedRowKeys: this.selectedRowKeys,
-        onChange: this.onSelectChange,
+        onSelect: this.onSelect,
+        onSelectAll: this.onSelectAll,
         checkStrictly: false,
-        selections: [
-          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
-          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
-        ],
       };
-    },
-    /** 词条 + 翻译 + 各语种「xx翻译」列可随表宽流体扩展 */
-    importFluidColValues() {
-      const langValues = Object.values(commonParam.languageMap || {})
-        .map((m) => m?.value)
-        .filter(Boolean);
-      return ["entry", "translate", ...langValues];
     },
   },
   watch: {
+    /**
+     * 切换导入任务时清空旧选择并在弹窗打开时加载新任务。
+     * @param {Object} newTask - 当前任务。
+     * @param {Object} oldTask - 上一个任务。
+     * @returns {void} 无返回值。
+     */
     currentTask(newval, oldval) {
       this.task = newval;
       this.task.transMap = commonParam.languageMap[this.task.translateType];
+      if (newval?.id !== oldval?.id) {
+        resetTableQuerySession(this, [this.queryGuard, this.importGuard]);
+        if (this.visible) this.initTaskEntry();
+      }
     },
     rulesOptions: {
       deep: true,
@@ -1245,6 +1254,11 @@ export default {
       },
     },
     visible: {
+      /**
+       * 响应导入弹窗开关并使关闭前的列表请求失效。
+       * @param {boolean} newValue - 弹窗当前是否打开。
+       * @returns {Promise<void>} 可见状态处理完成后结束。
+       */
       async handler(newVal) {
         // console.log("打开工作台-导入", newVal);
         if (newVal) {
@@ -1283,17 +1297,22 @@ export default {
               normalWidth: 100,
               needFilter: true,
               filterCols: filterWbColsForCtx,
-              lockCellSize: true,
-              fluidColValues: this.importFluidColValues,
             });
           });
+        } else {
+          resetTableQuerySession(this, [this.queryGuard, this.importGuard]);
         }
       },
     },
   },
   methods: {
+    /**
+     * 应用展示列偏好并通知共享表格重新建立列布局。
+     * @returns {void} 无返回值。
+     */
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
+      this.columns = [...this.columns];
     },
     // 全选导出字段方法
     selectAllFields() {
@@ -1312,7 +1331,13 @@ export default {
       // saveEntrys 内部通过 useLoading 管理 loading，勿在此处手动关闭（否则按钮 loading 会被提前覆盖）
       this.saveEntrys();
     },
+    /**
+     * 关闭导入弹窗并使当前列表请求失效。
+     * @returns {void} 无返回值。
+     */
     handleClose() {
+      this.queryGuard.invalidate();
+      this.importGuard.invalidate();
       this.selectedRows = [];
       this.selectedRowKeys = [];
       this.selectedRowIndex = null;
@@ -1327,37 +1352,14 @@ export default {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    formatTagText,
-    companyCut,
-    isExistLabel(value) {
-      if (value === 0) return "新建";
-      if (value === 1) return "已存在";
-      return "";
-    },
-    entryStateLabel(value) {
-      const map = {
-        0: "新建",
-        1: "审核中",
-        2: "审核不通过",
-        3: "已审核",
-        "-1": "禁用",
-      };
-      return map[value] ?? "";
-    },
-    translateStateLabel(value) {
-      const map = {
-        0: "未翻译",
-        1: "待审核",
-        2: "审核不通过",
-        3: "已审核",
-      };
-      return map[value] ?? "未翻译";
-    },
-    handleResizeColumn,
-    // 保存词条
+    /**
+     * 校验当前选择并提交可保存词条；校验失败行保留编辑状态。
+     * @returns {Promise<void>} 校验及保存请求完成后结束。
+     */
     async saveEntrys() {
       // 全局单一 loading（引用计数）：表格遮罩/保存按钮统一开启，各结束路径 endLoading()
       startLoading();
+      // 先移除旧红字；本次校验会重新标记仍需用户处理的单元格。
       clearCellErrorsForRecords(this, this.selectedRowKeys);
       const currentLang = this.task.transMap.value;
       let hasNoInter = false;
@@ -1369,12 +1371,18 @@ export default {
       };
       // 1.先校验（classifyArr 优先读 editableData；失败行保持编辑）
       const methods = getMethods(this);
-      arr = await verifyArray_workbench(
-        this,
-        this.selectedRows,
-        currentLang,
-        methods,
-      );
+      try {
+        arr = await verifyArray_workbench(
+          this,
+          this.selectedRows,
+          currentLang,
+          methods,
+        );
+      } catch (err) {
+        message.error("词条校验失败", err.message);
+        endLoading();
+        return;
+      }
       let arrCount = {
         updateArr: [],
         insertArr: [],
@@ -1392,35 +1400,29 @@ export default {
         return;
       }
 
-      // 2.仅通过行：merge 进 dataSource，状态写到 transMap.state（不要写翻译列）
+      // 2.创建提交快照，避免接口确认前污染表格和失败行的编辑缓存。
+      const selectedRows = this.getCurrentSaveRows();
       const stateKey = this.task.transMap.state;
-      for (let key in this.editableData) {
-        if (!this.selectedRowKeys.includes(key)) continue;
-        if (!arr.acceptIds.has(key)) continue;
-        const index = this.dataSource.findIndex((item) => item.id === key);
-        if (index != -1) {
-          if (this.editableData[key][currentLang] != null) {
-            this.editableData[key][stateKey] = "1";
-          }
-          this.dataSource[index] = cloneDeep(this.editableData[key]);
+      for (const row of flattenRowsById(selectedRows)) {
+        if (
+          arr.acceptIds.has(row.id) &&
+          this.editableData[row.id]?.[currentLang] != null
+        ) {
+          row[stateKey] = "1";
         }
-        delete this.editableData[key];
       }
-      this.selectedRows = this.selectedRows.map((row) => {
-        const found = this.dataSource.find((item) => item.id === row.id);
-        return found || row;
-      });
 
       // 3.修改状态
       // 去除this.selectedRows中的子词条，因为父词条中已经包含了
       const childRowIDs = new Set(
-        this.selectedRows
+        selectedRows
           .filter((item) => item.children && item.children.length > 0)
           .flatMap((item) => item.children.map((child) => child.id)),
       );
-      const selectFatherRows = this.selectedRows.filter(
+      const selectFatherRows = selectedRows.filter(
         (item) => !childRowIDs.has(item.id),
       );
+      // 聚合父子行只提交父行，避免平铺选择导致同一子词条被重复写入。
       //this.selectedRows是把父子词条都平铺开了，以便显示选中状态
       for (const record of selectFatherRows) {
         if (arr.acceptIds.has(record.id)) {
@@ -1452,8 +1454,18 @@ export default {
           }
         }
       }
+
+      if (arrCount.insertArr.length === 0 && arrCount.updateArr.length === 0) {
+        endLoading();
+        if (arrCount.errorNum > 0) {
+          message.warning("没有可保存的词条，请修正校验失败项");
+        }
+        return;
+      }
+
       // 4.更新词条;弹窗;校验当前页数据
       if (hasNoInter) {
+        // 释义缺失需要用户确认；取消时不清空列表和编辑态，用户可继续补录。
         Modal.confirm({
           title:
             "保存数据中含有中文释义和英文释义都不存在的词条，是否继续保存?",
@@ -1463,7 +1475,7 @@ export default {
           cancelText: "否",
           style: { top: "30%" },
           onOk: () => {
-            this.insertOrUpdateEntrys(
+            return this.insertOrUpdateEntrys(
               arrCount.insertArr,
               arrCount.updateArr,
               arrCount,
@@ -1474,21 +1486,99 @@ export default {
           },
         });
       } else {
-        this.insertOrUpdateEntrys(
+        return this.insertOrUpdateEntrys(
           arrCount.insertArr,
           arrCount.updateArr,
           arrCount,
         );
       }
     },
-    //
-    insertOrUpdateEntrys(insertArr, updateArr, arrCount) {
+
+    /**
+     * 按最新列表对象叠加编辑缓存，生成隔离于表格的保存快照。
+     * @returns {Array<Object>} 当前已选词条及其子行的编辑后副本。
+     */
+    getCurrentSaveRows() {
+      // 以当前列表的最新对象为底稿，避免筛选、复检后仍保存已失效的行引用。
+      const currentById = new Map(
+        flattenRowsById(this.dataSource).map((row) => [row.id, row]),
+      );
+      const mergeCurrentRow = (row) => {
+        const current = currentById.get(row.id) || row;
+        const merged = {
+          ...cloneDeep(current),
+          ...cloneDeep(this.editableData[row.id] || {}),
+        };
+        const childKey = Array.isArray(current.children)
+          ? "children"
+          : Array.isArray(current.child)
+            ? "child"
+            : null;
+        if (childKey) {
+          // 递归合并子行，使保存快照与界面上父子聚合关系保持一致。
+          merged[childKey] = current[childKey].map(mergeCurrentRow);
+        }
+        return merged;
+      };
+      return this.selectedRows.map(mergeCurrentRow);
+    },
+
+    /**
+     * 解析工作台批量保存响应，并仅从本地状态移除接口确认成功的行。
+     * @param {Array<Object>} submittedRows - 本次接口提交的父级行。
+     * @param {Object} response - 工作台批量保存接口响应。
+     * @param {string} actionLabel - 本次操作文案，如新增或重置。
+     * @param {number} childCount - 随父级行提交的聚合子行数。
+     * @param {Array<string>} messageParts - 汇总提示的消息片段数组。
+     * @returns {{successRows: Array<Object>, hasFailures: boolean}} 保存结果。
+     */
+    applySaveResponse(submittedRows, response, actionLabel, childCount, messageParts) {
+      const {
+        successRows,
+        failedCount,
+      } = partitionSubmittedRows(submittedRows, response);
+      const successCount = successRows.length;
+
+      if (successCount > 0) messageParts.push(`${actionLabel}${successCount}条`);
+      if (failedCount > 0) messageParts.push(`${actionLabel}失败${failedCount}条`);
+      if (childCount > 0) messageParts.push(`其中聚合的数据${childCount}条`);
+
+      if (successRows.length > 0) {
+        // 仅移除接口确认成功的记录；失败行及其编辑值留在当前 UI 中供再次处理。
+        const successIds = flattenRowsById(successRows).map((row) => row.id);
+        const successIdSet = new Set(successIds);
+        this.dataSource = this.dataSource.filter((row) => !successIdSet.has(row.id));
+        this.selectedRows = removeSelectedEntriesById(
+          this.selectedRows,
+          successIds,
+        );
+        this.selectedRowKeys = this.selectedRowKeys.filter(
+          (id) => !successIdSet.has(id),
+        );
+        for (const id of successIds) delete this.editableData[id];
+      }
+
+      return {
+        successRows,
+        hasFailures: failedCount > 0,
+      };
+    },
+
+    /**
+     * 提交新增和状态重置两类词条，只清理服务端确认成功的数据。
+     * @param {Array<Object>} insertArr - 待新增行。
+     * @param {Array<Object>} updateArr - 待重置状态行。
+     * @param {Object} arrCount - 校验与父子行统计结果。
+     * @returns {Promise<void>} 两类批量保存请求完成后结束。
+     */
+    async insertOrUpdateEntrys(insertArr, updateArr, arrCount) {
       // 表格遮罩/保存按钮已在 saveEntrys 的 startLoading 中统一开启，这里不再重复开关
       let params = {
         taskID: this.task.id,
       };
       const promises = [];
       let messageTextParts = [];
+      let hasFailures = arrCount.errorNum > 0;
 
       if (arrCount.errorNum > 0) {
         let errorNumText = `校验不通过${arrCount.errorNum}条`;
@@ -1504,32 +1594,24 @@ export default {
       // }
 
       if (arrCount.addNum > 0) {
+        // 新增与重置状态分别请求，才能在部分失败时给出准确的数量反馈。
         // 新增
         const addPromise = insertEntry(params, insertArr)
           .then((res) => {
-            const successCount = arrCount.addNum - res.data.totalNum;
-            const failCount = res.data.totalNum;
-            if (successCount > 0) {
-              messageTextParts.push(`新增数据${successCount}条`);
-            }
-            if (failCount > 0) {
-              messageTextParts.push(`新增失败${failCount}条`);
-            }
-            if (arrCount.addChildNum > 0) {
-              messageTextParts.push(`其中聚合的数据${arrCount.addChildNum}条`);
-            }
-
-            // 从 insertArr 中移除保存失败的数据
-            const acArr = filter_arr(insertArr, res.data.list);
-            // 从 this.dataSource 中移除保存成功的数据
-            this.dataSource = filter_arr(this.dataSource, acArr);
-            // 从this.selectedRows 中移除保存成功的数据
-            this.selectedRows = filter_arr(this.selectedRows, acArr);
-            this.selectedRowKeys = filter_arr_keys(this.selectedRowKeys, acArr);
+            const result = this.applySaveResponse(
+              insertArr,
+              res,
+              "新增数据",
+              arrCount.addChildNum,
+              messageTextParts,
+            );
+            hasFailures ||= result.hasFailures;
+            return result;
           })
           .catch((err) => {
-            console.log("新增失败", err);
+            hasFailures = true;
             message.error("新增失败", err.message);
+            return { successRows: [], hasFailures: true };
           });
         promises.push(addPromise);
       }
@@ -1537,92 +1619,91 @@ export default {
         // 编辑
         const updatePromise = updateEntryList(params, updateArr)
           .then((res) => {
-            const successCount = updateArr.length - res.data.totalNum;
-            const failCount = res.data.totalNum;
-            if (successCount > 0) {
-              messageTextParts.push(`重置已审核数据${successCount}条`);
-            }
-            if (failCount > 0) {
-              messageTextParts.push(`重置失败${failCount}条`);
-            }
-            if (arrCount.updateChildNum > 0) {
-              messageTextParts.push(
-                `其中聚合的数据${arrCount.updateChildNum}条`,
-              );
-            }
-            // console.log("arrCount", arrCount);
-
-            // 从 updateArr 中移除保存失败的数据
-            const acArr = filter_arr(updateArr, res.data.list);
-            // 从 this.dataSource 中移除保存成功的数据
-            this.dataSource = filter_arr(this.dataSource, acArr);
-            // 从this.selectedRows 中移除保存成功的数据
-            this.selectedRows = filter_arr(this.selectedRows, acArr);
-            this.selectedRowKeys = filter_arr_keys(this.selectedRowKeys, acArr);
+            const result = this.applySaveResponse(
+              updateArr,
+              res,
+              "重置已审核数据",
+              arrCount.updateChildNum,
+              messageTextParts,
+            );
+            hasFailures ||= result.hasFailures;
+            return result;
           })
           .catch((err) => {
-            message.error("2", err.message);
+            hasFailures = true;
+            message.error("重置失败", err.message);
+            return { successRows: [], hasFailures: true };
           });
         promises.push(updatePromise);
       }
 
-      Promise.all(promises)
-        .then(async () => {
-          if (messageTextParts.length > 0) {
-            message.success("数据已保存！" + messageTextParts.join("，"));
-          }
-          this.allData = this.dataSource;
+      try {
+        // 等待两类请求结束后统一提示，避免先返回的一类造成“全部成功”的错觉。
+        const results = await Promise.all(promises);
+        const savedRows = results.flatMap((result) => result.successRows);
+        if (messageTextParts.length > 0) {
+          const text = "数据已保存！" + messageTextParts.join("，");
+          if (hasFailures) message.warning(text);
+          else message.success(text);
+        }
+        if (savedRows.length === 0) return;
 
-          // 更新成功：刷新所有任务的小红点
-          this.$emit("afterSave", this.currentTask);
-          // 刷新无审核未通过的词条
-          this.initTaskEntry();
+        this.allData = this.dataSource;
 
-          // 清空选中
-          this.selectedRows = [];
-          this.selectedRowKeys = [];
-          this.selectedRowIndex = null;
-          // 无数据则关闭弹窗
-          if (this.dataSource.length === 0) {
-            this.handleClose();
-          }
-          // 注：有数据时的复检移到 finally（endLoading 之后）执行，
-          // 避免被保存流程的防重入 loading 短路（见 finally）
-        })
-        .finally(() => {
-          endLoading();
-          // 保存完成（loading 已复位）后，再按展示值复检已加载表（独立 loading 周期）
-          if (this.dataSource.length > 0) {
-            revalidateLoaded(this, this.task.transMap.value).catch((err) => {
-              // 仅兜底：不阻断保存流程
-              // eslint-disable-next-line no-console
-              console.warn("[importModal] revalidateLoaded failed", err);
-            });
-          }
-        });
+        // 更新成功：刷新所有任务的小红点
+        this.$emit("afterSave", this.currentTask);
+        // 有失败行时保留本地结果，避免刷新查询覆盖其编辑状态。
+        if (!hasFailures) this.initTaskEntry();
+
+        this.selectedRowIndex = null;
+        if (this.dataSource.length === 0) this.handleClose();
+      } finally {
+        endLoading();
+        // 只有全量成功才复检页面；部分失败仍以编辑缓存为准，不能用查询结果覆盖。
+        // 失败行保留编辑缓存，避免复检把未保存值写回原始行。
+        if (!hasFailures && this.dataSource.length > 0) {
+          revalidateLoaded(this, this.task.transMap.value).catch((err) => {
+            // 仅兜底：不阻断保存流程
+            // eslint-disable-next-line no-console
+            console.warn("[importModal] revalidateLoaded failed", err);
+          });
+        }
+      }
     },
-    // 获取该任务有无审核未通过的词条
-    initTaskEntry() {
-      let params = {
+    /**
+     * 查询当前任务中审核未通过的词条，仅提交最新任务响应。
+     * @returns {Promise<void>} 查询完成后结束。
+     */
+    async initTaskEntry() {
+      const params = {
         taskID: this.task.id,
         entryState: "2",
         entry: this.keyWords,
       };
-      startLoading();
-      getEntryInfoList(params, [])
-        .then((res) => {
-          // console.log("数据", this.dataSource, this.selectedRows);
-          if (res.data.list.length > 0) {
-            this.dataSource = res.data.list;
-            this.allData = this.dataSource;
-          }
-        })
-        .catch((err) => {
-          message.error("3", err.message);
-        })
-        .finally(() => {
-          endLoading();
-        });
+      const scope = JSON.stringify(params);
+      if (scope !== this.queryScope) {
+        // 查询范围变化时仅清空列表和编辑上下文，保留跨查询的已选词条参与保存。
+        this.queryScope = scope;
+        clearTableRowsContext(this);
+      }
+      // 版本令牌保证快速输入筛选时只让最后一次请求替换导入列表。
+      const token = this.queryGuard.next();
+      const taskId = this.task.id;
+      this.queryLoading = true;
+      try {
+        const res = await getEntryInfoList(params, []);
+        // 弹窗复用到另一任务时，迟到响应不能写入新的导入会话。
+        if (!this.queryGuard.isCurrent(token) || this.task.id !== taskId) return;
+        if (res.data?.list?.length > 0) {
+          this.dataSource = res.data.list;
+          this.allData = this.dataSource;
+          refreshTableSelectionById(this, this.dataSource);
+        }
+      } catch (err) {
+        if (this.queryGuard.isCurrent(token)) message.error("3", err.message);
+      } finally {
+        if (this.queryGuard.isCurrent(token)) this.queryLoading = false;
+      }
     },
     beforeUpload(file, fileList) {
       // 扩展名校验由 FileSelectWithEncoding（validateAcceptOnSelect）统一 notification
@@ -1637,8 +1718,13 @@ export default {
       // console.log(info)
       this.file = info.file;
     },
-    // 模糊查询
+    /**
+     * 应用本地导入筛选并使旧列表请求和选择失效。
+     * @returns {void} 无返回值。
+     */
     select() {
+      this.queryGuard.invalidate();
+      clearTableSelection(this);
       if (this.filterLanguage === null) {
         this.dataSource = this.allData.filter(
           (item) =>
@@ -1652,9 +1738,29 @@ export default {
             (this.isExist == ALL_ISEXIST || item.isExist == this.isExist),
         );
       }
+      this.pagination.current = 1;
+      this.pagination.total = this.dataSource.length;
     },
-    onSelectChange(selectedRowKeys, selectedRows) {
-      onSelectChange(this, selectedRowKeys, selectedRows);
+    /**
+     * 同步导入表格的单行操作，同时保留完整结果范围外的选择。
+     * @param {Object} record - 本次点击的行。
+     * @param {boolean} selected - 点击后的行选择状态。
+     * @returns {void} 无返回值。
+     */
+    onSelect(record, selected) {
+      updateTableSelectionById(this, [record], selected);
+    },
+    /**
+     * 将表头复选框作用于当前完整查询结果。
+     * @param {boolean} selected - 是否选中当前结果。
+     * @returns {void} 无返回值。
+     */
+    onSelectAll(selected) {
+      applyTableSelectionById(
+        this,
+        getCurrentSelectionRows(this),
+        selected
+      );
     },
     // 删除
     deleteEntry() {
@@ -2018,6 +2124,9 @@ export default {
      */
     async importEntryData() {
       startLoading();
+      // 导入链路可能较长；以任务和令牌约束异步结果，防止写入已切换的任务。
+      const token = this.importGuard.next();
+      const taskId = this.task.id;
 
       // 定义公共处理函数
       const handleCommonOperations = (data) => {
@@ -2227,10 +2336,29 @@ export default {
       if (asyncTask) {
         asyncTask
           .then((data) => {
+            if (
+              !this.importGuard.isCurrent(token) ||
+              this.task.id !== taskId
+            ) {
+              return;
+            }
+            // 各数据源统一在此转为表格行，保证排序、长度提示和回写状态一致。
             handleCommonOperations(data);
           })
           .finally(async () => {
-            await revalidateLoaded(this, this.task.transMap.value);
+            if (
+              this.importGuard.isCurrent(token) &&
+              this.task.id === taskId
+            ) {
+              await revalidateLoaded(
+                this,
+                this.task.transMap.value,
+                () =>
+                  this.importGuard.isCurrent(token) &&
+                  this.task.id === taskId,
+              );
+            }
+            // 导入成功、失败或被取消都要结束遮罩，允许用户继续选择数据源。
             endLoading();
           });
       } else {
@@ -2524,8 +2652,15 @@ export default {
       this.selectedRowKeys = [];
       this.selectedRows = [];
     },
+    /**
+     * 重置导入弹窗状态并使关闭前的请求失效。
+     * @returns {void} 无返回值。
+     */
     afterClose() {
+      this.queryGuard.invalidate();
+      this.importGuard.invalidate();
       resetLoading();
+      // 关闭后重置编辑缓存、结果集和文件信息，避免下次打开继承上一次导入会话。
       this.editableData = {};
       this.keyWords = "";
       this.isExist = ALL_ISEXIST;
@@ -2624,12 +2759,27 @@ export default {
       wbPageChange(this, page, pageSize, () => this.task.transMap.value);
     },
     // 语种切换
+    /**
+     * 按语种重新筛选导入结果并清空旧范围选择。
+     * @returns {void} 无返回值。
+     */
     filterLanguageChange() {
+      this.queryGuard.invalidate();
+      clearTableSelection(this);
       applyLanguageFilter(this);
     },
     // 同步 filters / filteredValue（供全部选择）
+    /**
+     * 应用导入表格筛选并清空已变化范围的选择。
+     * @param {Object} pagination - 表格分页状态。
+     * @param {Object} filters - 表格列筛选值。
+     * @returns {void} 无返回值。
+     */
     handleTableChange(pagination, filters) {
+      // 筛选条件改变即改变“全选”范围，先失效旧选择避免跨范围保存。
+      invalidateSelectionWhenFiltersChange(this, filters);
       this.filters = filters;
+      // 回写 Ant 受控筛选值，确保列头筛选图标与当前数据范围同步。
       for (let key in filters) {
         this.columns.forEach((col) => {
           if (col.dataIndex === key) {
@@ -2647,13 +2797,6 @@ export default {
       //   );
       // });
       // this.filteredData = Array.from(new Set([...isExistData, ...sourceData]));
-    },
-    selectAllEntry() {
-      selectAllEntryUtil(this);
-    },
-
-    clearAllEntry() {
-      clearAllEntryUtil(this);
     },
     // 获取i18服务器ip
     getIPs() {
@@ -2810,7 +2953,6 @@ export default {
   align-items: stretch;
   gap: 16px;
   align-self: stretch;
-  /* 勿设 min-width:0，否则盖掉 PipeShell 的内容最小宽 1100 */
 
   :deep(.ant-table-wrapper) {
     width: 100%;

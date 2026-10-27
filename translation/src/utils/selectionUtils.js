@@ -31,12 +31,24 @@ export function refreshSelectedEntriesById(selectedRows, incomingRows) {
 
 /**
  * 刷新表格已选行对象并同步其稳定 ID 键。
+ * 行对象在异步查询期间缺失时，按已有行键从本次查询结果恢复；查询范围外的对象保留。
  * @param {Object} vm - 持有 selectedRows 和 selectedRowKeys 的组件实例。
  * @param {Array<Object>} incomingRows - 最新查询结果，可包含树形子行。
  * @returns {Array<Object>} 更新后的已选行。
  */
 export function refreshTableSelectionById(vm, incomingRows) {
-  vm.selectedRows = refreshSelectedEntriesById(vm.selectedRows, incomingRows);
+  const selectedRows = vm.selectedRows || [];
+  const selectedIds = new Set([
+    ...(vm.selectedRowKeys || []),
+    ...selectedRows.map((row) => row.id),
+  ]);
+  const incomingById = new Map(
+    flattenRowsById(incomingRows).map((row) => [row.id, row])
+  );
+  const selectedById = new Map(selectedRows.map((row) => [row.id, row]));
+  vm.selectedRows = [...selectedIds]
+    .map((id) => incomingById.get(id) || selectedById.get(id))
+    .filter(Boolean);
   vm.selectedRowKeys = vm.selectedRows.map((row) => row.id);
   return vm.selectedRows;
 }
@@ -152,6 +164,19 @@ export function clearTableQueryContext(vm) {
   if (vm.editableData) vm.editableData = {};
   if (vm.cellErrors) vm.cellErrors = {};
   if ("selectedRowIndex" in vm) vm.selectedRowIndex = null;
+}
+
+/**
+ * 失效查询会话并清空列表、选择和编辑上下文。
+ * @param {Object} vm - 持有查询状态与表格上下文的组件实例。
+ * @param {Array<{invalidate: Function}>} [guards=[vm.queryGuard]] - 本次会话关联的请求守卫。
+ * @returns {void} 无返回值。
+ */
+export function resetTableQuerySession(vm, guards = [vm.queryGuard]) {
+  guards.forEach((guard) => guard.invalidate());
+  vm.queryLoading = false;
+  vm.queryScope = "";
+  clearTableQueryContext(vm);
 }
 
 /**

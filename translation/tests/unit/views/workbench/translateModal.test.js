@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { mount, flushPromises } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import TranslateModal from '@/views/workbench/translateModal.vue'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
@@ -51,6 +51,14 @@ vi.mock('ant-design-vue', () => ({
   Modal: {},
 }))
 
+beforeEach(async () => {
+  const { getEntryInfoList, updateEntryList } = await import('@/http/api/workbench')
+  const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+  getEntryInfoList.mockReset().mockResolvedValue({ data: { list: [], totalNum: 0 } })
+  updateEntryList.mockReset().mockResolvedValue({ data: { list: [], totalNum: 0 } })
+  checkSykEntryBeforeSave.mockReset().mockResolvedValue({ data: [] })
+})
+
 const tableBodyStub = {
   name: 'ATable',
   props: ['columns', 'dataSource'],
@@ -74,6 +82,7 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
   let wrapper
 
   function mountWithTableStub() {
+    // 保留表格 bodyCell 渲染链路，只替换第三方组件以聚焦翻译态的 UI 行为。
     return mount(TranslateModal, {
       props: {
         visible: true,
@@ -89,6 +98,7 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
           'a-button': true,
           'a-select': true,
           'a-input': true,
+          'a-empty': true,
           'a-row': { template: '<div><slot /></div>' },
           'a-col': { template: '<div><slot /></div>' },
           PipelineToolbar: { template: '<div><slot name="taskExtra" /><slot /></div>' },
@@ -105,6 +115,27 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
       },
     })
   }
+
+  it('本地筛选后的表头全选使用完整缓存中的最新行对象', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    wrapper.vm.allData = [
+      { id: 'entry-1', entry: '命中', english: 'latest' },
+      { id: 'entry-2', entry: '未显示', english: 'other' },
+    ]
+    wrapper.vm.dataSource = [
+      { id: 'entry-1', entry: '命中', english: 'stale' },
+    ]
+    wrapper.vm.pagination.total = 1
+    wrapper.vm.filters = null
+
+    wrapper.vm.onSelectAll(true)
+
+    expect(wrapper.vm.selectedRows).toEqual([
+      { id: 'entry-1', entry: '命中', english: 'latest' },
+    ])
+    expect(wrapper.vm.selectedRowKeys).toEqual(['entry-1'])
+  })
 
   afterEach(() => {
     resetLoading()
@@ -159,7 +190,7 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
     applySpy.mockRestore()
   })
 
-  it('applyTable 应锁定单元格宽且表格带 table-cell-overflow', async () => {
+  it('applyTable 仅提供列元数据，表格带 table-cell-overflow', async () => {
     wrapper = mountWithTableStub()
     wrapper.vm.language = { value: 'english' }
     wrapper.vm.task = { transMap: { value: 'english' } }
@@ -168,8 +199,57 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
     await wrapper.setProps({ visible: true })
     await nextTick()
     await wrapper.vm.$nextTick()
-    expect(wrapper.vm.$columnFilterPref?.lockCellSize).toBe(true)
+    expect(wrapper.vm.$columnFilterPref).toEqual(expect.objectContaining({
+      colPrefName: 'colPref-translateModal',
+      needFilter: true,
+    }))
     expect(wrapper.find('.table-stub').classes()).toContain('table-cell-overflow')
+  })
+
+  it('同步展示列偏好后替换 columns 引用以重建表格布局', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    const prefName = 'colPref-translateModal-layout-test'
+    wrapper.vm.$columnFilterPref = {
+      colPrefName: prefName,
+      normalWidth: 100,
+      needFilter: false,
+    }
+    wrapper.vm.columnSettingsList = [
+      { value: 'entry', required: true, index: 0 },
+      { value: 'comment', required: false, index: 1 },
+    ]
+    wrapper.vm.columns = [
+      { colValue: 'entry', dataIndex: 'entry', index: 0 },
+      { colValue: 'comment', dataIndex: 'comment', index: 1 },
+    ]
+    localStorage.setItem(prefName, JSON.stringify({ displayColumn: '' }))
+    const previousColumns = wrapper.vm.columns
+
+    wrapper.vm.syncColumnsFromPref()
+
+    expect(wrapper.vm.columns).not.toBe(previousColumns)
+    expect(wrapper.vm.columns.map((column) => column.colValue)).toEqual(['entry'])
+    localStorage.removeItem(prefName)
+  })
+
+  it('scrollTableToRow 使用实际内容区高度定位编辑行', async () => {
+    const content = { clientHeight: 240, scrollTop: 0 }
+    TranslateModal.methods.scrollTableToRow.call({
+      $nextTick: (callback) => callback(),
+      $refs: {
+        tableContainer: {
+          $el: {
+            querySelectorAll: () => Array.from({ length: 13 }, () => ({ offsetHeight: 30 })),
+            querySelector: () => content,
+          },
+        },
+      },
+      pagination: { current: 1, pageSize: 50 },
+      tableHeight: { y: 415 },
+    }, 12)
+
+    expect(content.scrollTop).toBe(170)
   })
 
   it('handleOK 先校验当前 editableData，失败行不先被清掉编辑态', async () => {
@@ -177,6 +257,7 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
     updateEntryList.mockResolvedValue({ data: { totalNum: 0 } })
     wrapper = mountWithTableStub()
     await nextTick()
+    await flushPromises()
     wrapper.vm.task = { id: 'task-1' }
     wrapper.vm.language = { value: 'english', state: 'englishState' }
     wrapper.vm.columns = [{ dataIndex: 'english' }]
@@ -198,6 +279,7 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
       'entry-1': { ...stale, english: 'a'.repeat(30) },
     }
     wrapper.vm.allData = [{ id: 'entry-1' }]
+    wrapper.vm.getTranslateEntry = vi.fn()
 
     await wrapper.vm.handleOK()
     await nextTick()
@@ -220,6 +302,8 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
       { key: 'special', checked: false },
       { key: 'toLong', checked: true },
     ]
+    await nextTick()
+    await flushPromises()
     const stale = {
       id: 'entry-1',
       entry: '词条',
@@ -234,6 +318,7 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
       'entry-1': { ...stale, english: 'hello from edit' },
     }
     wrapper.vm.allData = [{ id: 'entry-1' }]
+    wrapper.vm.getTranslateEntry = vi.fn()
 
     await wrapper.vm.handleOK()
     await nextTick()
@@ -243,6 +328,98 @@ describe('TranslateModal - 浏览省略与编辑文本域', () => {
     expect(payload[0].english).toBe('hello from edit')
     expect(payload[0].englishState).toBe('1')
     expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
+    expect(wrapper.vm.dataSource[0].english).toBe('hello from edit')
+    expect(wrapper.vm.dataSource[0].englishState).toBe('1')
+  })
+
+  it('handleOK 保存失败时不回写行状态并保留编辑态', async () => {
+    const { updateEntryList } = await import('@/http/api/workbench')
+    const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+    updateEntryList.mockRejectedValueOnce(new Error('保存失败'))
+    checkSykEntryBeforeSave.mockResolvedValue({ data: [] })
+
+    wrapper = mountWithTableStub()
+    await nextTick()
+    await flushPromises()
+    wrapper.vm.task = { id: 'task-1' }
+    wrapper.vm.language = { value: 'english', state: 'englishState' }
+    wrapper.vm.columns = [{ dataIndex: 'english' }]
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: false },
+    ]
+    await nextTick()
+    await flushPromises()
+    const row = {
+      id: 'entry-1',
+      entry: '词条',
+      english: 'old value',
+      englishState: '0',
+      maxLength: 200,
+    }
+    wrapper.vm.dataSource = [{ ...row }]
+    wrapper.vm.selectedRows = [wrapper.vm.dataSource[0]]
+    wrapper.vm.selectedRowKeys = ['entry-1']
+    wrapper.vm.editableData = {
+      'entry-1': { ...row, english: 'edited value' },
+    }
+    wrapper.vm.getTranslateEntry = vi.fn()
+
+    await wrapper.vm.handleOK()
+    await nextTick()
+
+    expect(updateEntryList).toHaveBeenCalled()
+    expect(wrapper.vm.dataSource[0].english).toBe('old value')
+    expect(wrapper.vm.dataSource[0].englishState).toBe('0')
+    expect(wrapper.vm.editableData['entry-1'].english).toBe('edited value')
+  })
+
+  it('handleOK 部分成功时只回写成功行并保留失败行编辑态', async () => {
+    const { updateEntryList } = await import('@/http/api/workbench')
+    const { checkSykEntryBeforeSave } = await import('@/http/api/glossary')
+    updateEntryList.mockResolvedValueOnce({
+      data: { totalNum: 1, list: [{ id: 'entry-2' }] },
+    })
+    checkSykEntryBeforeSave.mockResolvedValue({ data: [] })
+
+    wrapper = mountWithTableStub()
+    await nextTick()
+    await flushPromises()
+    wrapper.vm.task = { id: 'task-1' }
+    wrapper.vm.language = { value: 'english', state: 'englishState' }
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: false },
+    ]
+    await nextTick()
+    await flushPromises()
+    wrapper.vm.dataSource = [
+      { id: 'entry-1', entry: 'first', english: 'old first', englishState: '0' },
+      { id: 'entry-2', entry: 'second', english: 'old second', englishState: '0' },
+    ]
+    wrapper.vm.allData = wrapper.vm.dataSource
+    wrapper.vm.selectedRows = [...wrapper.vm.dataSource]
+    wrapper.vm.selectedRowKeys = ['entry-1', 'entry-2']
+    wrapper.vm.editableData = {
+      'entry-1': { ...wrapper.vm.dataSource[0], english: 'saved first' },
+      'entry-2': { ...wrapper.vm.dataSource[1], english: 'failed second' },
+    }
+    wrapper.vm.getTranslateEntry = vi.fn()
+
+    await wrapper.vm.handleOK()
+
+    expect(wrapper.vm.dataSource[0]).toMatchObject({
+      english: 'saved first',
+      englishState: '1',
+    })
+    expect(wrapper.vm.dataSource[1]).toMatchObject({
+      english: 'old second',
+      englishState: '0',
+    })
+    expect(wrapper.vm.editableData['entry-1']).toBeUndefined()
+    expect(wrapper.vm.editableData['entry-2'].english).toBe('failed second')
+    expect(wrapper.vm.selectedRows[0].english).toBe('saved first')
+    expect(wrapper.vm.selectedRows[1].english).toBe('old second')
   })
 
   it('getTranslateEntry：revalidateLoaded 期间 loading 为 true，结束后复位', async () => {

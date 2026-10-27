@@ -80,6 +80,7 @@
           >
             <template v-slot:form>
               <a-form
+                class="workbench-search-form"
                 :model="search"
                 name="horizontal_login"
                 layout="inline"
@@ -167,17 +168,15 @@
                 v-if="true"
                 class="workbench-operate-btns"
               >
-                <BatchSelectButton
+                <SelectionToolbarButton
                   v-if="
                     $currentDepartment &&
                     $currentDepartment.ops.has('needBranch')
                   "
-                  :size="'middle'"
-                  :getSearch="query"
-                  v-model:batchSelectFlag="batchSelectFlag"
-                  v-model:selectEntry="selectEntry"
-                  v-model:selectedRows="selectedRows"
-                  v-model:selectedRowKeys="selectedRowKeys"
+                  text="取消选择"
+                  preset="default"
+                  :disabled="selectEntry.length === 0"
+                  @click="clearAllEntry"
                 />
                 <a-button
                   v-if="
@@ -185,7 +184,7 @@
                     $currentDepartment.ops.has('needBranch')
                   "
                   type="primary"
-                  size="middle"
+                  size="small"
                   @click="
                     isTreeOr2D == 'tree'
                       ? (isTreeOr2D = '2D')
@@ -196,14 +195,14 @@
                 >
                 <a-button
                   type="primary"
-                  size="middle"
+                  size="small"
                   @click="SelectTranslateType"
                   :disabled="selectedRows.length === 0"
                   >更改翻译语种</a-button
                 >
                 <a-button
                   type="primary"
-                  size="middle"
+                  size="small"
                   @click="openBatchPreTranslate"
                   :disabled="selectedRows.length === 0"
                   >批量预翻译</a-button
@@ -240,41 +239,26 @@
               </div>
             </template>
             <template v-slot:data>
-              <!-- , onChange: onSelectChange -->
-              <div style="width: 100%; position: absolute">
-                <a-table
+              <div class="workbench-main-table">
+                <TableViewport
                   bordered
+                  adaptive-columns
                   class="ant-table-striped"
                   :columns="columns"
+                  :adaptive-column-keys="['name', 'productName']"
                   :data-source="dataSource"
                   :row-key="(record) => record.id"
                   :scroll="tableHeight"
                   :pagination="pagination"
-                  :loading="loading"
+                  :loading="tableLoading"
                   :rowClassName="getRowClassName"
                   childrenColumnName="child"
                   ref="workTable"
-                  @resizeColumn="handleResizeColumn"
                   :row-selection="{
-                    selectedRowKeys: selectedRowKeys,
+                    columnWidth: 48,
+                    selectedRowKeys: tableSelectedRowKeys,
                     onSelect: onSelect,
                     onSelectAll: onSelectAll,
-                    onChange: onSelectChange,
-                    selections:
-                      isTreeOr2D == 'tree'
-                        ? null
-                        : [
-                            {
-                              key: 'selectAll',
-                              text: '全部选择',
-                              onSelect: selectAllEntry,
-                            },
-                            {
-                              key: 'clearAll',
-                              text: '取消选择',
-                              onSelect: clearAllEntry,
-                            },
-                          ],
                   }"
                   :customRow="customRow"
                 >
@@ -361,7 +345,7 @@
                     ></span>
                     <!-- 无子记录时的占位 -->
                   </template>
-                </a-table>
+                </TableViewport>
               </div>
             </template>
           </DataBox>
@@ -455,7 +439,8 @@ import ExamineModal from "@/views/workbench/examineModal.vue";
 import TranslateModal from "@/views/workbench/translateModal.vue";
 import ExamineTranslateModal from "@/views/workbench/examineTranslateModal.vue";
 import ArchiveModal from "@/views/workbench/archiveModal.vue";
-import BatchSelectButton from "@/components/Button/batchArchive/button.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
+import SelectionToolbarButton from "@/components/selectToolBar/SelectionToolbarButton.vue";
 import BatchPreTranslateModal from "@/views/workbench/components/BatchPreTranslateModal.vue";
 import BatchProgressOverlay from "@/views/workbench/components/BatchProgressOverlay.vue";
 import {
@@ -465,20 +450,23 @@ import {
   DoubleLeftOutlined,
   DoubleRightOutlined,
 } from "@ant-design/icons-vue";
-import { getToDoTaskInfo, getFinishTaskInfo } from "@/http/api/task";
+import { getToDoTaskInfo, getFinishTaskInfo , updateTaskInfo , getTaskPending } from "@/http/api/task";
 import { getClassfy } from "@/http/api/entryManage";
-import { updateTaskInfo } from "@/http/api/task";
+
 import { getEntryInfoList } from "@/http/api/workbench";
 import { getProduct } from "@/http/api/product";
-import { getTaskPending } from "@/http/api/task";
+
 import { fetchLanguages } from "@/composables/useLanguageCache";
 import { setTableHeight } from "@/utils/tableUtils";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import {
-  selectAllEntry,
-  clearAllEntry,
-  pageChange,
+  collectAllPages,
+  flattenRowsById,
+  refreshSelectedEntriesById,
 } from "@/utils/selectionUtils";
+import { createQueryVersionGuard } from "@/utils/queryVersionGuard";
+import { useSelectedEntries } from "@/components/selectToolBar/composables/useSelectedEntries";
+import { useSelectionOperations } from "@/components/selectToolBar/composables/useSelectionOperations";
 import commonParam from "@/constants/commonParam";
 import {
   loading,
@@ -502,7 +490,8 @@ export default {
     TranslateModal,
     ExamineTranslateModal,
     ArchiveModal,
-    BatchSelectButton,
+    TableViewport,
+    SelectionToolbarButton,
     BatchPreTranslateModal,
     BatchProgressOverlay,
     SendOutlined,
@@ -518,7 +507,6 @@ export default {
       // 汉化包
       locale: locale,
       toDoNum: 0,
-      toDoTasks: [], // 待办任务列表(便于全部选择)
       finishNum: 0,
       labelCol: { style: { width: "84px" } },
       lastSearch: {},
@@ -530,15 +518,14 @@ export default {
         auditor: "",
         creator: "",
       },
-      tableHeight: { x: "max-content", y: 0 },
-      // tableHeight: { x: "100%", y: 0 },
+      tableHeight: { x: "100%", y: 0 },
       currentPageBranch: 0, // 当前页的分支数量
       columns: [
         {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 40,
+          width: 56,
           customRender: (record) => {
             if (this.isTreeOr2D != "tree") {
               const currentIndex =
@@ -554,8 +541,10 @@ export default {
         {
           title: "任务名称",
           dataIndex: "name",
-          align: "center",
-          width: 100,
+          align: "left",
+          width: 152,
+          minWidth: 50,
+          adaptive: true,
           fixed: "left",
           resizable: true,
           index: 1,
@@ -564,8 +553,10 @@ export default {
         {
           title: "产品名称",
           dataIndex: "productName",
-          align: "center",
-          width: 100,
+          align: "left",
+          width: 136,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
           index: 2,
         },
@@ -573,7 +564,8 @@ export default {
           title: "产品版本",
           dataIndex: "versionName",
           align: "center",
-          width: 100,
+          width: 112,
+          minWidth: 50,
           resizable: true,
           index: 3,
         },
@@ -582,7 +574,8 @@ export default {
           title: "翻译语种",
           dataIndex: "translateType",
           align: "center",
-          width: 100,
+          width: 88,
+          minWidth: 50,
           ellipsis: true,
           resizable: true,
           index: 4,
@@ -590,8 +583,9 @@ export default {
         {
           title: "描述",
           dataIndex: "description",
-          align: "center",
-          width: 100,
+          align: "left",
+          width: 128,
+          minWidth: 50,
           ellipsis: true,
           resizable: true,
           index: 5,
@@ -600,16 +594,20 @@ export default {
           title: "创建人",
           dataIndex: "creator",
           align: "center",
-          width: 50,
+          width: 72,
+          minWidth: 50,
           ellipsis: true,
+          resizable: true,
           index: 6,
         },
         {
           title: "下发时间",
           dataIndex: "deliveryTime",
           align: "center",
-          width: 100,
+          width: 104,
+          minWidth: 50,
           ellipsis: true,
+          resizable: true,
           index: 7,
         },
         // {title: '操作',dataIndex: 'operation',align:'center',width:50,fixed: 'right',},
@@ -618,7 +616,14 @@ export default {
       selectedRows: [],
       selectedRowKeys: [],
       selectedRowIndex: null,
-      selectEntry: new Map(), // 已选任务
+      selectEntry: [], // 已选任务
+      queryGuard: createQueryVersionGuard(),
+      taskTotalGuard: createQueryVersionGuard(),
+      selectionOperations: useSelectionOperations(),
+      selectedEntryOperations: useSelectedEntries(),
+      selectionScope: "",
+      activeQueryParams: {},
+      queryLoading: false,
       selectedLanguage: null, // 新增：用于存储用户选择的语种
       translateTypes: [], // 新增：下拉框的语种选项
       translateTypeVisible: false, // 新增：控制语种选择弹窗的显示与隐藏
@@ -649,10 +654,37 @@ export default {
       },
       pageChangeSearch: {},
       expandSource: [], // 记录展开了的分支信息
-      batchSelectFlag: false, // 批量选择的显示（全选/反选）
-      batchSelectVisible: false,
       batchPreTranslateVisible: false, // 批量预翻译弹窗
     };
+  },
+  computed: {
+    /**
+     * 合并列表查询与页面操作遮罩状态。
+     * @returns {boolean} 当前主表是否显示 loading。
+     */
+    tableLoading() {
+      return this.queryLoading || this.loading;
+    },
+    /**
+     * 返回当前数据页的已提交选择和待处理全量操作投影。
+     * @returns {Array<string|number>} 当前可见行的选中键。
+     */
+    tableSelectedRowKeys() {
+      // 读取守卫版本，使异步全量操作开始/结束时立即刷新投影。
+      this.selectionOperations.revision;
+      const selected = new Set(this.selectedRowKeys);
+      const visibleRows = flattenRowsById(this.dataSource, "child");
+      visibleRows.forEach((row) => {
+        const isSelected = this.selectionOperations.project(
+          row.id,
+          this.selectionScope,
+          selected.has(row.id)
+        );
+        if (isSelected) selected.add(row.id);
+        else selected.delete(row.id);
+      });
+      return Array.from(selected);
+    },
   },
   mounted() {
     let _this = this;
@@ -668,8 +700,9 @@ export default {
         this.columns.splice(1, 0, {
           title: "分支",
           dataIndex: "codeBranch",
-          align: "center",
-          width: 100,
+          align: "left",
+          width: 108,
+          minWidth: 50,
           fixed: "left",
           resizable: true,
           index: 0.5,
@@ -714,7 +747,14 @@ export default {
     });
     this.getLanguage();
   },
+  /**
+   * 组件卸载时使当前列表、数量和全量选择请求失效。
+   * @returns {void} 无返回值。
+   */
   unmounted() {
+    this.queryGuard.invalidate();
+    this.taskTotalGuard.invalidate();
+    this.selectionOperations.invalidate();
     //注销window.onresize事件
     window.onresize = null;
   },
@@ -792,20 +832,21 @@ export default {
         endLoading();
       }
     },
-    // 获取展开的分支的任务执行状态
-    async getBranchPending() {
-      for (let i = 0; i < this.expandSource.length; i++) {
-        let datai = this.dataSource.findIndex(
-          (item) => item.id == this.expandSource[i].id
-        );
-        this.expandSource[i].record = this.dataSource[datai]; // 保证expandSource和dataSource一致
-        let branch = this.expandSource[i].record;
-
-        if (branch.child && branch.child.length > 0) {
-          const { tasks, totalNum } = await this.getTaskPending(branch.child);
-          branch.child = tasks;
-          branch.num__total = totalNum;
-        }
+    /**
+     * 刷新展开分支计数，可在提交新列表前对局部快照执行。
+     * @param {Array<Object>} sourceRows - 当前或待提交的任务列表。
+     * @param {number} token - 可选的列表查询版本。
+     * @returns {Promise<void>} 计数刷新完成后结束。
+     */
+    async getBranchPending(sourceRows = this.dataSource, token) {
+      for (const expanded of this.expandSource) {
+        const branch = sourceRows.find((item) => item.id === expanded.id);
+        if (!branch?.child?.length) continue;
+        const { tasks, totalNum } = await this.getTaskPending(branch.child);
+        if (token != null && !this.queryGuard.isCurrent(token)) return;
+        branch.child = tasks;
+        branch.num__total = totalNum;
+        if (sourceRows === this.dataSource) expanded.record = branch;
       }
     },
     // 获取所有分支的任务执行状态
@@ -868,20 +909,23 @@ export default {
       this.selectedLanguage = null; // 重置选择的语种
     },
     // 点击 confirm确认 按钮后会发生下面的操作（弹窗）
+    /**
+     * 仅提交副本，并在成功后刷新对应已选任务，避免失败项缓存被提前改写。
+     * @returns {Promise<void>} 批量改语种及成功任务同步完成后结束。
+     */
     async confirmTranslateType() {
       if (!this.selectedLanguage) {
         // 未选择语种
         message.warning("请选择一种语种");
         return;
       }
-      const update1Tasks = []; //需要更改的任务列表
+      const update1Tasks = []; // 仅包含接口提交副本
       const msg = { update1: [], update2: [], updateSuc: [], updateErr: [] };
       // 区分需要更改的和已经更改了的
       for (const task of this.selectedRows) {
         if (task.isBranch) continue;
         if (task.translateType != this.selectedLanguage) {
-          task.translateType = this.selectedLanguage;
-          update1Tasks.push(task);
+          update1Tasks.push({ ...task, translateType: this.selectedLanguage });
         } else {
           msg.update2.push(task.name);
         }
@@ -899,6 +943,7 @@ export default {
       }); // 单条更新任务，批量循环调用
       let results = [];
       try {
+        // 每个任务独立结算，个别失败不会阻止其他已选任务在界面上更新语种。
         results = await Promise.allSettled(promises);
       } catch (error) {
         console.error("处理所有任务时发生错误", error);
@@ -924,6 +969,8 @@ export default {
         .filter((r) => r.status === "fulfilled" && r.value && r.value.success)
         .map((r) => r.value.task);
       if (okTasks.length > 0) {
+        // 仅将接口确认成功的任务合并回列表，并刷新对应的待办统计。
+        this.mergePendingTasks(okTasks);
         const { tasks: updatedTasks } = await this.getTaskPending(okTasks);
         this.mergePendingTasks(updatedTasks);
       }
@@ -935,79 +982,104 @@ export default {
     cancelTranslateType() {
       this.translateTypeVisible = false; // 关闭弹窗
     },
-    // 由 selectEntry 投影表格勾选（唯一写 keys/rows 的入口）
+    /**
+     * 从全局已选任务数组同步表格行对象和稳定 ID。
+     * @returns {void} 无返回值。
+     */
     syncSelection() {
-      this.selectedRows = [...this.selectEntry.values()];
-      this.selectedRowKeys = [...this.selectEntry.keys()];
+      this.selectEntry = this.selectedEntryOperations.merge([], this.selectEntry);
+      this.selectedRows = [...this.selectEntry];
+      this.selectedRowKeys = this.selectEntry.map((task) => task.id);
     },
-    // 行对象被替换后，把已选 Map 换成新引用再投影
+    /**
+     * 用当前查询返回的新对象替换已选清单中的同 ID 行。
+     * @param {Array<Object>} updatedTasks - 查询或保存成功返回的最新任务。
+     * @returns {void} 无返回值。
+     */
     replaceSelectedRecords(updatedTasks) {
       if (!updatedTasks || updatedTasks.length === 0) {
         this.syncSelection();
         return;
       }
-      for (const task of updatedTasks) {
-        if (this.selectEntry.has(task.id)) {
-          this.selectEntry.set(task.id, task);
-        }
-      }
-      this.syncSelection();
-    },
-    // 表格复选框选择事件的回调（全选/反选不会回调这个函数）
-    onSelectChange() {
+      const selectedIds = new Set(this.selectEntry.map((task) => task.id));
+      this.selectEntry = this.selectedEntryOperations.merge(
+        this.selectEntry,
+        updatedTasks.filter((task) => selectedIds.has(task.id))
+      );
       this.syncSelection();
     },
     // 表格复选框点击事件
+    /**
+     * 更新单行或分支及其子任务选择，并覆盖待处理全量操作的投影。
+     * @param {Object} record - 当前点击行。
+     * @param {boolean} selected - 行的目标选择状态。
+     * @returns {void} 无返回值。
+     */
     onSelect(record, selected) {
-      if (selected) {
-        this.selectEntry.set(record.id, record);
-      } else {
-        this.selectEntry.delete(record.id);
-      }
-
-      if (record.isBranch) {
-        if (selected) {
-          record.child.forEach((item) => {
-            this.selectEntry.set(item.id, item);
-          });
-        } else {
-          record.child.forEach((item) => {
-            this.selectEntry.delete(item.id);
-          });
+      const rows = record.isBranch
+        ? flattenRowsById([record], "child")
+        : [record];
+      rows.forEach((row) =>
+        this.selectionOperations.record(row.id, selected, this.selectionScope)
+      );
+      this.selectEntry = this.selectedEntryOperations.apply(
+        this.selectEntry,
+        rows,
+        selected
+      );
+      this.syncSelection();
+    },
+    /**
+     * 按当前查询范围逐页收集全部任务并提交全选或取勾。
+     * @param {boolean} selected - 是否选择当前查询范围。
+     * @returns {Promise<void>} 全量选择请求完成后结束。
+     */
+    async onSelectAll(selected) {
+      // 固定操作开始时的查询范围；用户切换卡片或重新筛选后，该异步操作自动失效。
+      const scope = this.selectionScope;
+      const query = { ...this.activeQueryParams };
+      const api = this.activeCard === 1 ? getToDoTaskInfo : getFinishTaskInfo;
+      const operation = this.selectionOperations.begin(scope, selected);
+      try {
+        // 分页收集完整结果集，而非误把当前可见页当成“全部”。
+        const rows = await collectAllPages(
+          (pageIndex, pageSize) => api({ pageIndex, pageSize }, query),
+          100
+        );
+        // 拉取期间范围若改变，不更新复选框，避免旧结果套用到新筛选。
+        if (scope !== this.selectionScope) return;
+        const completeRows = this.isTreeOr2D === "tree"
+          ? flattenRowsById(this.buildTreeData(rows), "child")
+          : rows;
+        const selectedRows = this.selectionOperations.resolve(
+          operation,
+          completeRows,
+          this.selectEntry,
+          this.selectionScope
+        );
+        // 将完整结果选择投影回当前表格，统一刷新已选数量和后续批量操作目标。
+        this.selectEntry = selectedRows;
+        this.syncSelection();
+      } catch (error) {
+        // 失败时撤销本次全量操作，但保留此前稳定的选择，避免用户重新勾选。
+        const isCurrent = this.selectionOperations.isCurrent(
+          operation,
+          this.selectionScope
+        );
+        this.selectionOperations.reject(operation);
+        this.syncSelection();
+        if (isCurrent) {
+          message.error("全量选择失败：" + (error?.message || error));
         }
       }
-      this.syncSelection();
-      // console.log("表格复选框点击事件", record, selected);
     },
-    // 表格全选/反选框点击事件（当前页）
-    onSelectAll(selected, selectedRows, changeRows) {
-      if (selected) {
-        changeRows.forEach((item) => {
-          this.selectEntry.set(item.id, item);
-        });
-      } else {
-        changeRows.forEach((item) => {
-          this.selectEntry.delete(item.id);
-        });
-      }
-      this.syncSelection();
-      // console.log(
-      //   "表格全选/反选框点击事件",
-      //   selected,
-      //   selectedRows, // 全选->取选当前页数据时，这个是5个undefined
-      //   changeRows
-      // );
-    },
-    // 复选框全选事件
-    selectAllEntry() {
-      this.toDoTasks.forEach((item) => {
-        this.selectEntry.set(item.id, item);
-      });
-      this.syncSelection();
-    },
-    //复选框反选事件
+    /**
+     * 清空已选任务并使未完成的全量选择失效。
+     * @returns {void} 无返回值。
+     */
     clearAllEntry() {
-      this.selectEntry.clear();
+      this.selectionOperations.invalidate();
+      this.selectEntry = this.selectedEntryOperations.clear();
       this.syncSelection();
     },
     getRowClassName(record, index) {
@@ -1103,60 +1175,89 @@ export default {
         this.setTableHeight();
       });
     },
-    // 获取待办事项和已办事项数量
+    /**
+     * 使用单条分页请求刷新待办和已办总数。
+     * @returns {void} 无返回值。
+     */
     getTaskTotal() {
-      // 待办事项（全量：toDoTasks 供"全部选择"缓存使用）
-      let params = {
-        pageIndex: -1,
-        pageSize: -1,
-      };
-      getToDoTaskInfo(params, {}).then((res) => {
-        this.toDoNum = res.data?.totalNum || 0;
-        this.toDoTasks = res.data?.list || [];
-        // console.log("需要查询是否完成的任务1", this.toDoTasks);
-      });
-      // 已办事项（仅需 totalNum，拉 1 条避免全量响应）
-      getFinishTaskInfo({ pageIndex: 1, pageSize: 1 }, {}).then((res) => {
-        this.finishNum = res.data?.totalNum || 0;
-      });
+      const token = this.taskTotalGuard.next();
+      const params = { pageIndex: 1, pageSize: 1 };
+      Promise.all([getToDoTaskInfo(params, {}), getFinishTaskInfo(params, {})])
+        .then(([todoResponse, finishResponse]) => {
+          if (!this.taskTotalGuard.isCurrent(token)) return;
+          this.toDoNum = todoResponse.data?.totalNum || 0;
+          this.finishNum = finishResponse.data?.totalNum || 0;
+        })
+        .catch((error) => {
+          if (this.taskTotalGuard.isCurrent(token)) {
+            message.error("任务数量获取失败：" + (error?.message || error));
+          }
+        });
     },
-    // 查询按钮点击事件
+    /**
+     * 提交当前筛选条件并清空旧查询范围的选择。
+     * @returns {void} 无返回值。
+     */
     query() {
-      this.batchSelectFlag = false;
-      this.pageChangeSearch = this.search;
-      this.getTask();
       this.clearAllEntry(); //清空已选
+      this.pagination.current = 1;
+      this.pageChangeSearch = { ...this.search };
+      return this.getTask();
     },
     // 获取任务
     getTask() {
       return this.getTaskByCondition(this.search);
     },
-    // 根据条件获取任务
+    /**
+     * 按筛选和分页条件查询任务，只允许最新请求更新表格状态。
+     * @param {Object} data - 当前工作台查询条件。
+     * @returns {Promise<void>} 列表及其待办数量加载完成后结束。
+     */
     async getTaskByCondition(data) {
-      startLoading();
       this.checkSearchChange();
-      let params = {
+      const query = { ...(data || {}) };
+      const scope = JSON.stringify({ activeCard: this.activeCard, query });
+      if (scope !== this.selectionScope) {
+        // 查询范围变化使在途全选失去语义，先终止该操作并保留当前稳定选择。
+        this.selectionOperations.invalidate();
+        this.selectionScope = scope;
+        this.syncSelection();
+      }
+      this.activeQueryParams = query;
+      // 列表请求遵循“最新一次优先”，防止慢请求回写旧卡片或旧筛选。
+      const token = this.queryGuard.next();
+      this.queryLoading = true;
+      const params = {
         pageIndex: this.pagination.current,
         pageSize: this.pagination.pageSize,
       };
       const api = this.activeCard === 1 ? getToDoTaskInfo : getFinishTaskInfo;
       try {
-        const res = await api(params, data);
-        const taskList = res.data.list;
-        this.pagination.total = res.data.totalNum;
-
+        const res = await api(params, query);
+        // 用户已经发起了新查询时，旧响应不可覆盖当前表格。
+        if (!this.queryGuard.isCurrent(token)) return;
+        const taskList = res.data?.list || [];
+        let rows;
         if (this.isTreeOr2D == "tree") {
-          this.dataSource = this.buildTreeData(taskList);
-          await this.$nextTick();
-          await this.getBranchPending();
+          // 树形模式先分组，再补齐每个分支下任务的待办数据。
+          rows = this.buildTreeData(taskList);
+          await this.getBranchPending(rows, token);
         } else {
           const { tasks } = await this.getTaskPending(taskList);
-          this.dataSource = tasks;
+          rows = tasks;
         }
+        if (!this.queryGuard.isCurrent(token)) return;
+        // 替换列表对象后按 ID 重新关联已选任务，避免批量操作持有旧对象。
+        this.dataSource = rows || [];
+        this.pagination.total = res.data?.totalNum || 0;
+        this.replaceSelectedRecords(flattenRowsById(this.dataSource, "child"));
       } catch (err) {
-        message.error("数据获取失败！", err.message);
+        if (this.queryGuard.isCurrent(token)) {
+          message.error("数据获取失败！", err.message);
+        }
       } finally {
-        endLoading();
+        // 旧请求结束不能提前隐藏新请求的表格加载态。
+        if (this.queryGuard.isCurrent(token)) this.queryLoading = false;
       }
     },
     // 把 getTaskPending 结果写回当前表格（平铺行 / 层级子任务与分支合计）
@@ -1283,9 +1384,6 @@ export default {
         this.lastSearch = { ...this.search }; // 保存查询条件
       }
     },
-    handleResizeColumn: (w, col) => {
-      col.width = w;
-    },
     closeOperationArea() {
       this.showOperationArea = false;
       this.setTableHeight();
@@ -1388,8 +1486,7 @@ export default {
     syncBatchTasks(newTasks) {
       this.selectedRows = newTasks;
       this.selectedRowKeys = newTasks.map((t) => t.id);
-      this.selectEntry.clear();
-      newTasks.forEach((t) => this.selectEntry.set(t.id, t));
+      this.selectEntry = this.selectedEntryOperations.merge([], newTasks);
       this.syncSelection();
     },
     // 重置
@@ -1402,9 +1499,10 @@ export default {
         auditor: "",
         creator: "",
       };
-      this.pageChangeSearch = this.search;
-      this.getTask();
       this.clearAllEntry(); //清空已选
+      this.pageChangeSearch = { ...this.search };
+      this.pagination.current = 1;
+      return this.getTask();
     },
     // 分页切换
     pageChange(page, pageSize) {
@@ -1542,6 +1640,31 @@ export default {
   & :deep(.search .form .ant-row) {
     margin-bottom: 8px !important;
   }
+}
+:deep(.search .form .workbench-search-form) {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  width: 100%;
+}
+:deep(.search .form .workbench-search-form .ant-form-item) {
+  flex: 1 1 270px;
+  min-width: 0;
+  margin: 0;
+}
+:deep(.search .form .workbench-search-form .ant-form-item-label) {
+  flex: 0 0 84px;
+}
+:deep(.search .form .workbench-search-form .ant-form-item-control) {
+  flex: 1 1 0;
+  width: auto;
+  min-width: 0;
+  max-width: 186px;
+}
+.workbench-main-table {
+  position: absolute;
+  width: 100%;
+  min-width: 0;
 }
 .ant-card {
   width: 100%;

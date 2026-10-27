@@ -49,11 +49,17 @@ const tableBodyStub = {
 describe('ExamineModal - 浏览省略与编辑文本域', () => {
   let wrapper
 
-  function mountWithTableStub() {
+  /**
+   * 创建审核弹窗测试实例。
+   * @param {boolean} [visible=true] - 弹窗初始可见状态。
+   * @returns {Object} Vue Test Utils 挂载包装器。
+   */
+  function mountWithTableStub(visible = true) {
     return mount(ExamineModal, {
       props: {
-        visible: true,
+        visible,
         currentTask: { translateType: '英文' },
+        classifyLimit: {},
       },
       global: {
         mocks: createUserStoreMock(),
@@ -475,7 +481,7 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
     expect(checkSykEntryBeforeSave).not.toHaveBeenCalled()
   })
 
-  it('applyTable 应锁定单元格宽且表格带 table-cell-overflow', async () => {
+  it('applyTable 仅提供列元数据，表格带 table-cell-overflow', async () => {
     wrapper = mountWithTableStub()
     wrapper.vm.task = {
       transMap: {
@@ -489,7 +495,206 @@ describe('ExamineModal - 浏览省略与编辑文本域', () => {
     await wrapper.setProps({ visible: true })
     await nextTick()
     await wrapper.vm.$nextTick()
-    expect(wrapper.vm.$columnFilterPref?.lockCellSize).toBe(true)
+    expect(wrapper.vm.$columnFilterPref).toEqual(expect.objectContaining({
+      colPrefName: 'colPref-examineModal',
+      needFilter: true,
+    }))
     expect(wrapper.find('.table-stub').classes()).toContain('table-cell-overflow')
+  })
+
+  it('批量保存部分成功后重查服务端状态，不保留失败行本地编辑值', async () => {
+    const { updateEntryList } = await import('@/http/api/workbench')
+    updateEntryList.mockResolvedValue({
+      code: 203,
+      data: {
+        totalNum: 1,
+        list: [
+          { id: 'success', success: true },
+          { id: 'failed', success: false, message: '保存失败' },
+        ],
+      },
+    })
+    const { getEntryInfoList } = await import('@/http/api/workbench')
+    getEntryInfoList.mockResolvedValue({
+      data: {
+        list: [{
+          id: 'failed',
+          entry: '失败',
+          english: 'server persisted value',
+          englishState: '0',
+          auditState: 1,
+        }],
+        totalNum: 1,
+      },
+    })
+
+    wrapper = mountWithTableStub(false)
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    await wrapper.setProps({ visible: true })
+    await nextTick()
+    const success = {
+      id: 'success',
+      entry: '成功',
+      english: 'ok',
+      englishState: '0',
+      auditState: 1,
+    }
+    const failed = {
+      id: 'failed',
+      entry: '失败',
+      english: 'old',
+      englishState: '0',
+      auditState: 1,
+    }
+    wrapper.vm.dataSource = [success, failed]
+    wrapper.vm.selectedRows = [success, failed]
+    wrapper.vm.selectedRowKeys = ['success', 'failed']
+    wrapper.vm.editableData = {
+      failed: { ...failed, english: 'edited but unsaved' },
+    }
+    wrapper.vm.queryScope = JSON.stringify({
+      params: { taskID: 'task-1', entryState: '1', entry: '' },
+      taskId: 'task-1',
+    })
+    await wrapper.vm.handleOK()
+    await flushPromises()
+
+    expect(updateEntryList).toHaveBeenCalledWith(
+      { taskID: 'task-1' },
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'success', entryState: 3 }),
+        expect.objectContaining({ id: 'failed', english: 'edited but unsaved', entryState: 3 }),
+      ]),
+    )
+    expect(getEntryInfoList).toHaveBeenCalledWith(
+      { taskID: 'task-1', entryState: '1', entry: '' },
+      [],
+    )
+    expect(wrapper.vm.dataSource.map((row) => row.id)).toEqual(['failed'])
+    expect(wrapper.vm.dataSource[0].english).toBe('server persisted value')
+    expect(wrapper.vm.editableData.failed).toBeUndefined()
+    expect(wrapper.vm.selectedRowKeys).toEqual(['failed'])
+    expect(wrapper.vm.selectedRows.map((row) => row.id)).toEqual(['failed'])
+  })
+
+  it('批量保存后列表刷新失败时移除本次提交行并提示重查', async () => {
+    const { updateEntryList, getEntryInfoList } = await import('@/http/api/workbench')
+    updateEntryList.mockResolvedValue({
+      data: { totalNum: 1, list: [{ id: 'failed' }] },
+    })
+    getEntryInfoList.mockRejectedValue(new Error('query failed'))
+
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    const failed = {
+      id: 'failed',
+      entry: '失败',
+      english: 'old',
+      englishState: '0',
+      auditState: 1,
+    }
+    wrapper.vm.dataSource = [failed]
+    wrapper.vm.selectedRows = [failed]
+    wrapper.vm.selectedRowKeys = ['failed']
+    wrapper.vm.editableData = {
+      failed: { ...failed, english: 'edited but unsaved' },
+    }
+    wrapper.vm.queryScope = JSON.stringify({
+      params: { taskID: 'task-1', entryState: '1', entry: '' },
+      taskId: 'task-1',
+    })
+
+    await wrapper.vm.handleOK()
+    await flushPromises()
+
+    expect(getEntryInfoList).toHaveBeenCalledTimes(1)
+    expect(wrapper.vm.dataSource).toEqual([])
+    expect(wrapper.vm.editableData.failed).toBeUndefined()
+    expect(wrapper.vm.selectedRowKeys).toEqual([])
+  })
+
+  it('保存响应返回前任务切换时不更新新任务的列表或选择', async () => {
+    const { updateEntryList, getEntryInfoList } = await import('@/http/api/workbench')
+    let resolveSave
+    updateEntryList.mockImplementation(() => new Promise((resolve) => {
+      resolveSave = resolve
+    }))
+
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    const record = {
+      id: 'entry-1',
+      entry: '词条',
+      english: 'entry',
+      englishState: '0',
+      auditState: 1,
+    }
+    wrapper.vm.dataSource = [record]
+    wrapper.vm.selectedRows = [record]
+    wrapper.vm.selectedRowKeys = ['entry-1']
+
+    const savePromise = wrapper.vm.handleOK()
+    await vi.waitFor(() => expect(updateEntryList).toHaveBeenCalledTimes(1))
+    wrapper.vm.task = {
+      id: 'task-2',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    resolveSave({ data: { totalNum: 0, list: [] } })
+    await savePromise
+    await flushPromises()
+
+    expect(getEntryInfoList).not.toHaveBeenCalled()
+    expect(wrapper.vm.dataSource).toEqual([record])
+    expect(wrapper.vm.selectedRowKeys).toEqual(['entry-1'])
+  })
+
+  it('保存响应返回前查询会话失效时不清理新查询的列表或草稿', async () => {
+    const { updateEntryList, getEntryInfoList } = await import('@/http/api/workbench')
+    let resolveSave
+    updateEntryList.mockImplementation(() => new Promise((resolve) => {
+      resolveSave = resolve
+    }))
+
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    const record = {
+      id: 'entry-1',
+      entry: '词条',
+      english: 'entry',
+      englishState: '0',
+      auditState: 1,
+    }
+    wrapper.vm.dataSource = [record]
+    wrapper.vm.selectedRows = [record]
+    wrapper.vm.selectedRowKeys = ['entry-1']
+    wrapper.vm.editableData = { 'entry-1': { ...record, english: 'draft' } }
+
+    const savePromise = wrapper.vm.handleOK()
+    await vi.waitFor(() => expect(updateEntryList).toHaveBeenCalledTimes(1))
+    resolveSave({ data: { totalNum: 0, list: [] } })
+    wrapper.vm.queryGuard.next()
+    await savePromise
+    await flushPromises()
+
+    expect(getEntryInfoList).not.toHaveBeenCalled()
+    expect(wrapper.vm.dataSource).toEqual([record])
+    expect(wrapper.vm.selectedRowKeys).toEqual(['entry-1'])
+    expect(wrapper.vm.editableData['entry-1'].english).toBe('draft')
   })
 })

@@ -17,7 +17,7 @@
         :table-host="this"
         :columns="columns"
         :data-source="dataSource"
-        :loading="loading"
+        :loading="loading || queryLoading"
         :row-selection="examineTranslateRowSelection"
         :pagination="pagination"
         :scroll="tableHeight"
@@ -80,7 +80,6 @@ import {
   AuditButtons,
 } from "@/views/workbench/components";
 import {
-  handleResizeColumn,
   getRowClassName,
   handleReset as tableHandleReset,
 } from "@/utils/tableUtils";
@@ -89,13 +88,17 @@ import {
   handleFilterSearch,
   resetOnClose,
 } from "@/views/workbench/composables/filterClear";
-import { companyCut, formatTagText } from "@/views/workbench/utils/tagFmt";
 import { editTextCols } from "@/views/workbench/utils/editCols";
 import {
-  selectAllEntry as selectAllEntryUtil,
-  clearAllEntry as clearAllEntryUtil,
-  onSelectChange as onSelectChangeUtil,
+  applyTableSelectionById,
+  clearTableSelection,
+  clearTableRowsContext,
+  resetTableQuerySession,
+  getCurrentSelectionRows,
+  refreshTableSelectionById,
+  updateTableSelectionById,
 } from "@/utils/selectionUtils";
+import { createQueryVersionGuard } from "@/utils/queryVersionGuard";
 import {
   onEditableCellInput,
   clearCellErrorsForRecords,
@@ -178,6 +181,9 @@ export default {
       pagination: defaultPagination(this.pageChange),
       selectedRowKeys: [],
       selectedRows: [],
+      queryGuard: createQueryVersionGuard(),
+      queryScope: "",
+      queryLoading: false,
       editableData: {},
       rules: {},
       cellErrors: {},
@@ -189,7 +195,6 @@ export default {
         searchedColumn: "",
       },
       antClearFilter: null,
-      selectAllName: "全选",
       rulesOptions: commonParam.rulesOptions,
       overlayStyle: workbenchParams.overlayStyle, // 展示列样式
       columnSettingsList: [],
@@ -227,19 +232,28 @@ export default {
     },
     examineTranslateRowSelection() {
       return {
+        columnWidth: 48,
         selectedRowKeys: this.selectedRowKeys,
-        onChange: this.onSelectChange,
-        selections: [
-          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
-          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
-        ],
+        onSelect: this.onSelect,
+        onSelectAll: this.onSelectAll,
       };
     },
   },
   watch: {
+    /**
+     * 切换翻译审核任务时清理旧选择并使旧列表请求失效。
+     * @param {Object} newTask - 当前任务。
+     * @param {Object} oldTask - 上一个任务。
+     * @returns {void} 无返回值。
+     */
     currentTask(newval, oldval) {
       this.task = newval;
       this.task.transMap = commonParam.languageMap[this.task.translateType];
+      if (newval?.id !== oldval?.id) {
+        // 任务切换时同步丢弃旧选择与请求，避免审核意见写入错误任务。
+        resetTableQuerySession(this);
+        if (this.visible) this.getTaskEntry();
+      }
     },
     rulesOptions: {
       deep: true,
@@ -250,6 +264,11 @@ export default {
       },
     },
     visible: {
+      /**
+       * 响应翻译审核弹窗开关并使关闭前的列表请求失效。
+       * @param {boolean} newValue - 弹窗当前是否打开。
+       * @returns {Promise<void>} 可见状态处理完成后结束。
+       */
       async handler(newVal) {
         // console.log("打开工作台-翻译审核", newVal);
         if (newVal) {
@@ -274,16 +293,23 @@ export default {
               normalWidth: 100,
               needFilter: true,
               filterCols: filterWbColsForCtx,
-              lockCellSize: true,
             });
           });
+        } else {
+          // 弹窗关闭后不再接收旧请求，防止下次打开看到过期审核列表。
+          resetTableQuerySession(this);
         }
       },
     },
   },
   methods: {
+    /**
+     * 应用展示列偏好并通知共享表格重新建立列布局。
+     * @returns {void} 无返回值。
+     */
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
+      this.columns = [...this.columns];
     },
     // 删除词条（词条审核员 + 本任务指派人）
     deleteTaskEntry() {
@@ -330,21 +356,35 @@ export default {
         onCancel: () => {},
       });
     },
-    // 获取待审核词条
+    /**
+     * 查询当前任务待审核翻译，只提交最新任务与筛选条件的响应。
+     * @returns {Promise<void>} 查询和校验完成后结束。
+     */
     async getTaskEntry() {
       let params = {
         taskID: this.task.id,
         entryState: "3",
         entry: this.keyWords,
       };
-      startLoading();
       let data =
         this.translateState === null || this.translateState === undefined
           ? ["1"]
           : [this.translateState];
+      const scope = JSON.stringify({ params, data });
+      if (scope !== this.queryScope) {
+        // 当前筛选范围发生变化时仅清空列表和编辑上下文，保留跨查询的已选词条参与审核。
+        this.queryScope = scope;
+        clearTableRowsContext(this);
+      }
+      // 版本令牌确保快速筛选时只有最后一次请求能更新页面。
+      const token = this.queryGuard.next();
+      const taskId = this.task.id;
+      this.queryLoading = true;
 
       try {
         const res = await getEntryInfoList(params, data);
+        // 任务或筛选已变化时忽略迟到响应，保护当前审核上下文。
+        if (!this.queryGuard.isCurrent(token) || this.task.id !== taskId) return;
         // 更新成功：刷新所有任务的小红点
         this.$emit("afterSave", this.currentTask);
 
@@ -355,11 +395,18 @@ export default {
           item[this.task.transMap.auditSuggest] = ""; // 对应语种的审核意见清空
         });
         this.allData = this.dataSource;
-        await revalidateLoaded(this, this.task.transMap.value);
+        // 列表刷新后按 ID 对齐仍有效的勾选项，避免底部批量操作指向旧对象。
+        refreshTableSelectionById(this, this.dataSource);
+        await revalidateLoaded(
+          this,
+          this.task.transMap.value,
+          () => this.queryGuard.isCurrent(token) && this.task.id === taskId,
+        );
       } catch (err) {
-        message.error("1", err.message);
+        if (this.queryGuard.isCurrent(token)) message.error("1", err.message);
       } finally {
-        endLoading();
+        // 只允许当前请求结束加载态，避免并发请求造成遮罩闪烁。
+        if (this.queryGuard.isCurrent(token)) this.queryLoading = false;
       }
     },
     // 单元格输入更新：集中处理 editableData 写入，防止 IME 组合期间给 undefined 赋值
@@ -369,32 +416,10 @@ export default {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    formatTagText,
-    companyCut,
-    isExistLabel(value) {
-      if (value === 0) return "新建";
-      if (value === 1) return "已存在";
-      return "";
-    },
-    entryStateLabel(value) {
-      const map = {
-        0: "新建",
-        1: "审核中",
-        2: "审核不通过",
-        3: "已审核",
-        "-1": "禁用",
-      };
-      return map[value] ?? "";
-    },
-    translateStateLabel(value) {
-      const map = {
-        0: "未翻译",
-        1: "待审核",
-        2: "审核不通过",
-        3: "已审核",
-      };
-      return map[value] ?? "未翻译";
-    },
+    /**
+     * 校验并保存翻译审核结果，只把接口确认成功的行合并回表格。
+     * @returns {Promise<void>} 保存与列表刷新完成后结束。
+     */
     async handleOK() {
       // 保存/校验期间触发全局遮罩（引用计数成对，防连点由遮罩拦截）
       startLoading();
@@ -408,6 +433,7 @@ export default {
         (item) => item.auditState === 1 || item.auditState === 0
       );
       if (updateArrCandidate.length > 0) {
+        // 校验失败时保留原列表和编辑态，并将用户定位到红字单元格。
         clearCellErrorsForRecords(this, updateArrCandidate.map((r) => r.id));
         const verifyResult = await classifyArr(this, updateArrCandidate, transCol, methods);
         if (verifyResult.errorIds.size > 0) {
@@ -418,68 +444,109 @@ export default {
         }
       }
 
-      // 2. 校验通过后再合并 editableData -> dataSource
-      for (let key in this.editableData) {
-        const index = this.dataSource.findIndex((item) => item.id === key);
-        if (index != -1) {
-          this.dataSource[index] = cloneDeep(this.editableData[key]);
-        }
-      }
-      this.editableData = {};
-
       let params = {
         taskID: this.task.id,
       };
-      let updateArr = [];
-      let okArr = [];
+      const updateArr = [];
+      // 把审核结论转换为目标翻译状态；只提交用户明确操作过的行。
       this.dataSource.forEach((item) => {
-        item.parentID = "";
         if (item.auditState === 0) {
-          item[this.task.transMap.state] = "2";
-          updateArr.push(item);
+          const submitted = cloneDeep(this.editableData[item.id] || item);
+          submitted.parentID = "";
+          submitted[this.task.transMap.state] = "2";
+          updateArr.push(submitted);
         } else if (item.auditState === 1) {
-          item[this.task.transMap.state] = "3";
-          updateArr.push(item);
-          okArr.push(item);
+          const submitted = cloneDeep(this.editableData[item.id] || item);
+          submitted.parentID = "";
+          submitted[this.task.transMap.state] = "3";
+          updateArr.push(submitted);
         }
       });
 
-      if (updateArr.length > 0) {
-        updateEntryList(params, updateArr)
-          .then((res) => {
-            message.success("已保存！");
-            this.getTaskEntry();
-          })
-          .catch((err) => {
-            message.error("保存失败！", err.message);
-          })
-          .finally(() => {
-            endLoading();
-            // console.log("剩余待处理数据的数量：", this.dataSource.length-updateArr.length);
-            if (this.dataSource.length == updateArr.length) {
-              // 如果没有待处理的数据就自动关闭弹窗
-              this.handleClose();
-            }
-          });
-      } else {
+      if (updateArr.length === 0) {
+        endLoading();
+        return;
+      }
+
+      try {
+        const res = await updateEntryList(params, updateArr);
+        // 失败 ID 与成功行分开映射，部分失败不会覆盖用户仍需处理的内容。
+        const failedIds = new Set((res.data?.list || []).map((item) => item.id));
+        const successfulRows = updateArr.filter((item) => !failedIds.has(item.id));
+        const successfulById = new Map(successfulRows.map((item) => [item.id, item]));
+
+        // 仅将已确认成功的快照写回列表和选择，随后清除对应编辑缓存。
+        this.dataSource = this.dataSource.map(
+          (item) => successfulById.get(item.id) || item
+        );
+        this.allData = this.allData.map(
+          (item) => successfulById.get(item.id) || item
+        );
+        this.selectedRows = this.selectedRows.map(
+          (item) => successfulById.get(item.id) || item
+        );
+        successfulRows.forEach((item) => delete this.editableData[item.id]);
+
+        if (failedIds.size > 0) {
+          message.error(`保存失败 ${failedIds.size} 条`);
+        } else {
+          message.success("已保存！");
+        }
+        // 保存后重新查询待审核队列，使成功流转的行从当前页面消失。
+        await this.getTaskEntry();
+        if (this.dataSource.length === 0) this.handleClose();
+      } catch (err) {
+        message.error("保存失败！", err.message);
+      } finally {
         endLoading();
       }
     },
+    /**
+     * 关闭翻译审核弹窗并丢弃当前列表与选择请求。
+     * @returns {void} 无返回值。
+     */
     handleClose() {
+      this.queryGuard.invalidate();
+      this.selectedRows = [];
+      this.selectedRowKeys = [];
       this.$emit("handleClose");
     },
     getRowClassName(record, index) {
       return getRowClassName(record, index, this.selectedRowIndex);
     },
-    handleResizeColumn,
-    // 模糊查询
+    /**
+     * 应用本地搜索条件并使旧列表请求和选择失效。
+     * @returns {void} 无返回值。
+     */
     select() {
+      this.queryGuard.invalidate();
+      clearTableSelection(this);
       this.dataSource = this.allData.filter((item) =>
         item.entry.includes(this.keyWords)
       );
+      this.pagination.current = 1;
+      this.pagination.total = this.dataSource.length;
     },
-    onSelectChange(selectedRowKeys, selectedRows) {
-      onSelectChangeUtil(this, selectedRowKeys, selectedRows);
+    /**
+     * 同步翻译审核表格的单行操作，同时保留完整结果范围外的选择。
+     * @param {Object} record - 本次点击的行。
+     * @param {boolean} selected - 点击后的行选择状态。
+     * @returns {void} 无返回值。
+     */
+    onSelect(record, selected) {
+      updateTableSelectionById(this, [record], selected);
+    },
+    /**
+     * 将表头复选框作用于当前完整查询结果。
+     * @param {boolean} selected - 是否选中当前结果。
+     * @returns {void} 无返回值。
+     */
+    onSelectAll(selected) {
+      applyTableSelectionById(
+        this,
+        getCurrentSelectionRows(this),
+        selected
+      );
     },
     // 通过标签点击事件
     passTagChange(record) {
@@ -517,7 +584,6 @@ export default {
       });
       this.selectedRowKeys = [];
       this.selectedRows = [];
-      this.selectAllName = "全选";
     },
     pass() {
       this.applyAudit(1);
@@ -700,7 +766,11 @@ export default {
         (item) => item.id === this.selectedRowIndex
       ).auditState = 0;
     },
-    // 滚动表格
+    /**
+     * 将当前编辑行滚动到共享视口可见区域。
+     * @param {number} rowIndex 当前数据行索引。
+     * @returns {void} 等待 Vue 更新后完成滚动。
+     */
     scrollTableToRow(rowIndex) {
       this.$nextTick(() => {
         const table = this.$refs.tableContainer; // 获取表格容器元素
@@ -709,10 +779,11 @@ export default {
           let flag =
             rowIndex - (this.pagination.current - 1) * this.pagination.pageSize;
           const targetElement = table.$el.querySelectorAll("tr")[flag];
-          let container =
-            this.$refs.tableContainer.$el.querySelector(".ant-table-body");
-          if (targetElement) {
-            container.scrollTop = flag * targetElement.offsetHeight - 370; // 当前行 * 行高 - 表格展示高度
+          const container =
+            this.$refs.tableContainer.$el.querySelector(".ant-table-content");
+          if (targetElement && container) {
+            const contentHeight = container.clientHeight;
+            container.scrollTop = flag * targetElement.offsetHeight - contentHeight; // 当前行 * 行高 - 表格展示高度
           }
         }
       });
@@ -743,29 +814,6 @@ export default {
     pageChange(page, pageSize) {
       wbPageChange(this, page, pageSize, () => this.task.transMap.value);
     },
-    // 全选
-    selectAll() {
-      if (this.selectedRowKeys.length === this.dataSource.length) {
-        // 已全选
-        this.selectedRowKeys = [];
-        this.selectedRows = [];
-        this.selectAllName = "全选";
-      } else {
-        this.selectedRowKeys = [];
-        this.selectedRows = [];
-        this.dataSource.forEach((item) => {
-          this.selectedRows.push(item);
-          this.selectedRowKeys.push(item.id);
-        });
-        this.selectAllName = "取消全选";
-      }
-    },
-    selectAllEntry() {
-      selectAllEntryUtil(this);
-    },
-    clearAllEntry() {
-      clearAllEntryUtil(this);
-    },
     afterClose() {
       resetLoading();
       this.editableData = {};
@@ -774,7 +822,6 @@ export default {
       this.keyWords = "";
       this.pagination.current = 1;
       this.pagination.pageSize = 20;
-      this.selectAllName = "全选";
       // 关弹窗：Ant 原生清列头筛选 + 搜索态复位
       resetOnClose(this);
     },

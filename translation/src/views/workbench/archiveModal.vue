@@ -17,7 +17,7 @@
         :table-host="this"
         :columns="columns"
         :data-source="dataSource"
-        :loading="loading"
+          :loading="loading || queryLoading"
         :pagination="pagination"
         :scroll="tableHeight"
         :row-selection="archiveRowSelection"
@@ -156,7 +156,6 @@ import { filterWbColsForCtx } from "@/components/ColumnFilter/columnBuilder.js";
 import {
   handleTableChange as tableHandleTableChange,
   handleReset as tableHandleReset,
-  handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
 import { defaultPagination } from "@/views/workbench/composables/page";
@@ -166,10 +165,15 @@ import {
 } from "@/views/workbench/composables/filterClear";
 import { PipelinePanel } from "@/views/workbench/components";
 import {
-  selectAllEntry as selectAllEntryUtil,
-  clearAllEntry as clearAllEntryUtil,
-  onSelectChange as onSelectChangeUtil,
+  applyTableSelectionById,
+  invalidateSelectionWhenFiltersChange,
+  clearTableRowsContext,
+  resetTableQuerySession,
+  getCurrentSelectionRows,
+  refreshTableSelectionById,
+  updateTableSelectionById,
 } from "@/utils/selectionUtils";
+import { createQueryVersionGuard } from "@/utils/queryVersionGuard";
 import { getCurrentFormattedTime } from "@/utils/dateUtils";
 import { canDeleteAsEntryAuditor } from "@/utils/entryAuditorAuth";
 import {
@@ -224,6 +228,7 @@ export default {
       tableHeight: { x: "max-content", y: "415px" },
       columns: [],
       dataSource: [],
+      allData: [],
       pagination: defaultPagination(this.pageChange),
       entryState: null,
       translateState: null,
@@ -245,6 +250,9 @@ export default {
       antClearFilter: null,
       selectedRowKeys: [],
       selectedRows: [],
+      queryGuard: createQueryVersionGuard(),
+      queryScope: "",
+      queryLoading: false,
       ipSelectModal: false,
       ipModal: {
         ip: null,
@@ -262,11 +270,27 @@ export default {
     });
   },
   watch: {
+    /**
+     * 切换归档任务时使旧列表失效，并在弹窗打开时加载新任务。
+     * @param {Object} newTask - 当前任务。
+     * @param {Object} oldTask - 上一个任务。
+     * @returns {void} 无返回值。
+     */
     currentTask(newval, oldval) {
       this.task = newval;
       this.task.transMap = commonParam.languageMap[this.task.translateType];
+      if (newval?.id !== oldval?.id) {
+        // 弹窗实例会复用；先清空旧任务的列表/选择上下文，避免短暂显示错误任务的数据。
+        resetTableQuerySession(this);
+        if (this.visible) this.getTaskEntry();
+      }
     },
     visible: {
+      /**
+       * 响应归档弹窗开关并使关闭前的列表请求失效。
+       * @param {boolean} newValue - 弹窗当前是否打开。
+       * @returns {Promise<void>} 可见状态处理完成后结束。
+       */
       async handler(newVal) {
         // console.log("打开工作台-归档", newVal);
         if (newVal) {
@@ -284,9 +308,11 @@ export default {
               normalWidth: 100,
               needFilter: true,
               filterCols: filterWbColsForCtx,
-              lockCellSize: true,
             });
           });
+        } else {
+          // 关闭后不接受迟到响应，避免下次打开时被上一轮查询重新填充。
+          resetTableQuerySession(this);
         }
       },
     },
@@ -309,44 +335,22 @@ export default {
         columnWidth: 48,
         selectedRowKeys: this.selectedRowKeys,
         selectedRows: this.selectedRows,
-        onChange: this.onSelectChange,
-        selections: [
-          { key: "selectAll", text: "全部选择", onSelect: this.selectAllEntry },
-          { key: "clearAll", text: "取消选择", onSelect: this.clearAllEntry },
-        ],
+        onSelect: this.onSelect,
+        onSelectAll: this.onSelectAll,
       };
     },
   },
   methods: {
+    /**
+     * 应用展示列偏好并通知共享表格重新建立列布局。
+     * @returns {void} 无返回值。
+     */
     syncColumnsFromPref() {
       applyTableColumnsFromPref(this);
+      this.columns = [...this.columns];
     },
     formatEntryText,
     formatCellText,
-    isExistLabel(value) {
-      if (value === 0) return "新建";
-      if (value === 1) return "已存在";
-      return "";
-    },
-    entryStateLabel(value) {
-      const map = {
-        0: "新建",
-        1: "审核中",
-        2: "审核不通过",
-        3: "已审核",
-        "-1": "禁用",
-      };
-      return map[value] ?? "";
-    },
-    translateStateLabel(value) {
-      const map = {
-        0: "未翻译",
-        1: "待审核",
-        2: "审核不通过",
-        3: "已审核",
-      };
-      return map[value] ?? "未翻译";
-    },
     // 删除词条（词条审核员 + 本任务指派人）
     deleteTaskEntry() {
       if (this.selectedRows.length === 0) {
@@ -392,8 +396,11 @@ export default {
         onCancel: () => {},
       });
     },
-    // 获取词条
-    getTaskEntry() {
+    /**
+     * 查询当前任务归档词条，仅允许最新任务与筛选条件更新列表。
+     * @returns {Promise<void>} 查询完成后结束。
+     */
+    async getTaskEntry() {
       let params = {
         taskID: this.task.id,
         entry: this.keyWords,
@@ -403,18 +410,30 @@ export default {
       if (this.translateState) {
         data.push(this.translateState);
       }
-      startLoading();
-
-      getEntryInfoList(params, data)
-        .then((res) => {
-          this.dataSource = res.data.list;
-        })
-        .catch((err) => {
-          message.error(err.message);
-        })
-        .finally(() => {
-          endLoading();
-        });
+      const scope = JSON.stringify({ params, data });
+      if (scope !== this.queryScope) {
+        // 查询范围变化时仅清空列表和编辑上下文，保留跨查询的已选词条参与归档。
+        this.queryScope = scope;
+        clearTableRowsContext(this);
+      }
+      // 用版本号绑定本次请求，后返回的旧响应不会覆盖用户刚切换的筛选结果。
+      const token = this.queryGuard.next();
+      const taskId = this.task.id;
+      this.queryLoading = true;
+      try {
+        const res = await getEntryInfoList(params, data);
+        // 请求返回后再次确认任务和版本，保护弹窗复用时的列表展示。
+        if (!this.queryGuard.isCurrent(token) || this.task.id !== taskId) return;
+        this.dataSource = res.data.list;
+        this.allData = this.dataSource;
+        // 按 ID 将仍在结果中的选择投影回新行对象，保持复选框和底部操作一致。
+        refreshTableSelectionById(this, this.dataSource);
+      } catch (err) {
+        if (this.queryGuard.isCurrent(token)) message.error(err.message);
+      } finally {
+        // 只有当前请求才能收起加载态，防止旧请求结束时误关新请求的遮罩。
+        if (this.queryGuard.isCurrent(token)) this.queryLoading = false;
+      }
     },
     handleOK() {
       // 归档
@@ -497,7 +516,6 @@ export default {
     getRowClassName(record, index) {
       return getRowClassName(record, index, this.selectedRowIndex);
     },
-    handleResizeColumn,
     // 添加表格行点击事件
     customRow(record, index) {
       return {
@@ -523,7 +541,14 @@ export default {
       tableHandleReset(clearFilters, this);
     },
     // 同步 filters / filteredValue（供全部选择；filteredData 写入见 tableUtils）
+    /**
+     * 应用归档表格分页及筛选变化。
+     * @param {Object} pagination - 表格分页状态。
+     * @param {Object} filters - 表格列筛选值。
+     * @returns {void} 无返回值。
+     */
     handleTableChange(pagination, filters) {
+      invalidateSelectionWhenFiltersChange(this, filters);
       tableHandleTableChange(pagination, filters, this);
     },
     // // 两个数组取并集(可封装)
@@ -553,14 +578,26 @@ export default {
       this.pagination.current = page;
       this.pagination.pageSize = pageSize;
     },
-    onSelectChange(selectedRowKeys, selectedRows) {
-      onSelectChangeUtil(this, selectedRowKeys, selectedRows);
+    /**
+     * 同步归档表格的单行操作，同时保留当前完整结果范围外的选择。
+     * @param {Object} record - 本次点击的行。
+     * @param {boolean} selected - 点击后的行选择状态。
+     * @returns {void} 无返回值。
+     */
+    onSelect(record, selected) {
+      updateTableSelectionById(this, [record], selected);
     },
-    selectAllEntry() {
-      selectAllEntryUtil(this);
-    },
-    clearAllEntry() {
-      clearAllEntryUtil(this);
+    /**
+     * 将表头复选框作用于当前完整查询结果。
+     * @param {boolean} selected - 是否选中当前结果。
+     * @returns {void} 无返回值。
+     */
+    onSelectAll(selected) {
+      applyTableSelectionById(
+        this,
+        getCurrentSelectionRows(this),
+        selected
+      );
     },
     /**
      * 将当前选中的词条回写到已选服务器。

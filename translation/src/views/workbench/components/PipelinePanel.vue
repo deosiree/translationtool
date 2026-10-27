@@ -1,4 +1,5 @@
 <template>
+  <div class="pipeline-panel">
   <!--
     PipelinePanel：工作台流水线表格壳（任务信息 + 工具栏 + a-table）
     从各 modal 解耦出的共用表格渲染；列 dataIndex 与 bodyCell 分支对应关系见下方注释。
@@ -36,10 +37,14 @@
     </div>
   </div>
   <slot name="subToolbar" />
-  <a-table
+  <TableViewport
     bordered
     class="ant-table-striped table-cell-overflow"
+    :fill-height="true"
+    :empty-overlay="true"
     :columns="columns"
+    :layout-key="tableLayoutKey"
+    :adaptive-column-keys="adaptiveColumnKeys"
     :data-source="dataSource"
     :row-key="(record) => record.id"
     :scroll="scroll"
@@ -52,12 +57,16 @@
     :expand-icon-column-index="expandIconColumnIndex"
     :children-column-name="childrenColumnName"
     v-bind="$attrs"
-    @resize-column="handleResize"
     @change="onTableChange"
   >
     <template #headerCell="{ title, column }">
+      <TableHeaderHint
+        v-if="['tag', 'comment'].includes(column.dataIndex)"
+        :title="title"
+        :column="column"
+      />
       <!-- 列头：colValue 有值时省略号 + Tooltip -->
-      <a-tooltip v-if="column.dataIndex === 'maxLength'">
+      <a-tooltip v-else-if="column.dataIndex === 'maxLength'">
         <template #title>
           译文字符数上限，最多可输入相应数量的字或字母；空格也计数，首尾空格不忽略。
         </template>
@@ -71,22 +80,17 @@
     <template #bodyCell="{ column, text, record }">
       <!-- entry：词条原文 -->
       <template v-if="column.dataIndex === 'entry'">
-        <CellOverflowTooltip :content="formatEntryText(text)">
-          {{ formatEntryText(text) }}
-        </CellOverflowTooltip>
+        <TableCellText :text="formatEntryText(text)" />
       </template>
-      <!-- 可编辑文本列：翻译列 / comment / 释义等（edit prop 中除 diFileName/tag/maxLength 外的列） -->
-      <template v-else-if="editableTextColumns.includes(column.dataIndex)">
-        <template v-if="isEditing(record)">
-          <TableCellTextArea
-            :value="editableData[record.id][column.dataIndex] ?? ''"
-            :error-message="cellErrors[record.id]?.[column.dataIndex]"
-            @update:value="(val) => $emit('cellInput', val, record, column)"
-          />
-        </template>
-        <template v-else>
-          <CellOverflowTooltip :content="formatCellText(text)" />
-        </template>
+      <!-- 普通文本列：浏览态由 TableCellText 内部统一使用 Tooltip -->
+      <template v-else-if="isPlainTextColumn(column)">
+        <TableCellText
+          :text="formatCellText(text)"
+          :value="editableData[record.id]?.[column.dataIndex] ?? ''"
+          :editing="isEditableTextColumn(column) && isEditing(record)"
+          :error-message="cellErrors[record.id]?.[column.dataIndex]"
+          @update:value="$emit('cellInput', $event, record, column)"
+        />
       </template>
       <!-- diFileName：DI 文件名（编辑态 InputIME） -->
       <template v-else-if="column.dataIndex === 'diFileName'">
@@ -120,19 +124,19 @@
       </template>
       <!-- isExist：库内是否已存在（0 新建 / 1 已存在）→ IsExistBadge -->
       <template v-else-if="column.dataIndex === 'isExist'">
-        <CellOverflowTooltip :content="isExistLabel(text)">
+        <CellOverflowTooltip :content="getIsExistLabel(text)">
           <IsExistBadge :isExist="text" />
         </CellOverflowTooltip>
       </template>
       <!-- entryState：词条审核状态（0 新建 / 1 审核中 / 2 不通过 / 3 已审核 / -1 禁用）→ EntryStateBadge -->
       <template v-else-if="column.dataIndex === 'entryState'">
-        <CellOverflowTooltip :content="entryStateLabel(text)">
+        <CellOverflowTooltip :content="getEntryStateLabel(text)">
           <EntryStateBadge :entryState="text" />
         </CellOverflowTooltip>
       </template>
       <!-- 各语种翻译状态列：englishState / chineseState / … 及 translateState → TransStateBadge -->
       <template v-else-if="translateStateList.includes(column.dataIndex)">
-        <CellOverflowTooltip :content="translateStateLabel(text)">
+        <CellOverflowTooltip :content="getTranslateStateLabel(text)">
           <TransStateBadge :translateState="text" />
         </CellOverflowTooltip>
       </template>
@@ -250,7 +254,11 @@
         :style="{ color: filtered ? FILTER_ACTIVE : undefined }"
       />
     </template>
-  </a-table>
+    <template #empty>
+      <a-empty :image="simpleEmptyImage" />
+    </template>
+  </TableViewport>
+  </div>
 </template>
 
 <script>
@@ -262,13 +270,22 @@ import {
   CloseOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons-vue";
+import Empty from "ant-design-vue/es/empty";
 import commonParam from "@/constants/commonParam.js";
+import {
+  getEntryStateLabel,
+  getIsExistLabel,
+  getTranslateStateLabel,
+} from "@/constants/statusMaps.js";
 import ColumnActions from "./ColumnActions.vue";
 import AuditTags from "./AuditTags.vue";
 import InputIME from "@/components/cellEditor/input_IME.vue";
 import TableTagCell from "@/components/table/TableTagCell/TableTagCell.vue";
-import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
+import TableCellText from "@/components/table/TableCellText/TableCellText.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
+import { getAdaptiveColumnKeys } from "@/components/table/columnLayout.js";
 import IsExistBadge from "@/components/stateBadge/isExistBadge.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
@@ -277,9 +294,9 @@ import { handleFilterSearch } from "@/views/workbench/composables/filterClear";
 import {
   handleReset as tableHandleReset,
   handleTableChange,
-  handleResizeColumn,
   getRowClassName,
 } from "@/utils/tableUtils";
+import { invalidateSelectionWhenFiltersChange } from "@/utils/selectionUtils";
 
 const FILTER_ACTIVE = "#108ee9";
 const FILTER_PAD = "8px";
@@ -293,6 +310,17 @@ const translateStateList = [
   ...commonParam.langTranslateStateList,
   "translateState",
 ];
+const NON_TEXT_EDITABLE_COLUMNS = new Set([
+  "diFileName",
+  "tag",
+  "maxLength",
+  "isExist",
+  "entryState",
+  "operation",
+  "editOperation",
+  "index",
+  ...translateStateList,
+]);
 
 export default {
   name: "PipelinePanel",
@@ -308,7 +336,9 @@ export default {
     AuditTags,
     InputIME,
     TableTagCell,
-    TableCellTextArea,
+    TableViewport,
+    TableCellText,
+    TableHeaderHint,
     CellOverflowTooltip,
     IsExistBadge,
     EntryStateBadge,
@@ -392,6 +422,10 @@ export default {
     "auditPass",
     "auditReject",
   ],
+  /**
+   * 初始化流水线表格壳的展示常量。
+   * @returns {Object} 模板使用的展示常量。
+   */
   data() {
     return {
       FILTER_ACTIVE,
@@ -400,6 +434,8 @@ export default {
       FILTER_BTN_W,
       FILTER_BTN_GAP,
       EXPAND_PLACEHOLDER_MR,
+      layoutRevision: 0,
+      simpleEmptyImage: Empty.PRESENTED_IMAGE_SIMPLE,
       expandIconWrapStyle: {
         display: "inline-block",
         marginRight: EXPAND_ICON_MR,
@@ -411,8 +447,24 @@ export default {
     /** edit prop 中可 TextArea 编辑的列（排除 diFileName / tag / maxLength 专用分支） */
     editableTextColumns() {
       return this.edit.filter(
-        (col) => !["diFileName", "tag", "maxLength"].includes(col)
+        (col) => !NON_TEXT_EDITABLE_COLUMNS.has(col)
       );
+    },
+    /**
+     * 识别流水线表格中的长文本列，并交给共享视口分配剩余宽度。
+     * @returns {Array<string>} 自适应列标识。
+     */
+    adaptiveColumnKeys() {
+      return getAdaptiveColumnKeys(
+        (this.columns || []).filter((column) => !column.fixed)
+      );
+    },
+    /**
+     * 为共享视口生成随任务和列集重建而变化的布局标识。
+     * @returns {string} 当前表格布局标识。
+     */
+    tableLayoutKey() {
+      return `${this.task?.id ?? ""}:${this.layoutRevision}`;
     },
     showInlineColumnActions() {
       if (this.$slots.trailing) {
@@ -421,33 +473,52 @@ export default {
       return this.columnActions != null || !!this.$slots.columnActions;
     },
   },
+  watch: {
+    /**
+     * 仅在调用方替换列数组时标记新布局，避免列拖拽修改宽度后被立即重置。
+     * @param {Array} newColumns - 当前列数组。
+     * @param {Array} oldColumns - 上一个列数组。
+     * @returns {void} 无返回值。
+     */
+    columns(newColumns, oldColumns) {
+      if (newColumns !== oldColumns) this.layoutRevision += 1;
+    },
+    /**
+     * 切换任务时标记新布局，确保隐藏后复用的弹窗不会保留横向偏移。
+     * @param {Object} newTask - 当前任务。
+     * @param {Object} oldTask - 上一个任务。
+     * @returns {void} 无返回值。
+     */
+    task(newTask, oldTask) {
+      if (newTask?.id !== oldTask?.id) this.layoutRevision += 1;
+    },
+  },
   methods: {
     formatEntryText,
     formatCellText,
     formatMaxLengthText,
-    isExistLabel(value) {
-      if (value === 0) return "新建";
-      if (value === 1) return "已存在";
-      return "";
+    getIsExistLabel,
+    getEntryStateLabel,
+    getTranslateStateLabel,
+    /**
+     * 判断当前列是否为可由文本编辑器处理的字段。
+     * @param {Object} column 当前表格列配置。
+     * @returns {boolean} 是否应在编辑态显示文本编辑器。
+     */
+    isEditableTextColumn(column) {
+      return (
+        this.editableTextColumns.includes(column?.dataIndex) &&
+        !NON_TEXT_EDITABLE_COLUMNS.has(column?.dataIndex)
+      );
     },
-    entryStateLabel(value) {
-      const map = {
-        0: "新建",
-        1: "审核中",
-        2: "审核不通过",
-        3: "已审核",
-        "-1": "禁用",
-      };
-      return map[value] ?? "";
-    },
-    translateStateLabel(value) {
-      const map = {
-        0: "未翻译",
-        1: "待审核",
-        2: "审核不通过",
-        3: "已审核",
-      };
-      return map[value] ?? "未翻译";
+    /**
+     * 判断当前列是否为不依赖业务徽标或操作控件的普通文本列。
+     * @param {Object} column 当前表格列配置。
+     * @returns {boolean} 是否使用统一文本省略和 Tooltip 渲染。
+     */
+    isPlainTextColumn(column) {
+      const dataIndex = column?.dataIndex;
+      return Boolean(dataIndex) && !NON_TEXT_EDITABLE_COLUMNS.has(dataIndex);
     },
     isEditing(record) {
       return !!this.editableData?.[record?.id];
@@ -485,14 +556,20 @@ export default {
       }
       this.$emit("filterReset", clearFilters);
     },
-    handleResize(w, col) {
-      handleResizeColumn(w, col);
-    },
     onRowClassName(record, index) {
       return getRowClassName(record, index, this.tableHost?.selectedRowIndex);
     },
+    /**
+     * 将表格分页与筛选变化同步到宿主列表，并清空过期筛选选择。
+     * @param {Object} pagination - 表格分页状态。
+     * @param {Object} filters - 表格列筛选值。
+     * @param {Object} sorter - 表格排序状态。
+     * @param {Object} extra - 表格变更动作信息。
+     * @returns {void} 无返回值。
+     */
     onTableChange(pagination, filters, sorter, extra) {
       if (this.tableHost) {
+        invalidateSelectionWhenFiltersChange(this.tableHost, filters);
         handleTableChange(pagination, filters, this.tableHost);
       }
       this.$emit("change", pagination, filters, sorter, extra);
@@ -502,12 +579,29 @@ export default {
 </script>
 
 <style scoped>
+.pipeline-panel {
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 0;
+  flex-direction: column;
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+}
+.pipeline-panel > .table-viewport {
+  flex: 1 1 0;
+  min-height: 0;
+}
 .workbench-task-info {
   display: flex;
   padding: 4px 0;
   align-items: center;
   gap: 32px;
   align-self: stretch;
+  flex: 0 0 auto;
 }
 .workbench-task-info__item {
   display: flex;
@@ -519,6 +613,7 @@ export default {
   align-items: center;
   align-self: stretch;
   width: 100%;
+  flex: 0 0 auto;
 }
 .workbench-form-bar__main {
   display: flex;

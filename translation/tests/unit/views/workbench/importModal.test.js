@@ -326,11 +326,17 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
     await nextTick()
   }
 
-  it('浏览态文本列应渲染 CellOverflowTooltip', async () => {
+  it('浏览态当前语种翻译在编辑列初始化前仍使用 TableCellText', async () => {
     wrapper = mountWithTableStub()
     await nextTick()
-    wrapper.vm.editList_needValidate = ['english']
-    wrapper.vm.editList = ['comment']
+    wrapper.vm.task = {
+      transMap: {
+        value: 'english',
+        interpretation: 'englishInterpretation',
+      },
+    }
+    wrapper.vm.editList_needValidate = []
+    wrapper.vm.editList = []
     wrapper.vm.columns = [
       { dataIndex: 'index', title: '序号', colValue: 'index' },
       { dataIndex: 'entry', title: '词条', colValue: 'entry' },
@@ -341,7 +347,9 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
     await nextTick()
 
     expect(wrapper.find('[data-col="entry"]').find('.cell-overflow-tooltip-stub').exists()).toBe(true)
-    expect(wrapper.find('[data-col="english"]').find('.cell-overflow-tooltip-stub').exists()).toBe(true)
+    const translationCell = wrapper.find('[data-col="english"]').findComponent({ name: 'TableCellText' })
+    expect(translationCell.exists()).toBe(true)
+    expect(translationCell.props()).toEqual(expect.objectContaining({ text: 'hello', editing: false }))
     expect(wrapper.find('[data-col="index"]').find('.cell-overflow-tooltip-stub').exists()).toBe(false)
   })
 
@@ -439,7 +447,7 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
     applySpy.mockRestore()
   })
 
-  it('applyTable 应锁定单元格宽且表格带 table-cell-overflow', async () => {
+  it('applyTable 仅提供列元数据，表格带 table-cell-overflow', async () => {
     wrapper = mountWithTableStub()
     wrapper.vm.task = {
       transMap: {
@@ -452,18 +460,13 @@ describe('ImportModal - 浏览省略与编辑文本域', () => {
     await wrapper.setProps({ visible: true })
     await nextTick()
     await wrapper.vm.$nextTick()
-    expect(wrapper.vm.$columnFilterPref?.lockCellSize).toBe(true)
-    expect(wrapper.vm.$columnFilterPref?.fluidColValues).toEqual(
-      expect.arrayContaining(['entry', 'translate', 'english'])
-    )
+    expect(wrapper.vm.$columnFilterPref).toEqual(expect.objectContaining({
+      colPrefName: 'colPref-importModal',
+      needFilter: true,
+    }))
     expect(wrapper.vm.importRowSelection.columnWidth).toBe(48)
     const entryCol = wrapper.vm.columns.find((c) => c.colValue === 'entry')
-    const isExistCol = wrapper.vm.columns.find((c) => c.colValue === 'isExist')
-    expect(entryCol?.customCell?.().style.maxWidth).toBeUndefined()
-    expect(entryCol?.customCell?.().style.minWidth).toBeTruthy()
-    if (isExistCol?.customCell) {
-      expect(isExistCol.customCell().style.maxWidth).toBeTruthy()
-    }
+    expect(entryCol?.customCell).toBeUndefined()
     expect(wrapper.find('.table-stub').classes()).toContain('table-cell-overflow')
   })
 
@@ -574,6 +577,21 @@ describe('ImportModal - saveEntrys 校验与状态', () => {
     vi.clearAllMocks()
   })
 
+  it('同一查询范围刷新为空时保留尚未保存的本地词条', async () => {
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { id: 'task-1' }
+    const params = { taskID: 'task-1', entryState: '2', entry: '' }
+    wrapper.vm.queryScope = JSON.stringify(params)
+    wrapper.vm.dataSource = [{ id: 'local-entry', entry: '本地词条' }]
+    wrapper.vm.allData = wrapper.vm.dataSource
+
+    await wrapper.vm.initTaskEntry()
+
+    expect(wrapper.vm.dataSource.map((row) => row.id)).toEqual(['local-entry'])
+    expect(wrapper.vm.allData.map((row) => row.id)).toEqual(['local-entry'])
+  })
+
   it('saveEntrys 用 editableData 校验，通过后翻译列不是 1、状态字段才是 1', async () => {
     const { insertEntry } = await import('@/http/api/workbench')
     wrapper = mountWithTableStub()
@@ -656,6 +674,113 @@ describe('ImportModal - saveEntrys 校验与状态', () => {
     expect(wrapper.vm.editableData['entry-1']).toBeDefined()
     expect(wrapper.vm.cellErrors['entry-1'].english).toContain('允许最大字符数为20')
     expect(wrapper.vm.dataSource[0].english).toBe('ok')
+    expect(wrapper.vm.selectedRows.map((row) => row.id)).toEqual(['entry-1'])
+    expect(wrapper.vm.selectedRowKeys).toEqual(['entry-1'])
+    expect(isLoading()).toBe(false)
+  })
+
+  it('部分保存只移除成功行，失败行保留原数据、编辑值和勾选', async () => {
+    const { insertEntry } = await import('@/http/api/workbench')
+    insertEntry.mockResolvedValue({
+      data: { list: [{ id: 'entry-fail' }], totalNum: 1 },
+    })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: true },
+    ]
+    await nextTick()
+    await flushPromises()
+    const rows = [
+      {
+        id: 'entry-success',
+        entry: '成功词条',
+        english: 'old success',
+        englishState: '0',
+        entryState: 1,
+        englishInterpretation: '释义',
+        maxLength: 200,
+      },
+      {
+        id: 'entry-fail',
+        entry: '失败词条',
+        english: 'old failure',
+        englishState: '0',
+        entryState: 1,
+        englishInterpretation: '释义',
+        maxLength: 200,
+      },
+    ]
+    wrapper.vm.dataSource = rows.map((row) => ({ ...row }))
+    wrapper.vm.selectedRows = rows.map((row) => ({ ...row }))
+    wrapper.vm.selectedRowKeys = rows.map((row) => row.id)
+    wrapper.vm.editableData = {
+      'entry-success': { ...rows[0], english: 'new success' },
+      'entry-fail': { ...rows[1], english: 'new failure' },
+    }
+    wrapper.vm.allData = wrapper.vm.dataSource
+
+    await wrapper.vm.saveEntrys()
+    await flushPromises()
+
+    const payload = insertEntry.mock.calls[0][1]
+    expect(payload.map((row) => row.english)).toEqual([
+      'new success',
+      'new failure',
+    ])
+    expect(wrapper.vm.dataSource.map((row) => row.id)).toEqual(['entry-fail'])
+    expect(wrapper.vm.dataSource[0].english).toBe('old failure')
+    expect(wrapper.vm.editableData['entry-success']).toBeUndefined()
+    expect(wrapper.vm.editableData['entry-fail'].english).toBe('new failure')
+    expect(wrapper.vm.selectedRows.map((row) => row.id)).toEqual(['entry-fail'])
+    expect(wrapper.vm.selectedRowKeys).toEqual(['entry-fail'])
+    expect(isLoading()).toBe(false)
+  })
+
+  it('保存接口失败时保留原数据、编辑值和勾选', async () => {
+    const { insertEntry } = await import('@/http/api/workbench')
+    insertEntry.mockRejectedValue(new Error('保存失败'))
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english', state: 'englishState' },
+    }
+    wrapper.vm.rulesOptions = [
+      { key: 'special', checked: false },
+      { key: 'toLong', checked: true },
+    ]
+    await nextTick()
+    await flushPromises()
+    const row = {
+      id: 'entry-fail',
+      entry: '失败词条',
+      english: 'old failure',
+      englishState: '0',
+      entryState: 1,
+      englishInterpretation: '释义',
+      maxLength: 200,
+    }
+    wrapper.vm.dataSource = [{ ...row }]
+    wrapper.vm.selectedRows = [{ ...row }]
+    wrapper.vm.selectedRowKeys = ['entry-fail']
+    wrapper.vm.editableData = {
+      'entry-fail': { ...row, english: 'new failure' },
+    }
+    wrapper.vm.allData = wrapper.vm.dataSource
+
+    await wrapper.vm.saveEntrys()
+    await flushPromises()
+
+    expect(wrapper.vm.dataSource[0].english).toBe('old failure')
+    expect(wrapper.vm.editableData['entry-fail'].english).toBe('new failure')
+    expect(wrapper.vm.selectedRowKeys).toEqual(['entry-fail'])
+    expect(isLoading()).toBe(false)
   })
 
   it('saveEntrys 校验期间表格遮罩与保存按钮 loading 开启，结束后复位', async () => {
@@ -736,10 +861,66 @@ describe('ImportModal - saveEntrys 校验与状态', () => {
     expect(isLoading()).toBe(false)
     revalSpy.mockRestore()
   })
+
+  it('importEntryData：导入请求不使当前列表请求失效', async () => {
+    const { readZZExcle } = await import('@/http/api/workbench')
+    readZZExcle.mockResolvedValue({ data: { list: [] } })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    await wrapper.setProps({ classifyLimit: {} })
+    wrapper.vm.dataType = 'file'
+    wrapper.vm.file = { name: 'import.xlsx' }
+    wrapper.vm.templateTypes = null
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english' },
+      translateType: '英文',
+    }
+    const listToken = wrapper.vm.queryGuard.next()
+
+    await wrapper.vm.importEntryData()
+    await flushPromises()
+
+    expect(wrapper.vm.queryGuard.isCurrent(listToken)).toBe(true)
+  })
+
+  it('importEntryData：任务切换后忽略旧导入结果且不重校验新任务', async () => {
+    const revalidateSpy = vi.spyOn(validationUtils, 'revalidateLoaded').mockResolvedValue()
+    const { readZZExcle } = await import('@/http/api/workbench')
+    let resolveImport
+    readZZExcle.mockReturnValue(new Promise((resolve) => {
+      resolveImport = resolve
+    }))
+    wrapper = mountWithTableStub()
+    await nextTick()
+    await wrapper.setProps({ classifyLimit: {} })
+    wrapper.vm.dataType = 'file'
+    wrapper.vm.file = { name: 'import.xlsx' }
+    wrapper.vm.templateTypes = null
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english' },
+      translateType: '英文',
+    }
+
+    const pending = wrapper.vm.importEntryData()
+    wrapper.vm.task = {
+      id: 'task-2',
+      transMap: { value: 'english' },
+      translateType: '英文',
+    }
+    resolveImport({ data: { list: [] } })
+    await pending
+    await flushPromises()
+
+    expect(revalidateSpy).not.toHaveBeenCalled()
+    expect(wrapper.vm.dataSource).toEqual([])
+    revalidateSpy.mockRestore()
+  })
 })
 
-describe('ImportModal - 窄视口横滚应在模态内而非 document', () => {
-  it('PipeShell：内容 min-width 1100 + modalContent 横滚 + 外壳限视口', async () => {
+describe('ImportModal - 窄视口横滚仅属于表格内容区', () => {
+  it('PipeShell：外壳阻断横滚，内容保持可收缩', async () => {
     const fs = await import('node:fs')
     const path = await import('node:path')
     const shellSrc = fs.readFileSync(
@@ -755,10 +936,9 @@ describe('ImportModal - 窄视口横滚应在模态内而非 document', () => {
     )
     expect(importSrc).toContain('PipeShell')
     expect(shellSrc).toContain('pipe-shell')
-    expect(shellSrc).toMatch(
-      /\.pipe-shell\s+\.modalContent\s+\.content\s*\{[\s\S]*?min-width:\s*1100px/
-    )
-    expect(shellSrc).toMatch(/\.pipe-shell\s+\.modalContent\s*\{[\s\S]*?overflow-x:\s*auto/)
+    expect(shellSrc).not.toContain('min-width: 1100px')
+    expect(shellSrc).toMatch(/\.pipe-shell\s+\.modalContent\s*\{[\s\S]*?overflow-x:\s*hidden/)
+    expect(shellSrc).toMatch(/\.pipe-shell\s+\.modalContent\s+\.content\s*\{[\s\S]*?min-width:\s*0/)
     expect(shellSrc).toMatch(
       /\.pipe-shell\s+\.ant-modal\s*\{[\s\S]*?max-width:\s*calc\(100vw\s*-\s*24px\)/
     )
@@ -767,18 +947,18 @@ describe('ImportModal - 窄视口横滚应在模态内而非 document', () => {
     expect(importSrc).toMatch(/\.import-form-row--file/)
   })
 
-  it('注入契约样式后：外壳限视口、内容可横滚、body 锁 overflow', () => {
+  it('注入契约样式后：内容不横滚、body 锁 overflow', () => {
     const style = document.createElement('style')
     style.textContent = `
       body.ant-modal-open { overflow: hidden !important; }
       .pipe-shell.ant-modal-wrap {
-        display: flex; align-items: center; justify-content: center; overflow: auto;
+        display: flex; align-items: center; justify-content: center; overflow-x: hidden; overflow-y: auto;
       }
       .pipe-shell .ant-modal {
         max-width: calc(100vw - 24px) !important; min-width: 0; margin: 0;
       }
-      .pipe-shell .modalContent { overflow-x: auto; overflow-y: auto; }
-      .pipe-shell .content { min-width: 1100px; }
+      .pipe-shell .modalContent { width: 100%; min-width: 0; max-width: 100%; overflow-x: hidden; overflow-y: auto; }
+      .pipe-shell .content { width: 100%; min-width: 0; max-width: 100%; }
     `
     document.head.appendChild(style)
     document.body.classList.add('ant-modal-open')
@@ -797,8 +977,8 @@ describe('ImportModal - 窄视口横滚应在模态内而非 document', () => {
     document.body.appendChild(wrap)
 
     expect(getComputedStyle(modal).maxWidth).toContain('px')
-    expect(getComputedStyle(content).minWidth).toBe('1100px')
-    expect(getComputedStyle(modalContent).overflowX).toMatch(/auto|scroll/)
+    expect(getComputedStyle(content).minWidth).toMatch(/^0(?:px)?$/)
+    expect(getComputedStyle(modalContent).overflowX).toBe('hidden')
     expect(getComputedStyle(document.body).overflow).toMatch(/hidden/)
 
     wrap.remove()

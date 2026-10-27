@@ -4,6 +4,7 @@
     :modalVisible="visible"
     :modalTitle="modalTitle"
     :modalWidth="width"
+    :bodyHeight="contentHeight"
     :wrapClassName="wrapCls"
     :fullFlag="fullFlag"
     :footer="footer"
@@ -29,6 +30,7 @@ import CustomModal from "@/components/modal/index.vue";
 
 /** 流水线阶段模态默认宽 */
 const PIPE_W = "90%";
+const PIPE_CONTENT_HEIGHT = "70vh";
 const WRAP = "pipe-shell";
 
 export default {
@@ -48,6 +50,13 @@ export default {
     okLoading: { type: Boolean, default: false },
   },
   computed: {
+    /**
+     * 返回流水线阶段固定的可用内容高度，避免空数据按内容收缩模态框。
+     * @returns {string} CSS 高度值。
+     */
+    contentHeight() {
+      return PIPE_CONTENT_HEIGHT;
+    },
     width() {
       return this.modalWidth || PIPE_W;
     },
@@ -58,7 +67,7 @@ export default {
 };
 </script>
 
-<!-- portal 挂载，须非 scoped；PIPE_MIN 与样式保持一致 -->
+<!-- portal 挂载，须非 scoped，横向滚动由 TableViewport 承担 -->
 <style lang="less">
 .pipe-shell.ant-modal-centered::before {
   display: none;
@@ -67,7 +76,8 @@ export default {
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   overscroll-behavior: contain;
   text-align: left;
 }
@@ -90,12 +100,35 @@ export default {
   overflow: hidden;
 }
 .pipe-shell .modalContent {
-  overflow-x: auto;
+  box-sizing: border-box;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  flex-direction: column;
+  overflow-x: hidden;
   overflow-y: auto;
 }
-/* 三层选择器压过各阶段 scoped .content[data-v] 的 min-width:0 */
+.pipe-shell .modalContent > .ant-spin-nested-loading,
+.pipe-shell .modalContent > .ant-spin-nested-loading > .ant-spin-container {
+  display: flex;
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  flex-direction: column;
+}
+/* 三层选择器压过各阶段 scoped .content[data-v] 的尺寸声明 */
 .pipe-shell .modalContent .content {
-  min-width: 1100px; /* PIPE_MIN */
+  box-sizing: border-box;
+  flex: 1 1 0;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 0;
+  height: auto;
 }
 body.ant-modal-open {
   overflow: hidden !important;
@@ -103,9 +136,6 @@ body.ant-modal-open {
 .pipe-shell.full-modal .ant-modal {
   max-width: 100% !important;
   width: 100%;
-  min-width: 0;
-}
-.pipe-shell.full-modal .modalContent .content {
   min-width: 0;
 }
 .pipe-shell.full-modal.ant-modal-wrap > div {

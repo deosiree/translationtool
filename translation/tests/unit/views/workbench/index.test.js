@@ -4,11 +4,11 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount } from '@vue/test-utils'
 import { nextTick } from 'vue'
 import WorkbenchIndex from '@/views/workbench/index.vue'
 import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
-import { getTaskPending, updateTaskInfo } from '@/http/api/task'
+import { getFinishTaskInfo, getTaskPending, getToDoTaskInfo, updateTaskInfo } from '@/http/api/task'
 
 // Mock 依赖
 vi.mock('@/http/api/task', () => ({
@@ -43,6 +43,10 @@ vi.mock('@/utils/tableUtils', async (importOriginal) => {
     setTableHeight: vi.fn(),
   }
 })
+
+vi.mock('@/views/workbench/components/BatchProgressOverlay.vue', () => ({
+  default: { name: 'BatchProgressOverlayStub', template: '<div />' },
+}))
 
 vi.mock('ant-design-vue', () => ({
   default: {
@@ -167,7 +171,9 @@ const tableStubs = {
   TranslateModal: true,
   ExamineTranslateModal: true,
   ArchiveModal: true,
-  BatchSelectButton: true,
+  TableViewport: true,
+  SelectionToolbarButton: true,
+  BatchProgressOverlay: { template: '<div />' },
 }
 
 function pendingResponse(countsById) {
@@ -269,25 +275,50 @@ describe('Workbench Index - 更改翻译语种后批量刷新小红点', () => {
     expect(getTaskPending).not.toHaveBeenCalled()
   })
 
-  it('改语种后勾选保留，Map 与 keys 等长，value 为 pending 后的新引用', async () => {
+  it('改语种后勾选保留，已选数组与 keys 等长，value 为 pending 后的新引用', async () => {
     await mountWorkbench()
     const taskA = { id: 41, name: '任务A', translateType: '英文', num__total: 1 }
     const taskB = { id: 42, name: '任务B', translateType: '英文', num__total: 2 }
     wrapper.vm.isTreeOr2D = '2D'
     wrapper.vm.dataSource = [taskA, taskB]
-    wrapper.vm.selectEntry.set(taskA.id, taskA)
-    wrapper.vm.selectEntry.set(taskB.id, taskB)
+    wrapper.vm.selectEntry = [taskA, taskB]
     wrapper.vm.syncSelection()
     wrapper.vm.selectedLanguage = '俄文'
     getTaskPending.mockResolvedValue(pendingResponse({ 41: 7, 42: 9 }))
 
     await wrapper.vm.confirmTranslateType()
 
-    expect(wrapper.vm.selectEntry.size).toBe(wrapper.vm.selectedRowKeys.length)
+    expect(wrapper.vm.selectEntry.length).toBe(wrapper.vm.selectedRowKeys.length)
     expect(wrapper.vm.selectedRowKeys).toEqual([41, 42])
-    expect(wrapper.vm.selectEntry.get(41).num__total).toBe(7)
-    expect(wrapper.vm.selectEntry.get(42).num__total).toBe(9)
+    expect(wrapper.vm.selectEntry.find((task) => task.id === 41).num__total).toBe(7)
+    expect(wrapper.vm.selectEntry.find((task) => task.id === 42).num__total).toBe(9)
     expect(wrapper.vm.selectedRows[0].num__total).toBe(7)
+  })
+
+  it('批量改语种仅更新成功任务，失败任务保留原始已选对象', async () => {
+    await mountWorkbench()
+    const failedTask = { id: 43, name: '失败任务', translateType: '英文', num__total: 1 }
+    const savedTask = { id: 44, name: '成功任务', translateType: '英文', num__total: 2 }
+    wrapper.vm.isTreeOr2D = '2D'
+    wrapper.vm.dataSource = [failedTask, savedTask]
+    wrapper.vm.selectEntry = [failedTask, savedTask]
+    wrapper.vm.syncSelection()
+    wrapper.vm.selectedLanguage = '俄文'
+    updateTaskInfo.mockImplementation((task) =>
+      task.id === failedTask.id
+        ? Promise.reject(new Error('保存失败'))
+        : Promise.resolve({ data: {} }),
+    )
+    getTaskPending.mockResolvedValue(pendingResponse({ [savedTask.id]: 5 }))
+
+    await wrapper.vm.confirmTranslateType()
+
+    expect(failedTask.translateType).toBe('英文')
+    expect(wrapper.vm.selectEntry.find((task) => task.id === failedTask.id)).toEqual(failedTask)
+    expect(wrapper.vm.dataSource.find((task) => task.id === failedTask.id)).toEqual(failedTask)
+    expect(wrapper.vm.selectEntry.find((task) => task.id === savedTask.id).translateType).toBe('俄文')
+    expect(wrapper.vm.dataSource.find((task) => task.id === savedTask.id).translateType).toBe('俄文')
+    expect(getTaskPending).toHaveBeenCalledWith([savedTask.id])
   })
 
   it('改语种后再勾新行，旧勾选不丢', async () => {
@@ -297,31 +328,182 @@ describe('Workbench Index - 更改翻译语种后批量刷新小红点', () => {
     const taskC = { id: 53, name: '任务C', translateType: '英文', num__total: 0 }
     wrapper.vm.isTreeOr2D = '2D'
     wrapper.vm.dataSource = [taskA, taskB, taskC]
-    wrapper.vm.selectEntry.set(taskA.id, taskA)
-    wrapper.vm.selectEntry.set(taskB.id, taskB)
+    wrapper.vm.selectEntry = [taskA, taskB]
     wrapper.vm.syncSelection()
     wrapper.vm.selectedLanguage = '俄文'
     getTaskPending.mockResolvedValue(pendingResponse({ 51: 2, 52: 3 }))
 
     await wrapper.vm.confirmTranslateType()
     wrapper.vm.onSelect(taskC, true)
-    wrapper.vm.onSelectChange()
 
     expect(wrapper.vm.selectedRowKeys).toEqual(expect.arrayContaining([51, 52, 53]))
     expect(wrapper.vm.selectedRowKeys).toHaveLength(3)
-    expect(wrapper.vm.selectEntry.size).toBe(3)
+    expect(wrapper.vm.selectEntry.length).toBe(3)
   })
 
   it('clearAllEntry 后 Map 与 keys 都空', async () => {
     await mountWorkbench()
     const taskA = { id: 61, name: '任务A', translateType: '英文', num__total: 1 }
-    wrapper.vm.selectEntry.set(taskA.id, taskA)
+    wrapper.vm.selectEntry = [taskA]
     wrapper.vm.syncSelection()
 
     wrapper.vm.clearAllEntry()
 
-    expect(wrapper.vm.selectEntry.size).toBe(0)
+    expect(wrapper.vm.selectEntry.length).toBe(0)
     expect(wrapper.vm.selectedRowKeys).toEqual([])
     expect(wrapper.vm.selectedRows).toEqual([])
+  })
+
+  it('旧任务列表响应晚于新响应时不得覆盖新表格', async () => {
+    await mountWorkbench()
+    wrapper.vm.isTreeOr2D = '2D'
+    let resolveOld
+    let resolveNew
+    getToDoTaskInfo
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveOld = resolve }))
+      .mockImplementationOnce(() => new Promise((resolve) => { resolveNew = resolve }))
+
+    const oldRequest = wrapper.vm.getTaskByCondition({ name: 'old' })
+    const newRequest = wrapper.vm.getTaskByCondition({ name: 'new' })
+    resolveNew({ data: { list: [{ id: 2, name: 'new' }], totalNum: 1 } })
+    await newRequest
+    resolveOld({ data: { list: [{ id: 1, name: 'old' }], totalNum: 1 } })
+    await oldRequest
+
+    expect(wrapper.vm.dataSource.map((task) => task.id)).toEqual([2])
+  })
+
+  it('全选请求期间翻页时立即投影新页选择并最终收齐所有页', async () => {
+    await mountWorkbench()
+    wrapper.vm.isTreeOr2D = '2D'
+    wrapper.vm.activeCard = 1
+    wrapper.vm.selectionScope = 'todo-query'
+    wrapper.vm.activeQueryParams = { name: 'same-query' }
+    wrapper.vm.pagination.pageSize = 20
+    await nextTick()
+    wrapper.vm.dataSource = [{ id: 1, name: 'page-1' }]
+
+    let resolveFirstPage
+    getToDoTaskInfo
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveFirstPage = resolve
+      }))
+      .mockResolvedValueOnce({
+        data: { totalNum: 101, list: [{ id: 101, name: 'page-6' }] },
+      })
+
+    const pendingSelection = wrapper.vm.onSelectAll(true)
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(1)
+
+    wrapper.vm.pagination.current = 6
+    wrapper.vm.dataSource = [{ id: 101, name: 'page-6' }]
+    expect(wrapper.vm.tableSelectedRowKeys).toEqual([101])
+
+    resolveFirstPage({
+      data: {
+        totalNum: 101,
+        list: Array.from({ length: 100 }, (_, index) => ({ id: index + 1 })),
+      },
+    })
+    await pendingSelection
+
+    expect(wrapper.vm.selectEntry.length).toBe(101)
+    expect(wrapper.vm.selectedRowKeys).toHaveLength(101)
+    expect(new Set(wrapper.vm.selectedRowKeys).size).toBe(101)
+  })
+
+  it('真实翻页查询不清空同一查询范围的全选投影', async () => {
+    await mountWorkbench()
+    wrapper.vm.isTreeOr2D = '2D'
+    wrapper.vm.activeCard = 1
+    const query = { name: 'same-query' }
+    wrapper.vm.pageChangeSearch = query
+    wrapper.vm.activeQueryParams = query
+    wrapper.vm.selectionScope = JSON.stringify({ activeCard: 1, query })
+    wrapper.vm.dataSource = [{ id: 1, name: 'page-1' }]
+    await nextTick()
+
+    let resolveSelectionPage
+    getToDoTaskInfo
+      .mockImplementationOnce(() => new Promise((resolve) => {
+        resolveSelectionPage = resolve
+      }))
+      .mockResolvedValueOnce({
+        data: { totalNum: 2, list: [{ id: 2, name: 'page-2' }] },
+      })
+
+    const pendingSelection = wrapper.vm.onSelectAll(true)
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(1)
+
+    wrapper.vm.pageChange(2, 20)
+    await flushPromises()
+    expect(wrapper.vm.selectionScope).toBe(JSON.stringify({ activeCard: 1, query }))
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(2)
+
+    resolveSelectionPage({
+      data: { totalNum: 1, list: [{ id: 1, name: 'page-1' }] },
+    })
+    await pendingSelection
+  })
+
+  it('全量选择后调整每页条数并翻页，新页行仍保持勾选', async () => {
+    await mountWorkbench()
+    wrapper.vm.isTreeOr2D = '2D'
+    wrapper.vm.activeCard = 1
+    const query = { name: 'same-query' }
+    const allTasks = Array.from({ length: 76 }, (_, index) => ({
+      id: index + 1,
+      name: `task-${index + 1}`,
+    }))
+    getToDoTaskInfo.mockImplementation(async ({ pageIndex, pageSize }) => {
+      const effectivePageSize = Math.min(pageSize, 20)
+      const start = (pageIndex - 1) * effectivePageSize
+      return {
+        data: {
+          totalNum: allTasks.length,
+          list: allTasks.slice(start, start + effectivePageSize),
+        },
+      }
+    })
+    await wrapper.vm.getTaskByCondition(query)
+    wrapper.vm.pageChangeSearch = query
+
+    await wrapper.vm.onSelectAll(true)
+
+    expect(wrapper.vm.selectEntry.length).toBe(76)
+    wrapper.vm.pageChange(2, 20)
+    await flushPromises()
+
+    expect(wrapper.vm.dataSource.map((task) => task.id)).toEqual(
+      Array.from({ length: 20 }, (_, index) => index + 21),
+    )
+    expect(wrapper.vm.tableSelectedRowKeys).toEqual(
+      Array.from({ length: 76 }, (_, index) => index + 1),
+    )
+  })
+
+  it('待办全选未完成时切换已办，旧范围响应不得回填选择', async () => {
+    await mountWorkbench()
+    wrapper.vm.isTreeOr2D = '2D'
+    wrapper.vm.activeCard = 1
+    wrapper.vm.selectionScope = 'todo-query'
+    wrapper.vm.activeQueryParams = {}
+    let resolveTodo
+    getToDoTaskInfo.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveTodo = resolve
+    }))
+
+    const pendingSelection = wrapper.vm.onSelectAll(true)
+    wrapper.vm.activeCard = 2
+    getFinishTaskInfo.mockResolvedValue({
+      data: { list: [{ id: 'finish-row' }], totalNum: 1 },
+    })
+    await wrapper.vm.getTaskByCondition({})
+    resolveTodo({ data: { list: [{ id: 'todo-row' }], totalNum: 1 } })
+    await pendingSelection
+
+    expect(wrapper.vm.selectionScope).toContain('2')
+    expect(wrapper.vm.selectEntry.length).toBe(0)
+    expect(wrapper.vm.selectedRowKeys).toEqual([])
   })
 })

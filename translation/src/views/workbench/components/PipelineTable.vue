@@ -1,13 +1,19 @@
 <template>
   <!-- 流水线表格壳：headerCell / 列头放大镜 / 展开箭头内置；bodyCell 交回各阶段 -->
-  <a-table
+  <TableViewport
     bordered
+    adaptive-columns
     class="ant-table-striped table-cell-overflow"
     v-bind="$attrs"
   >
     <!-- 表头：动态列名省略 tooltip -->
     <template #headerCell="{ title, column }">
-      <CellOverflowTooltip v-if="column.colValue" :content="title">
+      <TableHeaderHint
+        v-if="['tag', 'comment'].includes(column.dataIndex)"
+        :title="title"
+        :column="column"
+      />
+      <CellOverflowTooltip v-else-if="column.colValue" :content="title">
         {{ title }}
       </CellOverflowTooltip>
     </template>
@@ -75,7 +81,7 @@
         :style="{ color: filtered ? FILTER_ACTIVE : undefined }"
       />
     </template>
-  </a-table>
+  </TableViewport>
 </template>
 
 <script>
@@ -88,6 +94,8 @@ import {
   CaretRightOutlined,
 } from "@ant-design/icons-vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 
 const FILTER_ACTIVE = "#108ee9";
 const FILTER_PAD = "8px";
@@ -105,6 +113,8 @@ export default {
     CaretDownOutlined,
     CaretRightOutlined,
     CellOverflowTooltip,
+    TableViewport,
+    TableHeaderHint,
   },
   props: {
     /** 是否渲染自定义展开箭头（translate 等无 children 列时传 false） */

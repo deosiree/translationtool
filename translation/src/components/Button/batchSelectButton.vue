@@ -1,6 +1,5 @@
 <template>
   <a-button type="primary" :size="size" @click="batchSelectOpen" v-if="!batchSelectFlag">批量选择</a-button>
-  <a-button type="primary" :size="size" @click="batchSelectAll" v-if="batchSelectFlag" :loading="loading">选择全部</a-button>
   <a-button type="primary" :size="size" @click="batchSelectCancel" class="yellowBtn" v-if="batchSelectFlag">取消选择</a-button>
   <a-badge :count="selectEntry.length" :overflow-count="99" v-if="batchSelectFlag">
     <a-button type="primary" :size="size" class="resetBtn" @click="viewSelectEntry">已选词条</a-button>
@@ -19,7 +18,6 @@ export default {
     BatchSelectModal,
   },
   emits: [
-    "update:loading",
     "update:search",
     "update:lastSearch",
     "update:selectEntry",
@@ -45,16 +43,7 @@ export default {
       type: Object,
       default: false,
     },
-    dataSource: {
-      type: Array,
-      default: () => [],
-    },
     getSearch: { type: Function },
-    // 添加其他在模板中使用但未定义的属性
-    loading: {
-      type: Boolean,
-      default: false,
-    },
     selectEntry: {
       type: Array,
       default: () => [],
@@ -86,24 +75,6 @@ export default {
       this.$emit("update:selectEntry", []);
       this.$emit("update:selectedRows", []);
       this.$emit("update:selectedRowKeys", []);
-    },
-    // 全部选择
-    batchSelectAll() {
-      if (this.batchSelectOnChange(this.getSearch))
-        // 判断搜索条件是否变化，如果变化则重新查询
-        return;
-      if (Object.keys(this.dataSource).length === 0) {
-        return;
-      }
-      this.$emit("update:loading", true);
-      this.$emit("update:selectEntry", this.dataSource);
-      this.$emit("update:selectedRows", this.dataSource);
-      const keys = [];
-      this.dataSource.forEach((item) => {
-        keys.push(item.id);
-      });
-      this.$emit("update:selectedRowKeys", keys);
-      this.$emit("update:loading", false);
     },
     // 取消选择（批量选择取消展开，清空已选词条）
     batchSelectCancel() {
