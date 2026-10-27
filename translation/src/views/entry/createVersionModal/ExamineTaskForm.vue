@@ -4,17 +4,18 @@
     @handleOK="handleOK" @afterClose="afterClose">
     <div style="width:100%;height:100%">
       <div class="table">
-        <a-table class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource"
+        <TableViewport adaptive-columns class="ant-table-striped" :columns="taskColumns" :data-source="taskDataSource"
           :row-selection='taskRowSelection' :row-key="record => record.id" :scroll="{ x: '100%', y: '195px' }"
           :pagination="false" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
           ref="taskTable" bordered>
-        </a-table>
+        </TableViewport>
       </div>
     </div>
   </CustomModal>
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import { message, Modal } from "ant-design-vue";
 import { createVNode } from "vue";
 import { ExclamationCircleOutlined } from "@ant-design/icons-vue";
@@ -22,7 +23,7 @@ import { addProductRelation } from "@/http/api/entryManage";
 import { searchTaskInfo } from "@/http/api/task";
 import { setModalAriaHidden } from "@/utils/domUtils";
 export default {
-  components: { CustomModal, ExclamationCircleOutlined },
+  components: { CustomModal, TableViewport, ExclamationCircleOutlined },
   emits: ["handleClose", "finished"],
   props: {
     visible: {
@@ -47,7 +48,8 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 70,
+          width: 56,
+          minWidth: 50,
           customRender: (text, record, index, column) => {
             return text.index + 1;
           },
@@ -56,60 +58,77 @@ export default {
         {
           title: "任务名称",
           dataIndex: "name",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 160,
+          minWidth: 50,
+          adaptive: true,
           fixed: "left",
           resizable: true,
         },
         {
           title: "产品名称",
           dataIndex: "productName",
-          align: "center",
-          width: 230,
+          align: "left",
+          width: 136,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
         {
           title: "版本名称",
           dataIndex: "versionName",
           align: "center",
-          width: 180,
+          width: 120,
+          minWidth: 50,
           resizable: true,
         },
         {
           title: "翻译语种",
           dataIndex: "translateType",
           align: "center",
-          width: 150,
+          width: 88,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "开发员",
           dataIndex: "developer",
           align: "center",
-          width: 150,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "词条审核员",
           dataIndex: "entryAuditor",
           align: "center",
-          width: 150,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "翻译员",
           dataIndex: "translator",
           align: "center",
-          width: 150,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "翻译审核员",
           dataIndex: "translationAuditor",
           align: "center",
-          width: 150,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "任务描述",
           dataIndex: "description",
-          align: "center",
-          width: 230,
+          align: "left",
+          width: 180,
+          minWidth: 50,
+          adaptive: true,
           ellipsis: true,
           resizable: true,
         },
@@ -117,7 +136,9 @@ export default {
           title: "下发时间",
           dataIndex: "deliveryTime",
           align: "center",
-          width: 200,
+          width: 104,
+          minWidth: 50,
+          resizable: true,
         },
       ],
       taskDataSource: [],
@@ -128,6 +149,7 @@ export default {
     taskRowSelection() {
       return {
         type: "radio",
+        columnWidth: 48,
         onChange: (selectedRowKeys, selectedRows) => {
           this.selectedTaskRows = selectedRows;
         },

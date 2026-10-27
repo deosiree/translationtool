@@ -36,8 +36,9 @@
           </div>
         </div>
         <a-config-provider :locale="locale">
-          <a-table
+          <TableViewport
             class="ant-table-striped table-cell-overflow"
+            adaptive-columns
             :columns="columns"
             :data-source="filteredDataSource"
             :scroll="tableHeight"
@@ -45,7 +46,6 @@
             :loading="busy"
             :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
             :customRow="customRow"
-            @resizeColumn="handleResizeColumn"
             bordered
           >
             <template #bodyCell="{ column, record, text }">
@@ -97,7 +97,7 @@
                 <CellOverflowTooltip :content="formatCellText(text)" />
               </template>
             </template>
-          </a-table>
+          </TableViewport>
         </a-config-provider>
       </div>
     </div>
@@ -117,6 +117,7 @@
 
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import TableCellTextArea from "@/components/table/TableCellTextArea/TableCellTextArea.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
 import RulesDropdown from "@/components/Dropdown/rulesDropdown.vue";
@@ -138,7 +139,6 @@ import {
   syncColumnsFromPref as applyTableColumnsFromPref,
 } from "@/components/ColumnFilter";
 import { setModalAriaHidden } from "@/utils/domUtils";
-import { handleResizeColumn } from "@/utils/tableUtils";
 import { withLoading, isLoading } from "@/composables/useLoading";
 import {
   applyCell,
@@ -193,6 +193,7 @@ export default {
   name: "BatchEditModal",
   components: {
     CustomModal,
+    TableViewport,
     TableCellTextArea,
     CellOverflowTooltip,
     RulesDropdown,
@@ -279,7 +280,6 @@ export default {
   },
   methods: {
     formatCellText,
-    handleResizeColumn,
     bootstrap() {
       this.dataSource = cloneDeep(this.entries || []);
       this.editableData = {};
@@ -304,7 +304,6 @@ export default {
         colPrefName: "colPref-batchEditModal",
         normalWidth: 200,
         needFilter: false,
-        lockCellSize: true,
       });
     },
     syncColumnsFromPref() {

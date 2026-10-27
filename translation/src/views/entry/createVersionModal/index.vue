@@ -7,12 +7,17 @@
       <div class="table">
         <div class="selected-entry-toolbar">已选词条：</div>
         <a-config-provider :locale="locale">
-          <a-table class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
+          <TableViewport adaptive-columns class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
             :pagination="pagination" :loading="loading"
             :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
             ref="historyTable" bordered>
             <template #headerCell="{ title, column }">
-              <CellOverflowTooltip v-if="column.colValue" :content="title">
+              <TableHeaderHint
+                v-if="['tag', 'comment'].includes(column.dataIndex)"
+                :title="title"
+                :column="column"
+              />
+              <CellOverflowTooltip v-else-if="column.colValue" :content="title">
                 {{ title }}
               </CellOverflowTooltip>
             </template>
@@ -51,7 +56,7 @@
               </span>
               <span v-else style="margin-right:23px"></span>
             </template>
-          </a-table>
+          </TableViewport>
         </a-config-provider>
       </div>
     </div>
@@ -85,10 +90,12 @@
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import ExportButton from "@/components/Button/exportButton.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import { formatCellText } from "@/components/table/cellText";
 import CreateVersionForm from "./CreateVersionForm.vue";
 import ExamineTaskForm from "./ExamineTaskForm.vue";
@@ -117,6 +124,7 @@ import { cloneDeep } from "lodash-es";
 export default {
   components: {
     CustomModal,
+    TableViewport,
     ExclamationCircleOutlined,
     DeleteOutlined,
     CaretDownOutlined,
@@ -125,6 +133,7 @@ export default {
     EntryStateBadge,
     TransStateBadge,
     CellOverflowTooltip,
+    TableHeaderHint,
     CreateVersionForm,
     ExamineTaskForm,
     WriteBackForm,
@@ -226,7 +235,6 @@ export default {
             colPrefName: "colPref-productEntry",
             normalWidth: 200,
             needFilter: false,
-            lockCellSize: true,
           });
         }
       },
