@@ -217,17 +217,45 @@ export function useBatchPreTranslate() {
   }
 
   /**
-   * 归档阶段主体（永不拆分）：selectAll → writeBack →（可选）endTask。
-   * query 已在 runOneStage 完成。
+   * 执行归档阶段；纯结束任务只更新任务状态，其余模式回写词条后按需结束任务。
+   * @param {Object} task 当前任务。
+   * @param {Object} config 批量执行配置。
+   * @param {Object} progress 当前任务的进度对象。
+   * @param {Array} entries 归档查询得到的完整词条列表。
+   * @param {Object} store Vuex store。
+   * @param {number} delayMs 子步骤间延迟。
+   * @returns {Promise<Object>} 归档成功或被业务规则跳过的状态。
    */
   async function runArchiveChunk(task, config, progress, entries, store, delayMs) {
     progress.stages.archive = 'running'
-    progress.stageCounts.archive = { current: 0, total: entries.length }
+    const mode = config.archiveMode || ARCHIVE_MODE.WRITE
+    progress.stageCounts.archive = {
+      current: 0,
+      total: mode === ARCHIVE_MODE.END_TASK ? 0 : entries.length
+    }
     store.dispatch('batchProgress/updateProgress', progress)
+
+    if (mode === ARCHIVE_MODE.END_TASK) {
+      progress.steps.archive.selectAll = 'skipped'
+      progress.stepCounts.archive.selectAll = 0
+      progress.steps.archive.writeBack = 'skipped'
+      progress.stepCounts.archive.writeBack = 0
+      store.dispatch('batchProgress/updateProgress', progress)
+
+      await advanceStep(progress, 'archive', 'endTask', store, delayMs, async () => {
+        task.state = '6'
+        task.endTime = getCurrentFormattedTime()
+        await updateTaskInfo(task)
+        return 1
+      })
+
+      progress.currentStep = null
+      store.dispatch('batchProgress/updateProgress', progress)
+      return { status: 'success' }
+    }
 
     await advanceStep(progress, 'archive', 'selectAll', store, delayMs, async () => entries.length)
 
-    const mode = config.archiveMode || ARCHIVE_MODE.WRITE
     if (mode === ARCHIVE_MODE.WRITE_END) {
       const transMap = resolveTransMap(task)
       if (!entriesDone(entries, transMap.state)) {
@@ -822,6 +850,17 @@ export function useBatchPreTranslate() {
     return { status: 'success' }
   }
 
+  /**
+   * 执行单个任务阶段，负责权限、查询、重试与阶段结果汇总。
+   * @param {Object} task 当前任务。
+   * @param {string} stageKey 阶段标识。
+   * @param {Object} config 批量执行配置。
+   * @param {number} maxRetries 失败后的最大重试次数。
+   * @param {Object} store Vuex store。
+   * @param {number} delayMs 阶段步骤间延迟。
+   * @param {Object} scheduler 全局并发调度器。
+   * @returns {Promise<Object>} 当前阶段的执行状态。
+   */
   async function runOneStage(task, stageKey, config, maxRetries, store, delayMs, scheduler) {
     let progress = getProgressById(store, task.id)
 
@@ -838,11 +877,18 @@ export function useBatchPreTranslate() {
       const result = await runWithRetry(async () => {
         progress = getProgressById(store, task.id)
         let entries = []
-        await scheduler.schedule(async () => {
-          entries = await runQueryStep(task, progress, stageKey, store, delayMs)
-        })
+        const endTaskOnly = stageKey === 'archive' && config.archiveMode === ARCHIVE_MODE.END_TASK
+        if (endTaskOnly) {
+          progress.steps.archive.query = 'skipped'
+          progress.stepCounts.archive.query = 0
+          store.dispatch('batchProgress/updateProgress', progress)
+        } else {
+          await scheduler.schedule(async () => {
+            entries = await runQueryStep(task, progress, stageKey, store, delayMs)
+          })
+        }
 
-        // 归档：空列表仍走 writeEnd 结束任务；其它阶段空列表直接成功
+        // 纯结束任务不依赖词条查询；回写模式的空列表仍需完成归档步骤。
         if (entries.length === 0 && stageKey !== 'archive') {
           progress.stageCounts[stageKey] = { current: 0, total: 0 }
           skipRemainingSteps(progress, stageKey, store)

@@ -24,16 +24,19 @@ export const STAGE_ORDER = ['entryExamine', 'preTranslate', 'translateExamine', 
  * 归档方式枚举（UI 文案见 ARCHIVE_MODES）。
  * - write: 全量回写
  * - writeEnd: 全量回写并结束任务
+ * - endTask: 仅结束任务，不回写
  */
 export const ARCHIVE_MODE = {
   WRITE: 'write',
-  WRITE_END: 'writeEnd'
+  WRITE_END: 'writeEnd',
+  END_TASK: 'endTask'
 }
 
 /** 归档方式下拉选项 */
 export const ARCHIVE_MODES = [
   { label: '归档', value: ARCHIVE_MODE.WRITE },
-  { label: '归档并结束任务', value: ARCHIVE_MODE.WRITE_END }
+  { label: '归档并结束任务', value: ARCHIVE_MODE.WRITE_END },
+  { label: '结束任务', value: ARCHIVE_MODE.END_TASK }
 ]
 
 /**

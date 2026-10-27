@@ -254,12 +254,7 @@
                   :rowClassName="getRowClassName"
                   childrenColumnName="child"
                   ref="workTable"
-                  :row-selection="{
-                    columnWidth: 48,
-                    selectedRowKeys: tableSelectedRowKeys,
-                    onSelect: onSelect,
-                    onSelectAll: onSelectAll,
-                  }"
+                  :row-selection="tableRowSelection"
                   :customRow="customRow"
                 >
                   <template #bodyCell="{ column, record, text }">
@@ -684,6 +679,20 @@ export default {
         else selected.delete(row.id);
       });
       return Array.from(selected);
+    },
+    /**
+     * 根据当前展示模式生成工作台主表的行选择配置。
+     * @param {Object} vm - 当前工作台组件实例。
+     * @returns {Object} 当前模式对应的行选择配置。
+     */
+    tableRowSelection(vm) {
+      return {
+        columnWidth: 48,
+        selectedRowKeys: vm.tableSelectedRowKeys,
+        checkStrictly: vm.isTreeOr2D !== "tree",
+        onSelect: vm.onSelect,
+        onSelectAll: vm.onSelectAll,
+      };
     },
   },
   mounted() {

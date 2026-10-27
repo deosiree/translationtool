@@ -4,7 +4,6 @@
     modalTitle="批量预翻译"
     modalWidth="80%"
     :fullFlag="false"
-    :okLoading="submitting"
     @handleClose="handleClose"
     @handleOK="handleExecute"
     @afterClose="afterClose"
@@ -58,6 +57,20 @@
           <a-row v-if="model.stages.archive" :gutter="16" align="top">
             <a-col :span="8">
               <a-form-item
+                label="归档方式"
+                name="archiveMode"
+                :rules="[{ required: true, message: '请选择归档方式!' }]"
+              >
+                <a-select
+                  v-model:value="model.archiveMode"
+                  :options="archiveModes"
+                  placeholder="请选择"
+                  style="width: 100%"
+                />
+              </a-form-item>
+            </a-col>
+            <a-col v-if="requiresArchiveIp" :span="8">
+              <a-form-item
                 label="IP"
                 name="archiveIp"
                 :rules="[{ required: true, message: '请选择IP!' }]"
@@ -71,26 +84,12 @@
                 />
               </a-form-item>
             </a-col>
-            <a-col :span="8">
-              <a-form-item
-                label="归档方式"
-                name="archiveMode"
-                :rules="[{ required: true, message: '请选择归档方式!' }]"
-              >
-                <a-select
-                  v-model:value="model.archiveMode"
-                  :options="archiveModes"
-                  placeholder="请选择"
-                  style="width: 100%"
-                />
-              </a-form-item>
-            </a-col>
           </a-row>
           <p v-if="model.stages.archive" style="margin: 0 0 12px; color: #666">
-            “归档”只将任务词条回写到指定 IP 服务器；“归档并结束任务”会在回写后将任务标为已归档。
+            {{ archiveDescription }}
           </p>
 
-          <a-row :gutter="16" align="top">
+          <a-row v-if="model.stages.preTranslate" :gutter="16" align="top" class="translate-config-row">
             <a-col :span="8">
               <a-form-item
                 label="翻译方式"
@@ -105,6 +104,9 @@
                 />
               </a-form-item>
             </a-col>
+          </a-row>
+
+          <a-row :gutter="16" align="top" class="task-execution-config-row">
             <a-col :span="8">
               <a-form-item
                 label="并发数"
@@ -194,7 +196,9 @@
 <script>
 import Modal from '@/components/modal/index.vue'
 import RulesDropdown from '@/components/Dropdown/rulesDropdown.vue'
-import { message } from 'ant-design-vue'
+import { message, Modal as AntModal } from 'ant-design-vue'
+import { createVNode } from 'vue'
+import { ExclamationCircleOutlined } from '@ant-design/icons-vue'
 import commonParam from '@/constants/commonParam.js'
 import { TRANSLATE_PRIORITY_OPTIONS } from '@/constants/translatePriority'
 import { ARCHIVE_MODE, ARCHIVE_MODES } from '@/constants/batchPreTranslateSteps'
@@ -245,6 +249,26 @@ export default {
     },
     canExecute() {
       return this.filteredTasks.length > 0 && this.isContinuous(this.model.stages)
+    },
+    /**
+     * 判断当前归档方式是否需要展示并校验回写 IP。
+     * @returns {boolean} 归档阶段包含回写时返回 true。
+     */
+    requiresArchiveIp() {
+      return this.model.stages.archive && this.model.archiveMode !== ARCHIVE_MODE.END_TASK
+    },
+    /**
+     * 返回当前归档方式对应的表单说明。
+     * @returns {string} 归档方式的行为说明。
+     */
+    archiveDescription() {
+      if (this.model.archiveMode === ARCHIVE_MODE.END_TASK) {
+        return '“结束任务”只更新任务状态，不回写词条到服务器。'
+      }
+      if (this.model.archiveMode === ARCHIVE_MODE.WRITE_END) {
+        return '“归档并结束任务”会将词条回写到指定 IP 服务器，完成后结束任务。'
+      }
+      return '“归档”只将任务词条回写到指定 IP 服务器，不结束任务。'
     }
   },
   watch: {
@@ -254,16 +278,15 @@ export default {
         this.resetState()
       }
     },
-    'model.stages.archive'(val) {
-      if (val) {
-        this.loadIps()
-      } else {
-        this.model.archiveIp = null
-        this.$nextTick(() => this.$refs.execForm?.clearValidate?.(['archiveIp', 'archiveMode']))
-      }
-    }
+    'model.stages.archive': 'onArchiveStageChange',
+    'model.archiveMode': 'onArchiveModeChange'
   },
   methods: {
+    /**
+     * 判断所选执行阶段是否连续。
+     * @param {Object} stages 阶段启用状态映射。
+     * @returns {boolean} 所选阶段连续时返回 true。
+     */
     isContinuous(stages) {
       const selected = this.stageConfigs.filter(s => stages[s.key]).map(s => s.key)
       if (selected.length <= 1) return true
@@ -321,6 +344,68 @@ export default {
       this.model.enhancedSplit = !this.model.enhancedSplit
     },
 
+    /**
+     * 归档阶段启用时加载回写 IP；关闭时清理归档输入和校验状态。
+     * @param {boolean} enabled 归档阶段是否启用。
+     * @returns {void} 状态同步完成后结束。
+     */
+    onArchiveStageChange(enabled) {
+      if (enabled) {
+        if (this.model.archiveMode !== ARCHIVE_MODE.END_TASK) this.loadIps()
+        return
+      }
+      this.model.archiveIp = null
+      this.ipOptions = []
+      this.$nextTick(() => this.$refs.execForm?.clearValidate?.(['archiveIp', 'archiveMode']))
+    },
+
+    /**
+     * 切换归档方式时按需清除 IP 或加载回写服务器选项。
+     * @param {string} mode 当前归档方式。
+     * @returns {void} 归档表单状态同步完成后结束。
+     */
+    onArchiveModeChange(mode) {
+      if (mode === ARCHIVE_MODE.END_TASK) {
+        this.model.archiveIp = null
+        this.ipOptions = []
+        this.$nextTick(() => this.$refs.execForm?.clearValidate?.('archiveIp'))
+        return
+      }
+      if (this.model.stages.archive && this.ipOptions.length === 0) this.loadIps()
+    },
+
+    /**
+     * 按归档方式构造二次确认提示及确认、取消回调。
+     * @param {Object} config 已校验的批量执行配置。
+     * @returns {Object} Ant Design Vue Modal.confirm 配置。
+     */
+    getArchiveConfirmOptions(config) {
+      const confirmations = {
+        [ARCHIVE_MODE.WRITE]: {
+          title: '是否确认批量归档？',
+          content: '确认后，所选任务的词条将回写到指定 IP 服务器，任务不会结束。'
+        },
+        [ARCHIVE_MODE.WRITE_END]: {
+          title: '是否确认归档并结束任务？',
+          content: '确认后，所选任务的词条将在全部完成后回写到指定 IP 服务器并结束任务；存在未处理完词条的任务会跳过归档。'
+        },
+        [ARCHIVE_MODE.END_TASK]: {
+          title: '是否结束所选任务？',
+          content: '结束后，所选任务下的所有词条状态都将更新为“已归档”，任务将从待办事项移至已办事项。不会回写词条到服务器。'
+        }
+      }
+      const confirmation = confirmations[config.archiveMode] || confirmations[ARCHIVE_MODE.WRITE]
+      return {
+        ...confirmation,
+        icon: createVNode(ExclamationCircleOutlined),
+        okText: '是',
+        cancelText: '否',
+        style: { top: '30%' },
+        onOk: () => { void this.startExecution(config) },
+        onCancel: this.cancelArchiveConfirmation.bind(this)
+      }
+    },
+
     loadIps() {
       this.ipOptions = []
       getI18nAdress().then((res) => {
@@ -334,7 +419,12 @@ export default {
       })
     },
 
+    /**
+     * 校验配置，并在归档阶段启动前要求用户确认所选操作。
+     * @returns {Promise<void>} 配置未通过、用户取消或执行完成后结束。
+     */
     async handleExecute() {
+      if (this.submitting) return
       if (!this.canExecute) {
         if (this.filteredTasks.length === 0) {
           message.warning('请先选择任务')
@@ -343,13 +433,13 @@ export default {
         }
         return
       }
+      this.submitting = true
       try {
         await this.$refs.execForm.validate()
       } catch {
+        this.submitting = false
         return
       }
-
-      this.submitting = true
 
       const config = {
         tasks: this.filteredTasks,
@@ -364,9 +454,28 @@ export default {
         archiveMode: this.model.archiveMode
       }
 
+      if (config.stages.archive) {
+        try {
+          AntModal.confirm(this.getArchiveConfirmOptions(config))
+        } catch (err) {
+          this.submitting = false
+          message.error('打开归档确认失败: ' + (err?.message || err))
+        }
+        return
+      }
+
+      await this.startExecution(config)
+    },
+
+    /**
+     * 确认归档提示后启动进度遮罩并执行批量流程。
+     * @param {Object} config 已校验并确认的批量执行配置。
+     * @returns {Promise<void>} 批量流程完成或失败处理后结束。
+     */
+    async startExecution(config) {
       try {
         // 启动全局进度遮罩
-        this.$store.dispatch('batchProgress/start', { config, tasks: this.filteredTasks })
+        this.$store.dispatch('batchProgress/start', { config, tasks: config.tasks })
 
         // 关闭配置模态框
         this.$emit('update:visible', false)
@@ -385,6 +494,14 @@ export default {
       } finally {
         this.submitting = false
       }
+    },
+
+    /**
+     * 用户取消归档确认时恢复配置弹窗的提交按钮状态。
+     * @returns {void} 按钮状态恢复后结束。
+     */
+    cancelArchiveConfirmation() {
+      this.submitting = false
     },
 
     handleClose() {

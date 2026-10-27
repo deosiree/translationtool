@@ -1135,6 +1135,35 @@ describe('useBatchPreTranslate', () => {
       expect(progress.steps.archive.endTask).toBe('success')
     })
 
+    it('endTask：不查询或回写词条，直接更新任务状态并跳过归档步骤', async () => {
+      const { execute } = useBatchPreTranslate()
+      const task = buildTask({ state: '5' })
+
+      await execute({
+        tasks: [task],
+        stages: { archive: true },
+        archiveMode: ARCHIVE_MODE.END_TASK,
+        maxRetries: 1,
+        stepDelayMs: 0
+      }, mockStore)
+
+      expect(workbenchApi.getEntryInfoList).not.toHaveBeenCalled()
+      expect(i18ServerApi.setInfo).not.toHaveBeenCalled()
+      expect(taskApi.updateTaskInfo).toHaveBeenCalledOnce()
+      expect(taskApi.updateTaskInfo.mock.calls[0][0]).toMatchObject({
+        state: '6',
+        endTime: '2026-09-20 12:00:00'
+      })
+      expect(task.state).toBe('6')
+
+      const progress = mockStore.state.batchProgress.progresses[0]
+      expect(progress.stages.archive).toBe('success')
+      expect(progress.steps.archive.query).toBe('skipped')
+      expect(progress.steps.archive.selectAll).toBe('skipped')
+      expect(progress.steps.archive.writeBack).toBe('skipped')
+      expect(progress.steps.archive.endTask).toBe('success')
+    })
+
     it('非 creator：权限跳过归档', async () => {
       const { execute } = useBatchPreTranslate()
       workbenchApi.getEntryInfoList.mockResolvedValue({ data: { list: [{ id: 'e1' }] } })

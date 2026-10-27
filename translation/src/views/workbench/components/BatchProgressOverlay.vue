@@ -129,6 +129,7 @@ export default {
      * @returns {string}
      */
     formatStepCount(p, stageKey, stepKey) {
+      if (stageKey === 'archive' && stepKey === 'endTask') return ''
       const status = p.steps?.[stageKey]?.[stepKey]
       if (status !== 'running' && status !== 'success') return ''
       const count = p.stepCounts?.[stageKey]?.[stepKey]

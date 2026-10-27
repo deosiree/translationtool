@@ -64,6 +64,38 @@ vi.mock('ant-design-vue', () => ({
   }
 }))
 
+describe('Workbench Index - 层级表格选择配置', () => {
+  it('层级展示启用父子选择关联', () => {
+    const vm = {
+      isTreeOr2D: 'tree',
+      tableSelectedRowKeys: [12],
+      onSelect: vi.fn(),
+      onSelectAll: vi.fn(),
+    }
+
+    const rowSelection = WorkbenchIndex.computed.tableRowSelection.call(vm, vm)
+
+    expect(rowSelection.checkStrictly).toBe(false)
+    expect(rowSelection.selectedRowKeys).toEqual([12])
+    expect(rowSelection.onSelect).toBe(vm.onSelect)
+    expect(rowSelection.onSelectAll).toBe(vm.onSelectAll)
+  })
+
+  it('平铺展示保持父子选择严格独立', () => {
+    const vm = {
+      isTreeOr2D: '2D',
+      tableSelectedRowKeys: [12],
+      onSelect: vi.fn(),
+      onSelectAll: vi.fn(),
+    }
+
+    const rowSelection = WorkbenchIndex.computed.tableRowSelection.call(vm, vm)
+
+    expect(rowSelection.checkStrictly).toBe(true)
+    expect(rowSelection.selectedRowKeys).toEqual([12])
+  })
+})
+
 describe('Workbench Index - user 属性重构测试', () => {
   let wrapper
 
