@@ -1,7 +1,7 @@
 <template>
   <a-button
     v-if="mode === 'button'"
-    type="primary"
+    :type="buttonType"
     @click="handleButtonClick"
     :size="size"
   >
@@ -638,6 +638,15 @@ export default {
     size: {
       type: String,
       default: "small",
+    },
+    /**
+     * 配置按钮模式下的 Ant Design 按钮层级。
+     * @param {string} buttonType - 按钮类型，如 primary、default 或 link。
+     * @returns {string} 由 Vue props 提供的按钮类型。
+     */
+    buttonType: {
+      type: String,
+      default: "primary",
     },
     modalTitle: {
       type: String,

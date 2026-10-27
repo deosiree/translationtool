@@ -1,5 +1,5 @@
 <template>
-  <a-button type="primary" @click="showModal" :size="size" :class="buttonClass">{{ buttonTitle }}</a-button>
+  <a-button :type="buttonType" @click="showModal" :size="size" :class="buttonClass">{{ buttonTitle }}</a-button>
   <CustomModal :modalTitle="buttonTitle" width="500px" :modalVisible="visible" :showCancel="false" :showOk="false" @handleClose="handleClose">
     <div class="content">
       <a-form ref="contentForm" :model="commitMsg">
@@ -46,6 +46,12 @@ export default {
     buttonClass: {
       type: String,
       default: null,
+    },
+    /** 工具栏触发按钮类型；默认保留既有主按钮样式。 */
+    buttonType: {
+      type: String,
+      default: "primary",
+      validator: (value) => ["primary", "default", "text", "link"].includes(value),
     },
     buttonTitle: {
       type: String,
