@@ -238,6 +238,8 @@ describe('ExportButton - user 属性重构测试', () => {
     })
 
     it('异常明细表使用共享视口并限制高度', async () => {
+      const downloadSpy = vi.spyOn(ExportButton.methods, 'downloadDuplicateAbbrs')
+        .mockImplementation(() => {})
       wrapper = mount(ExportButton, {
         props: {
           buttonTitle: '瀵煎嚭',
@@ -258,7 +260,12 @@ describe('ExportButton - user 属性重构测试', () => {
               props: ['height', 'scroll', 'pagination'],
               template: '<div class="table-viewport-stub" />'
             },
-            'a-button': true,
+            'a-button': {
+              name: 'AntButtonStub',
+              props: { type: String, danger: Boolean, size: String, loading: Boolean },
+              emits: ['click'],
+              template: `<button @click="$emit('click', $event)" :data-type="type" :data-danger="danger"><slot /></button>`
+            },
             'a-form': true,
             'a-form-item': true,
             'a-select': true,
@@ -280,6 +287,17 @@ describe('ExportButton - user 属性重构测试', () => {
       expect(table.props('height')).toBe(100)
       expect(table.props('scroll')).toEqual({ x: 'max-content' })
       expect(table.props('pagination')).toBe(false)
+      const downloadButton = wrapper.findAllComponents({ name: 'AntButtonStub' })
+        .find(button => button.text() === '下载异常abbr')
+      expect(downloadButton).toBeDefined()
+      expect(downloadButton.props('type')).toBe('primary')
+      expect(downloadButton.props('danger')).toBe(true)
+      expect(wrapper.text()).not.toContain('确定')
+      expect(wrapper.text()).not.toContain('下载重复 abbr TXT')
+
+      await downloadButton.trigger('click')
+      expect(downloadSpy).toHaveBeenCalledOnce()
+      downloadSpy.mockRestore()
 
       wrapper.vm.xmlExportIssues = {
         duplicates: Array.from({ length: 3 }, (_, index) => ({
@@ -300,6 +318,19 @@ describe('ExportButton - user 属性重构测试', () => {
       }
       await nextTick()
       expect(table.props('height')).toBe(300)
+
+      wrapper.vm.xmlExportIssues = { duplicates: [], emptyCount: 1 }
+      await nextTick()
+      expect(wrapper.text()).toContain('下载异常abbr')
+      expect(wrapper.text()).not.toContain('确定')
+      wrapper.vm.downloadDuplicateAbbrs()
+      const { message } = await import('ant-design-vue')
+      expect(message.warning).toHaveBeenCalledWith('没有重复 abbr 可下载')
+
+      wrapper.vm.xmlExportIssues = null
+      await nextTick()
+      expect(wrapper.text()).toContain('确定')
+      expect(wrapper.text()).not.toContain('下载异常abbr')
     })
   })
 })

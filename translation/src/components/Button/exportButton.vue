@@ -34,7 +34,7 @@
         </a-form-item>
       </a-form>
       <div
-        v-if="exportModal.exportType === 'xml' && xmlExportIssues && (xmlExportIssues.duplicates.length || xmlExportIssues.emptyCount)"
+        v-if="hasXmlExportIssues"
         class="xml-export-issues"
       >
         <a-alert message="发现异常 abbr，已阻止 XML 生成。（注意，导出xml的abbr对应“词条”列）" type="error" show-icon />
@@ -49,20 +49,29 @@
           size="small"
           :bordered="true"
         />
-        <a-button
-          v-if="xmlExportIssues.duplicates.length"
-          type="link"
-          size="small"
-          @click="downloadDuplicateAbbrs"
-        >
-          下载重复 abbr TXT
-        </a-button>
       </div>
     </div>
     <template #leftBottomBtn>
       <a-button key="back" @click="handleClose">取消</a-button>
       <!-- <a-button type="primary" @click="handleOK" :loading="exportLoading2">指定路径</a-button> -->
-      <a-button type="primary" @click="handleOK(false)" :loading="exportLoading">确定</a-button>
+      <a-button
+        v-if="hasXmlExportIssues"
+        key="download-issues"
+        type="primary"
+        danger
+        @click="downloadDuplicateAbbrs"
+      >
+        下载异常abbr
+      </a-button>
+      <a-button
+        v-if="!hasXmlExportIssues"
+        key="confirm"
+        type="primary"
+        @click="handleOK(false)"
+        :loading="exportLoading"
+      >
+        确定
+      </a-button>
     </template>
   </CustomModal>
 </template>
@@ -158,6 +167,19 @@ export default {
     };
   },
   computed: {
+    /**
+     * 判断当前 XML 导出是否存在阻止生成的异常。
+     * @param {void} none - 无参数。
+     * @returns {boolean} 存在异常时返回 true。
+     */
+    hasXmlExportIssues() {
+      const issues = this.xmlExportIssues;
+      return Boolean(
+        this.exportModal.exportType === "xml" &&
+          issues &&
+          (issues.duplicates.length || issues.emptyCount)
+      );
+    },
     /**
      * 将导出异常汇总转换为表格显示行。
      * @param {void} 无参数。
@@ -576,7 +598,10 @@ export default {
       const duplicateValues = this.xmlExportIssues?.duplicates.map(
         ({ abbr }) => abbr
       ) || [];
-      if (duplicateValues.length === 0) return;
+      if (duplicateValues.length === 0) {
+        message.warning("没有重复 abbr 可下载");
+        return;
+      }
 
       const blob = new Blob([duplicateValues.join("\n")], {
         type: "text/plain;charset=utf-8",
