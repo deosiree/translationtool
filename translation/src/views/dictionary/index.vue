@@ -99,6 +99,14 @@
                 <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :pagination="pagination" :scroll="tableHeight"
                   :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" :loading="loading"
                   :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}" ref="dictionaryTable" bordered>
+                  <template #headerCell="{ title, column }">
+                    <TableHeaderHint
+                      v-if="['tag', 'comment'].includes(column.dataIndex)"
+                      :title="title"
+                      :column="column"
+                    />
+                    <span v-else>{{ title }}</span>
+                  </template>
                   <template #bodyCell="{ column, text }">
                     <template v-if="column.dataIndex === 'translation'">
                       <pre>{{ text }}</pre>
@@ -131,6 +139,7 @@ import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import Dict from "@/views/dictionary/dictModal.vue";
 import DictTerm from "@/views/dictionary/dictTermModal.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import {
   SearchOutlined,
   PlusOutlined,
@@ -165,6 +174,7 @@ export default {
     EditOutlined,
     Dict,
     DictTerm,
+    TableHeaderHint,
   },
   emits: ["viewEntry"],
   props: {},

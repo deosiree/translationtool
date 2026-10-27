@@ -6,7 +6,15 @@
         <a-table class="ant-table-striped" :columns="columns" :data-source="currentData" :scroll="{x:'100%' , y: '280px'}"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" ref="secondClassifyTable"
           bordered>
-          <template #bodyCell="{ column, record,text }">
+          <template #headerCell="{ title, column }">
+            <TableHeaderHint
+              v-if="['tag', 'comment'].includes(column.dataIndex)"
+              :title="title"
+              :column="column"
+            />
+            <span v-else>{{ title }}</span>
+          </template>
+          <template #bodyCell="{ column, record, text }">
             <template v-if="column.dataIndex === 'entryState'">
               <EntryStateBadge :entryState="text" />
             </template>
@@ -32,6 +40,7 @@ import "@/assets/style/common.less";
 import CustomModal from "@/components/modal/index.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import {
   CheckOutlined,
@@ -51,6 +60,7 @@ export default {
     ExclamationCircleOutlined,
     EntryStateBadge,
     TransStateBadge,
+    TableHeaderHint,
   },
   emits: ["relationClose"],
   props: {

@@ -9,24 +9,25 @@
             <a-select v-model:value="i18nURL" :options="ipOptions" placeholder="请选择IP" @change="handleredundant" allowClear></a-select>
           </a-form-item>
         </a-form>
-        <a-table class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
+        <TableViewport adaptive-columns class="ant-table-striped" :columns="columns" :dataSource="dataSource" :scroll="{x:'100%' , y: '280px'}"
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
           :row-selection=" { selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
           :row-key="record => record.sourceFile" ref="redundantTable" bordered :pagination='pagination' :loading="loading">
-        </a-table>
+        </TableViewport>
       </div>
     </div>
     <div class="content" v-if="taskVisible">
-      <a-table class="ant-table-striped" :columns="taskColumns" :dataSource="taskSource" :scroll="{x:'100%' , y: '280px'}"
+      <TableViewport adaptive-columns class="ant-table-striped" :columns="taskColumns" :dataSource="taskSource" :scroll="{x:'100%' , y: '280px'}"
         :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.sourceFile"
         ref="redundantTaskTable" bordered :pagination='pagination'>
-      </a-table>
+      </TableViewport>
     </div>
   </Modal>
   <!-- </a-spin> -->
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import { message } from "ant-design-vue";
 import { getI18nAdress } from "@/http/api/workbench";
 import {
@@ -37,6 +38,7 @@ import { v4 as uuidv4 } from "uuid";
 export default {
   components: {
     Modal,
+    TableViewport,
   },
   emits: ["redundantClose"],
   props: {
@@ -62,14 +64,19 @@ export default {
         {
           title: "词条来源",
           dataIndex: "sourceFile",
-          align: "center",
-          width: 400,
+          align: "left",
+          width: 200,
+          minWidth: 50,
+          adaptive: true,
+          resizable: true,
         },
         {
           title: "来源类型",
           dataIndex: "sourceType",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
       ],
       redundantEntries: {
@@ -85,13 +92,17 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: "10%",
+          width: 56,
+          minWidth: 50,
         },
         {
           title: "更新的任务",
           dataIndex: "task",
-          align: "center",
-          width: "90%",
+          align: "left",
+          width: 160,
+          minWidth: 50,
+          adaptive: true,
+          resizable: true,
         },
       ],
       taskSource: [],

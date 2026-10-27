@@ -36,12 +36,17 @@
       </template>
       <template v-slot:data>
         <div style="width:100%;position: absolute;">
-          <a-table bordered class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource"
+          <TableViewport bordered adaptive-columns class="ant-table-striped table-cell-overflow" :columns="columns" :data-source="dataSource"
             :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}" :row-key="record => record.id" :scroll="tableHeight"
-            :pagination='false' :loading="loading" :rowClassName="getRowClassName" ref="taskTable" @resizeColumn="handleResizeColumn"
+            :pagination='false' :loading="loading" :rowClassName="getRowClassName" ref="taskTable"
             :customRow="customRow">
             <template #headerCell="{ title, column }">
-              <CellOverflowTooltip v-if="column.dataIndex && column.dataIndex !== 'operation'" :content="title">
+              <TableHeaderHint
+                v-if="['tag', 'comment'].includes(column.dataIndex)"
+                :title="title"
+                :column="column"
+              />
+              <CellOverflowTooltip v-else-if="column.dataIndex && column.dataIndex !== 'operation'" :content="title">
                 {{ title }}
               </CellOverflowTooltip>
             </template>
@@ -80,7 +85,7 @@
                 <CellOverflowTooltip :content="formatCellText(text)" />
               </template>
             </template>
-          </a-table>
+          </TableViewport>
         </div>
       </template>
     </DataBox>
@@ -110,8 +115,9 @@ import { setTableHeight } from "@/utils/tableUtils";
 import InputIME from "@/components/cellEditor/input_IME.vue";
 import TextArea from "@/components/cellEditor/textarea_IME.vue";
 import CellOverflowTooltip from "@/components/table/CellOverflowTooltip/CellOverflowTooltip.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import { formatCellText } from "@/components/table/cellText";
-import { applyLockCellSize } from "@/components/ColumnFilter";
 import { createQueryVersionGuard } from "@/utils/queryVersionGuard";
 import "@/assets/style/common.less";
 export default {
@@ -127,6 +133,8 @@ export default {
     InputIME,
     TextArea,
     CellOverflowTooltip,
+    TableViewport,
+    TableHeaderHint,
   },
   emits: [],
   props: {
@@ -155,7 +163,8 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 50,
+          width: 56,
+          minWidth: 50,
           customRender: (text, record, index, column) => {
             return text.index + 1;
           },
@@ -164,37 +173,45 @@ export default {
         {
           title: "词条",
           dataIndex: "entry",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 220,
+          minWidth: 50,
+          adaptive: true,
           fixed: "left",
           resizable: true,
         },
         {
           title: "翻译",
           dataIndex: "translate",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 260,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
         {
           title: "翻译语种",
           dataIndex: "type",
           align: "center",
-          width: 180,
+          width: 88,
+          minWidth: 50,
           resizable: true,
         },
         {
           title: "唯一属性",
           dataIndex: "unique",
           align: "center",
-          width: 180,
+          width: 120,
+          minWidth: 50,
           resizable: true,
         },
         {
           title: "备注",
           dataIndex: "remark",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 180,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
         // {title: '操作',dataIndex: 'operation',align:'center',width:50},
@@ -207,9 +224,6 @@ export default {
     };
   },
 
-  created() {
-    this.columns = this.columns.map((col) => applyLockCellSize(col));
-  },
   mounted() {
     this.box = this.boxHeight;
     this.common = this.currentCommon;
@@ -319,12 +333,14 @@ export default {
                 (item) => item.dataIndex === "operation"
               ) === -1
             ) {
-              let operation = applyLockCellSize({
+              let operation = {
                 title: "操作",
                 dataIndex: "operation",
                 align: "center",
                 width: 80,
-              });
+                minWidth: 50,
+                resizable: true,
+              };
               this.columns.push(operation);
             }
           }
@@ -405,10 +421,6 @@ export default {
           });
         },
       });
-    },
-    // 表格列可伸缩
-    handleResizeColumn: (w, col) => {
-      col.width = w;
     },
     // 表格复选框选择事件
     onSelectChange(selectedRowKeys, selectedRows) {

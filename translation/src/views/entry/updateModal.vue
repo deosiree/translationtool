@@ -31,26 +31,27 @@
             </a-checkbox>
           </a-form-item>
         </a-form>
-        <a-table ref="updateTable" bordered class="ant-table-striped" v-if="currentTaskStatus === '2'"
+        <TableViewport ref="updateTable" bordered adaptive-columns class="ant-table-striped" v-if="currentTaskStatus === '2'"
           :columns="columns" :dataSource="dataSource" :scroll="{ x: '100%', y: '280px' }" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)
             " :row-selection="{
               selectedRowKeys: selectedRowKeys,
               onChange: onSelectChange,
             }" :row-key="(record) => record.sourceFile" :pagination="pagination" :loading="loading">
-        </a-table>
+        </TableViewport>
       </div>
     </div>
     <div class="content" v-if="taskVisible">
-      <a-table ref="updateTaskTable" bordered class="ant-table-striped" :columns="taskColumns" :dataSource="taskSource"
+      <TableViewport ref="updateTaskTable" bordered adaptive-columns class="ant-table-striped" :columns="taskColumns" :dataSource="taskSource"
         :scroll="{ x: '100%', y: '280px' }" :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)
           " :row-key="(record) => record.sourceFile" :pagination="pagination">
-      </a-table>
+      </TableViewport>
     </div>
   </Modal>
   <!-- </a-spin> -->
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import { message, notification } from "ant-design-vue";
 import { getI18nAdress } from "@/http/api/workbench";
 import {
@@ -72,6 +73,7 @@ import {
 export default {
   components: {
     Modal,
+    TableViewport,
   },
   emits: ["updateClose", "taskCompleted"],
   props: {
@@ -101,14 +103,19 @@ export default {
         {
           title: "词条来源",
           dataIndex: "sourceFile",
-          align: "center",
-          width: 400,
+          align: "left",
+          width: 200,
+          minWidth: 50,
+          adaptive: true,
+          resizable: true,
         },
         {
           title: "来源类型",
           dataIndex: "sourceType",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
       ],
       updateEntries: [], // 发给我的原始数据（数组）
@@ -120,13 +127,17 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: "10%",
+          width: 56,
+          minWidth: 50,
         },
         {
           title: "更新的任务",
           dataIndex: "task",
-          align: "center",
-          width: "90%",
+          align: "left",
+          width: 160,
+          minWidth: 50,
+          adaptive: true,
+          resizable: true,
         },
       ],
       taskSource: [],

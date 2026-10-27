@@ -35,6 +35,14 @@
             <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight"
               :row-key="record => record.id" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName" ref="qtCheckTable"
               @resizeColumn="handleResizeColumn">
+              <template #headerCell="{ title, column }">
+                <TableHeaderHint
+                  v-if="['tag', 'comment'].includes(column.dataIndex)"
+                  :title="title"
+                  :column="column"
+                />
+                <span v-else>{{ title }}</span>
+              </template>
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, text, record }">
                 <!--tag列 -->
@@ -66,6 +74,7 @@ import { message, Modal } from "ant-design-vue";
 import SearchBox from "@/components/search/searchBox.vue";
 import DataBox from "@/components/dataBox/index.vue";
 import QtCheckRelation from "@/views/check/qtCheckRelation.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import commonParam from "@/constants/commonParam.js";
 import { cloneDeep, flatMap } from "lodash-es";
 import { getTsProblems, getEntryByTsVo } from "@/http/api/check";
@@ -82,6 +91,7 @@ export default {
     SearchBox,
     DataBox,
     QtCheckRelation,
+    TableHeaderHint,
   },
   data() {
     return {

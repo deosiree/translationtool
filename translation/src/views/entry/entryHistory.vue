@@ -37,7 +37,7 @@
                 </a-form-item>
             </a-form>
             <div class="table">
-                <a-table 
+                <TableViewport adaptive-columns
                 class="ant-table-striped"
                 :columns="columns" 
                 :data-source="dataSource"
@@ -46,20 +46,22 @@
                 :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
                 ref="historyTable"
                 bordered>
-                </a-table>
+                </TableViewport>
             </div>
         </div>
     </Modal>
 </template>
 <script>
 import Modal from '@/components/modal/index.vue';
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import locale from 'ant-design-vue/es/date-picker/locale/zh_CN';
 import { 
     getOperateByEntryId
 } from "@/http/api/entry";
 export default {
     components:{
-        Modal
+        Modal,
+        TableViewport
     },
     emits:['historyClose'],
     props: {
@@ -81,14 +83,14 @@ export default {
             entryId:'',
             dataSource:[],
             columns: [
-                {title: "序号",dataIndex: 'index',align:'center',width:60,customRender: (text, record, index, column) => {
+                {title: "序号",dataIndex: 'index',align:'center',width:56,minWidth:50,customRender: (text, record, index, column) => {
                     return text.index + 1
                 }},
-                {title: '操作人',dataIndex: 'operator',align:'center',width:80,},
-                {title: '操作时间',dataIndex: 'operateTime',align:'center',width:180,},
-                {title: '操作类型',dataIndex: 'type',align:'center',width:80,},
-                {title: '操作内容',dataIndex: 'operateContent',align:'center',},
-                {title: '备注',dataIndex: 'notes',align:'center',width:180,},
+                {title: '操作人',dataIndex: 'operator',align:'center',width:96,minWidth:50,resizable:true},
+                {title: '操作时间',dataIndex: 'operateTime',align:'center',width:168,minWidth:50,resizable:true},
+                {title: '操作类型',dataIndex: 'type',align:'center',width:96,minWidth:50,resizable:true},
+                {title: '操作内容',dataIndex: 'operateContent',align:'left',width:260,minWidth:50,adaptive:true,resizable:true},
+                {title: '备注',dataIndex: 'notes',align:'left',width:180,minWidth:50,adaptive:true,resizable:true},
             ],
             search:{
                 operator:'',

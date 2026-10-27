@@ -25,23 +25,31 @@
         </a-form-item>
       </a-form>
       <div class="table">
-        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight" :pagination='pagination'
+        <TableViewport adaptive-columns class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight" :pagination='pagination'
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" :loading="loading"
           ref="dictionaryTable" bordered>
+          <template #headerCell="{ title, column }">
+            <TableHeaderHint
+              v-if="['tag', 'comment'].includes(column.dataIndex)"
+              :title="title"
+              :column="column"
+            />
+            <span v-else>{{ title }}</span>
+          </template>
           <template #bodyCell="{ column, text }">
             <template v-if="column.dataIndex === 'translation'">
               <pre>{{ text }}</pre>
             </template>
+            <!--tag列 -->
+            <template v-if="column.dataIndex === 'tag'">
+              <span>
+                <a-tag color="cyan" class="tag-content">
+                  <span>{{ text }}</span>
+                </a-tag>
+              </span>
+            </template>
           </template>
-          <!--tag列 -->
-          <template v-if="column.dataIndex === 'tag'">
-            <span>
-              <a-tag color="cyan" class="tag-content">
-                <span>{{ text }}</span>
-              </a-tag>
-            </span>
-          </template>
-        </a-table>
+        </TableViewport>
       </div>
     </div>
   </CustomModal>
@@ -49,6 +57,8 @@
 <script>
 import '@/assets/style/common.less'
 import CustomModal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import {
   CheckOutlined,
   EditOutlined,
@@ -63,6 +73,8 @@ import { getDictory } from "@/http/api/workbench";
 export default {
   components: {
     CustomModal,
+    TableViewport,
+    TableHeaderHint,
     CheckOutlined,
     EditOutlined,
     CloseOutlined,
@@ -94,15 +106,16 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 60,
+          width: 56,
+          minWidth: 50,
           customRender: (text, record, index, column) => {
             return text.index + 1 + this.pagination.pageSize*(this.pagination.current-1);
           },
         },
-        { title: "词条", dataIndex: "source", align: "center", width: 200 },
-        { title: "comment", dataIndex: "comment", align: "center", width: 200 },
-        { title: "tag", dataIndex: "tag", align: "center", width: 150 },
-        { title: "翻译", dataIndex: "translation" },
+        { title: "词条", dataIndex: "source", align: "left", width: 220, minWidth: 50, adaptive: true, resizable: true },
+        { title: "comment", dataIndex: "comment", align: "center", width: 180, minWidth: 50, adaptive: true, resizable: true },
+        { title: "tag", dataIndex: "tag", align: "center", width: 128, minWidth: 50, resizable: true },
+        { title: "翻译", dataIndex: "translation", align: "left", width: 260, minWidth: 50, adaptive: true, resizable: true },
       ],
       search: {
         fileName: null,

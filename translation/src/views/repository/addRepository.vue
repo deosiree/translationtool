@@ -56,6 +56,14 @@
       :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange, getCheckboxProps: getCheckboxProps}"
       :row-key="record => record.id" :scroll="{x:'100%' , y: '350px'}" :pagination='false'
       :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" ref="table" bordered>
+      <template #headerCell="{ title, column }">
+        <TableHeaderHint
+          v-if="['tag', 'comment'].includes(column.dataIndex)"
+          :title="title"
+          :column="column"
+        />
+        <span v-else>{{ title }}</span>
+      </template>
       <template #bodyCell="{ column, text , record}">
         <template v-if="column.dataIndex === 'version'">
           <div>
@@ -85,6 +93,7 @@
 import "@/assets/style/common.less";
 import { message, TreeSelect } from "ant-design-vue";
 import Modal from "@/components/modal/index.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import { cloneDeep } from "lodash-es";
 import { BookOutlined, PlusOutlined } from "@ant-design/icons-vue";
 import {
@@ -104,6 +113,7 @@ export default {
     BookOutlined,
     PlusOutlined,
     Modal,
+    TableHeaderHint,
   },
   emits: ["afterClose"],
   props: {

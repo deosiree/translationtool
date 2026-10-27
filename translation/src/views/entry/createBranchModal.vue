@@ -38,8 +38,9 @@
             ></a-select>
           </a-form-item>
         </a-form>
-        <a-table
+        <TableViewport
           class="ant-table-striped"
+          adaptive-columns
           :columns="columns"
           :dataSource="dataSource"
           :scroll="{ x: '100%', y: '280px' }"
@@ -133,7 +134,7 @@
               </span>
             </template>
           </template>
-        </a-table>
+        </TableViewport>
       </div>
     </div>
     <div class="other" style="padding: 12px; background-color: #dbdbdb; display: flex; flex-direction: column; gap: 12px">
@@ -186,8 +187,9 @@
       </div>
       <div class="table" style="display: flex; gap: 8px">
         <div style="width: 100%">
-          <a-table
+          <TableViewport
             ref="otherTable"
+            adaptive-columns
             bordered
             class="ant-table-striped"
             :columns="otherColumns"
@@ -218,7 +220,6 @@
                 },
               ],
             }"
-            @resizeColumn="handleResizeColumn"
           >
             <template #bodyCell="{ column, text, record }">
               <!-- <template v-if="['name','parentTitle','subTitle','title', 'versionName'].includes(column.dataIndex)">
@@ -313,7 +314,7 @@
                 </span>
               </template>
             </template>
-          </a-table>
+          </TableViewport>
         </div>
         <!-- <div style="width: 20%;">
           <a-table ref="otherSourceTable" bordered class="ant-table-striped" :columns="otherSourceColumns" :dataSource="otherSourceDataSource"
@@ -327,6 +328,7 @@
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import VersionModal from "@/views/task/versionModal.vue";
 import ImportButton from "@/components/Button/codeBranch/configImportButton.vue";
 import AnalysisButton from "@/components/Button/codeBranch/configAnalysisButton.vue";
@@ -346,6 +348,7 @@ import { PlusOutlined, DeleteOutlined } from "@ant-design/icons-vue";
 export default {
   components: {
     Modal,
+    TableViewport,
     VersionModal,
     ImportButton,
     AnalysisButton,
@@ -389,7 +392,8 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 50,
+          width: 56,
+          minWidth: 50,
           customRender: (text) => {
             const currentIndex =
               text.index +
@@ -402,73 +406,94 @@ export default {
         {
           title: "lang目录",
           dataIndex: "link",
-          align: "center",
-          width: 80,
+          align: "left",
+          width: 160,
+          minWidth: 50,
+          adaptive: true,
           fixed: "left",
           resizable: true,
         },
         {
           title: "产品名称",
           dataIndex: "title",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 136,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
         {
           title: "任务名称",
           dataIndex: "name",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 160,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
         {
           title: "开发员",
           dataIndex: "developer",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "词条审核员",
           dataIndex: "entryAuditor",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "翻译员",
           dataIndex: "translator",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "翻译审核员",
           dataIndex: "translationAuditor",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "任务管理员",
           dataIndex: "creator",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "翻译语种",
           dataIndex: "translateType",
           align: "center",
-          width: 80,
+          width: 88,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "产品版本",
           dataIndex: "versionName",
           align: "center",
-          width: 80,
+          width: 120,
+          minWidth: 50,
           resizable: true,
         },
         {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
           fixed: "right",
         },
       ],
@@ -493,7 +518,8 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 50,
+          width: 56,
+          minWidth: 50,
           customRender: (text) => {
             const currentIndex =
               text.index +
@@ -507,8 +533,10 @@ export default {
         {
           title: "lang目录",
           dataIndex: "link",
-          align: "center",
-          width: 80,
+          align: "left",
+          width: 160,
+          minWidth: 50,
+          adaptive: true,
           fixed: "left",
           resizable: true,
         },
@@ -530,8 +558,10 @@ export default {
           title: "词条来源",
           // title: "产品名称",
           dataIndex: "title",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 200,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
         // {
@@ -545,7 +575,9 @@ export default {
           title: "操作",
           dataIndex: "operation",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
           fixed: "right",
         },
       ],
@@ -573,7 +605,8 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 50,
+          width: 56,
+          minWidth: 50,
           customRender: (text) => {
             return text.index + 1;
           },
@@ -582,8 +615,10 @@ export default {
         {
           title: "词条来源",
           dataIndex: "file",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 200,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
       ],
@@ -953,10 +988,6 @@ export default {
     },
     clickInput(event) {
       event.stopPropagation();
-    },
-    // 事件处理函数
-    handleResizeColumn(w, col) {
-      col.width = w;
     },
     // ===============第二个表的相关函数========================================
     // 解析配置获取需要忽略的文件，写入otherDataSource中给用户展示（哪些文件不导入）

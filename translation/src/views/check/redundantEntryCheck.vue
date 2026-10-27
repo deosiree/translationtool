@@ -61,6 +61,14 @@
               :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange,onSelect:onSelect,onSelectAll:onSelectAll}"
               :row-key="record => record.id" :pagination='pagination' :loading="loading" :rowClassName="getRowClassName"
               ref="redundantEntryCheckTable" @resizeColumn="handleResizeColumn">
+              <template #headerCell="{ title, column }">
+                <TableHeaderHint
+                  v-if="['tag', 'comment'].includes(column.dataIndex)"
+                  :title="title"
+                  :column="column"
+                />
+                <span v-else>{{ title }}</span>
+              </template>
               <!-- 表格单元格模板 -->
               <template #bodyCell="{ column, record,text }">
                 <template v-if="column.dataIndex === 'entryState'">
@@ -123,6 +131,7 @@ import DataBox from "@/components/dataBox/index.vue";
 import BatchSelectModal from "@/views/check/redundantBatchSelectModal.vue";
 import EntryStateBadge from "@/components/stateBadge/entryStateBadge.vue";
 import TransStateBadge from "@/components/stateBadge/transStateBadge.vue";
+import TableHeaderHint from "@/components/table/TableHeaderHint/TableHeaderHint.vue";
 import { getLanguage } from "@/http/api/translate";
 import { getSecondClassify } from "@/http/api/secondClassify";
 import { getI18nAdress } from "@/http/api/workbench";
@@ -173,6 +182,7 @@ export default {
     CaretRightOutlined,
     EntryStateBadge,
     TransStateBadge,
+    TableHeaderHint,
   },
   data() {
     return {

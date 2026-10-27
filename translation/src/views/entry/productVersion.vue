@@ -85,9 +85,9 @@
         <DataBox :title="tableTitle" :height="dataHeight" :showOperate="false">
           <template v-slot:data>
             <div style="width:100%;position: absolute;">
-              <a-table bordered class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
+              <TableViewport bordered adaptive-columns class="ant-table-striped" :columns="columns" :data-source="dataSource" :row-key="record => record.id"
                 :scroll="tableHeight" :pagination='false' :loading="loading" :rowClassName="getRowClassName" ref="taskTable"
-                @resizeColumn="handleResizeColumn" :customRow="customRow">
+                :customRow="customRow">
                 <template #bodyCell="{ column, record,text }">
                   <template v-if="column.dataIndex === 'state'">
                     <TaskStateBadge type="sum" :taskState="text" />
@@ -101,7 +101,7 @@
                     </div>
                   </template>
                 </template>
-              </a-table>
+              </TableViewport>
             </div>
           </template>
         </DataBox>
@@ -166,6 +166,7 @@ import { message } from "ant-design-vue";
 import { entryParams as tableParam } from "@/constants/commonParam.js";
 import { setModalAriaHidden } from "@/utils/domUtils";
 import { setTableHeight } from "@/utils/tableUtils";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 export default {
   components: {
     SearchBox,
@@ -177,6 +178,7 @@ export default {
     InfoCircleOutlined,
     Modal,
     TaskStateBadge,
+    TableViewport,
   },
   emits: ["viewEntry"],
   props: {
@@ -211,7 +213,8 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 50,
+          width: 56,
+          minWidth: 50,
           customRender: (text, record, index, column) => {
             return text.index + 1;
           },
@@ -220,8 +223,10 @@ export default {
         {
           title: "任务名称",
           dataIndex: "name",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 160,
+          minWidth: 50,
+          adaptive: true,
           fixed: "left",
           resizable: true,
         },
@@ -229,70 +234,92 @@ export default {
           title: "执行部门",
           dataIndex: "department",
           align: "center",
-          width: 150,
+          width: 120,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "产品名称",
           dataIndex: "productName",
-          align: "center",
-          width: 180,
+          align: "left",
+          width: 136,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
         {
           title: "版本",
           dataIndex: "versionName",
           align: "center",
-          width: 180,
+          width: 120,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "翻译语种",
           dataIndex: "translateType",
           align: "center",
-          width: 150,
+          width: 88,
+          minWidth: 50,
+          resizable: true,
         },
         // {title: '导入词条数量',dataIndex: 'entryNum',align:'center',width:150},
         {
           title: "开发员",
           dataIndex: "developer",
           align: "center",
-          width: 150,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "词条审核员",
           dataIndex: "entryAuditor",
           align: "center",
-          width: 150,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "翻译员",
           dataIndex: "translator",
           align: "center",
-          width: 150,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "翻译审核员",
           dataIndex: "translationAuditor",
           align: "center",
-          width: 150,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "任务描述",
           dataIndex: "description",
-          align: "center",
-          width: 150,
+          align: "left",
+          width: 180,
+          minWidth: 50,
+          adaptive: true,
           resizable: true,
         },
         {
           title: "下发时间",
           dataIndex: "deliveryTime",
           align: "center",
-          width: 200,
+          width: 104,
+          minWidth: 50,
+          resizable: true,
         },
         {
           title: "任务状态",
           dataIndex: "state",
           align: "center",
-          width: 100,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
           fixed: "right",
         },
         {
@@ -300,7 +327,9 @@ export default {
           dataIndex: "operation",
           align: "center",
           fixed: "right",
-          width: 80,
+          width: 96,
+          minWidth: 50,
+          resizable: true,
         },
       ],
       dataSource: [],
@@ -458,10 +487,6 @@ export default {
       //     this.loading = false
       //     message.error("导出失败！")
       // })
-    },
-    // 表格列可伸缩
-    handleResizeColumn: (w, col) => {
-      col.width = w;
     },
     // 添加表格行点击事件
     customRow(record, index) {

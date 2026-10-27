@@ -14,7 +14,7 @@
         </a-form-item>
       </a-form>
       <div class="table">
-        <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}" :pagination='false'
+        <TableViewport adaptive-columns class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="{x:'100%' , y: '280px'}" :pagination='false'
           :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
           :row-selection="{ selectedRowKeys: selectedRowKeys, onChange: onSelectChange}" :row-key="record => record.id" ref="secondClassifyTable"
           bordered>
@@ -33,13 +33,14 @@
               </div>
             </template>
           </template>
-        </a-table>
+        </TableViewport>
       </div>
     </div>
   </CustomModal>
 </template>
 <script>
 import CustomModal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import locale from "ant-design-vue/es/date-picker/locale/zh_CN";
 import {
   CheckOutlined,
@@ -62,6 +63,7 @@ import {
 export default {
   components: {
     CustomModal,
+    TableViewport,
     CheckOutlined,
     EditOutlined,
     CloseOutlined,
@@ -92,7 +94,8 @@ export default {
           title: "序号",
           dataIndex: "index",
           align: "center",
-          width: 60,
+            width: 56,
+            minWidth: 50,
           customRender: (text, record, index, column) => {
             return text.index + 1;
           },
@@ -101,20 +104,26 @@ export default {
           title: "二级分类名称",
           dataIndex: "name",
           align: "center",
-          width: 200,
+            width: 120,
+            minWidth: 50,
+            resizable: true,
         },
         {
           title: "一级分类名称",
           dataIndex: "parentName",
           align: "center",
-          width: 200,
+            width: 120,
+            minWidth: 50,
+            resizable: true,
         },
-        { title: "创建人", dataIndex: "creator", align: "center", width: 150 },
+          { title: "创建人", dataIndex: "creator", align: "center", width: 96, minWidth: 50, resizable: true },
         {
           title: "创建时间",
           dataIndex: "createTime",
           align: "center",
-          width: 200,
+            width: 168,
+            minWidth: 50,
+            resizable: true,
         },
       ],
       search: {
@@ -182,6 +191,10 @@ export default {
       // console.log(value)
       this.getSecondClassify();
     },
+    /**
+     * 在列表末尾新增二级分类草稿并将表格滚动到该行。
+     * @returns {void} 无返回值。
+     */
     add() {
       if (!this.search.classify1 || this.search.classify1 === "") {
         message.warn("请选择一级分类！");
@@ -202,7 +215,7 @@ export default {
       // 滚动到最底部
       this.$nextTick(() => {
         let container =
-          this.$refs.secondClassifyTable.$el.querySelector(".ant-table-body");
+          this.$refs.secondClassifyTable.$el.querySelector(".ant-table-content");
         container.scrollTop = container.scrollHeight;
       });
     },

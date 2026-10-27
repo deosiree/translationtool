@@ -7,7 +7,7 @@
           <SearchOutlined style="color: #DCDCDC;" />
         </template>
       </a-input>
-      <a-table class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight" :pagination='false'
+      <TableViewport adaptive-columns class="ant-table-striped" :columns="columns" :data-source="dataSource" :scroll="tableHeight" :pagination='false'
         :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)" :row-key="record => record.id" :defaultExpandAllRows="true"
         ref="authorTable" :loading="loading" bordered>
         <template #bodyCell="{ column, record }">
@@ -26,12 +26,13 @@
           </span>
           <span v-else style="margin-right:23px"></span>
         </template>
-      </a-table>
+      </TableViewport>
     </div>
   </Modal>
 </template>
 <script>
 import Modal from "@/components/modal/index.vue";
+import TableViewport from "@/components/table/TableViewport/TableViewport.vue";
 import { message } from "ant-design-vue";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -46,6 +47,7 @@ import {
 export default {
   components: {
     Modal,
+    TableViewport,
     SearchOutlined,
     CaretDownOutlined,
     CaretRightOutlined,
@@ -69,9 +71,31 @@ export default {
       keyWords: "",
       currentProductId: "",
       columns: [
-        { title: "用户名", dataIndex: "name", width: "40%" },
-        { title: "查看", dataIndex: "readState", align: "center" },
-        { title: "修改", dataIndex: "writeState", align: "center" },
+          {
+            title: "用户名",
+            dataIndex: "name",
+            align: "left",
+            width: 200,
+            minWidth: 50,
+            adaptive: true,
+            resizable: true,
+          },
+          {
+            title: "查看",
+            dataIndex: "readState",
+            align: "center",
+            width: 88,
+            minWidth: 50,
+            resizable: true,
+          },
+          {
+            title: "修改",
+            dataIndex: "writeState",
+            align: "center",
+            width: 88,
+            minWidth: 50,
+            resizable: true,
+          },
       ],
       dataSource: [],
       // tableHeight: { x:'100%',y: '400px' },
