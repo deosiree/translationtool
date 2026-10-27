@@ -120,7 +120,7 @@
                         :options='options[record.id]["products"]' :fieldNames='{label:"name",value:"id"}' @click="clickInput"
                         @change="changeProduct(record)">
                       </a-select> -->
-                      <a-tree-select v-model:value="editableData[record.id]['productId']" v-model:searchValue="searchValue" show-search
+                      <a-tree-select v-if="isProductTreeSelectable(record)" v-model:value="editableData[record.id]['productId']" v-model:searchValue="searchValue" show-search
                         style="width: 85%" :dropdown-style="{ maxHeight: '400px', overflow: 'auto',minWidth: '400px' }" placeholder="请选择" allow-clear
                         tree-default-expand-all :tree-data="options[record.id]['products']" tree-node-filter-prop="title"
                         :fieldNames="{children:'children', label:'title', value: 'key'}" :treeDefaultExpandAll="false" @click="clickInput"
@@ -134,7 +134,11 @@
                           </template>
                         </template> -->
                       </a-tree-select>
-                      <PlusCircleOutlined class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)" />
+                      <span v-else class="task-product-fallback">
+                        {{ getProductFallbackText(record) }}
+                        <a-button v-if="canRetryProductTree(record)" type="link" size="small" @click.stop="retryProductTree(record)">重试</a-button>
+                      </span>
+                      <PlusCircleOutlined v-if="options[record.id].productTreeStatus === 'success'" class="editable-cell-icon" style="color:#369FFF;margin-left:5px" @click.stop="addProduct(record)" />
                     </a-form-item>
                   </template>
                   <template v-else>
@@ -639,9 +643,12 @@ export default {
       });
     },
     // 查看流程
+    /**
+     * 开启任务行编辑并加载该行所需选项。
+     * @param {Object} record 任务行数据。
+     * @returns {Promise<void[]>} 选项加载结果。
+     */
     edit(record) {
-      // 获取选择菜单数据
-      this.getOptions(record);
       this.editableData[record.id] = cloneDeep(
         this.dataSource.filter((item) => record.id === item.id)[0]
       );
@@ -650,6 +657,7 @@ export default {
       } else {
         this.editableData[record.id].isSubmit = true;
       }
+      return this.getOptions(this.editableData[record.id]);
     },
     // 保存
     async save(id) {
@@ -891,7 +899,18 @@ export default {
       });
     },
     // 取消
+    /**
+     * 取消任务行编辑，并使未完成的产品树请求失效。
+     * @param {string} id 当前编辑任务行 ID。
+     * @returns {void} 无返回值。
+     */
     cancel(id) {
+      const rowOptions = this.options[id];
+      if (rowOptions?.productTreeStatus === "loading") {
+        rowOptions.productTreeRequestId += 1;
+        rowOptions.productTreeStatus = "idle";
+        rowOptions.productTreePromise = null;
+      }
       delete this.editableData[id];
       delete this.copyTaskEntry[id];
       if (id.startsWith("new") || id.startsWith("copy")) {
@@ -1008,110 +1027,249 @@ export default {
         children: item.children ? this.dealData(item.children) : [],
       }));
     },
-    // 获取可编辑行下拉菜单的选项
+    /**
+     * 初始化任务行选项，并分别加载产品树、版本和人员选项。
+     * @param {Object} record 当前可编辑任务行。
+     * @returns {Promise<void[]>} 各类选项的加载结果。
+     */
     getOptions(record) {
-      let products = [];
-      let versions = [];
-      let op = {
-        products: products,
-        versions: versions,
-      };
-      this.options[record.id] = op;
-      // console.log(this.options[record.id])
-      // 获取部门产品列表
-      // let product = {
-      //     // department: record.department
-      //     department: this.user.department
-      // }
-      // getProduct(product).then((res) => {
-
-      //     this.options[record.id].products = res.data.list
-      // })
-      let product = {
-        department: "",
-        className: record.department,
-      };
-      getClassTree(product).then((res) => {
-        this.options[record.id].products = res.data.list;
-        // console.log(this.options[record.id].products)
-        this.options[record.id].products = this.dealData(
-          this.options[record.id].products
-        );
-      });
-      // 获取产品版本列表
-      if (record.productId != null) {
-        let version = {
-          productId: record.productId,
-        };
-        getVersion(version).then((res) => {
-          res.data.list.forEach((item) => {
-            let v = {
-              label: item.name,
-              value: item.id,
-            };
-            this.options[record.id].versions.push(v);
-          });
-        });
-      }
-      // 获取部门下的 开发员、词条审核员、翻译员、翻译审核员
-      let params = {
-        department: record.department,
-      };
-      getRoleUserByDepartment(params).then((res) => {
-        let data = res.data;
-        if (data.DEVELOPER) {
-          let developer = [];
-          data.DEVELOPER.forEach((item) => {
-            let op = {
-              label: item.userName,
-              value: item.userName,
-            };
-            developer.push(op);
-          });
-          developer.push({ label: "无", value: "" });
-          this.options[record.id].developer = developer;
-          this.options[record.id].creator = developer; // 任务管理员-创建人-归档，没有data.CREATOR，所以这边我借用了开发者的options
-        }
-        if (data.ENTRY_AUDITOR) {
-          let entryAuditor = [];
-          data.ENTRY_AUDITOR.forEach((item) => {
-            let op = {
-              label: item.userName,
-              value: item.userName,
-            };
-            entryAuditor.push(op);
-          });
-          entryAuditor.push({ label: "无", value: "" });
-          this.options[record.id].entryAuditor = entryAuditor;
-        }
-        if (data.TRANSLATOR) {
-          let translateor = [];
-          data.TRANSLATOR.forEach((item) => {
-            let op = {
-              label: item.userName,
-              value: item.userName,
-            };
-            translateor.push(op);
-          });
-          translateor.push({ label: "无", value: "" });
-          this.options[record.id].translator = translateor;
-        }
-        if (data.TRANSLATE_AUDITOR) {
-          let translationAuditor = [];
-          data.TRANSLATE_AUDITOR.forEach((item) => {
-            let op = {
-              label: item.userName,
-              value: item.userName,
-            };
-            translationAuditor.push(op);
-          });
-          translationAuditor.push({ label: "无", value: "" });
-          this.options[record.id].translationAuditor = translationAuditor;
-        }
-      });
-      // console.log(this.options)
+      this.ensureTaskOptions(record);
+      return Promise.all([
+        this.loadProductTree(record),
+        this.loadVersionOptions(record),
+        this.loadRoleOptions(record),
+      ]);
     },
-    // 部门选择触发事件
+    /**
+     * 确保任务行具有独立的选项与请求状态。
+     * @param {Object} record 当前任务行。
+     * @returns {Object} 该行的选项状态。
+     */
+    ensureTaskOptions(record) {
+      if (!this.options[record.id]) {
+        this.options[record.id] = {};
+      }
+      const rowOptions = this.options[record.id];
+      rowOptions.products = rowOptions.products || [];
+      rowOptions.versions = rowOptions.versions || [];
+      rowOptions.productTreeStatus = rowOptions.productTreeStatus || "idle";
+      rowOptions.productTreeRequestId = rowOptions.productTreeRequestId || 0;
+      rowOptions.productTreeDepartment = rowOptions.productTreeDepartment || null;
+      rowOptions.versionRequestId = rowOptions.versionRequestId || 0;
+      rowOptions.roleRequestId = rowOptions.roleRequestId || 0;
+      return rowOptions;
+    },
+    /**
+     * 按行加载产品树，并忽略已过期或部门不匹配的响应。
+     * @param {Object} record 当前可编辑任务行。
+     * @param {boolean} force 是否跳过已加载状态并重新请求。
+     * @returns {Promise<void>} 产品树加载完成后的 Promise。
+     */
+    loadProductTree(record, force = false) {
+      const rowOptions = this.ensureTaskOptions(record);
+      const department = record.department;
+      if (!force && rowOptions.productTreeDepartment === department) {
+        if (rowOptions.productTreeStatus === "success") {
+          return Promise.resolve();
+        }
+        if (rowOptions.productTreeStatus === "loading") {
+          return rowOptions.productTreePromise || Promise.resolve();
+        }
+      }
+
+      const requestId = ++rowOptions.productTreeRequestId;
+      rowOptions.productTreeDepartment = department;
+      rowOptions.productTreeStatus = "loading";
+      rowOptions.products = [];
+      const request = getClassTree({ department: "", className: department })
+        .then((res) => {
+          if (!this.isCurrentProductTreeRequest(record, department, requestId)) {
+            return;
+          }
+          const tree = Array.isArray(res?.data?.list) ? res.data.list : [];
+          rowOptions.products = this.dealData(tree);
+          rowOptions.productTreeStatus = "success";
+        })
+        .catch(() => {
+          if (this.isCurrentProductTreeRequest(record, department, requestId)) {
+            rowOptions.productTreeStatus = "error";
+          }
+        })
+        .finally(() => {
+          if (this.options[record.id] === rowOptions && rowOptions.productTreeRequestId === requestId) {
+            rowOptions.productTreePromise = null;
+          }
+        });
+      rowOptions.productTreePromise = request;
+      return request;
+    },
+    /**
+     * 判断产品树请求是否仍属于当前行和当前部门。
+     * @param {Object} record 当前任务行。
+     * @param {string} department 请求时的部门。
+     * @param {number} requestId 产品树请求序号。
+     * @returns {boolean} 请求仍有效时返回 true。
+     */
+    isCurrentProductTreeRequest(record, department, requestId) {
+      const rowOptions = this.options[record.id];
+      return Boolean(
+        rowOptions &&
+          rowOptions.productTreeRequestId === requestId &&
+          rowOptions.productTreeDepartment === department &&
+          this.editableData[record.id]?.department === department
+      );
+    },
+    /**
+     * 加载当前产品的版本选项，并阻止旧产品响应覆盖新列表。
+     * @param {Object} record 当前可编辑任务行。
+     * @returns {Promise<void>} 版本选项加载完成后的 Promise。
+     */
+    loadVersionOptions(record) {
+      const rowOptions = this.ensureTaskOptions(record);
+      const productId = record.productId;
+      const requestId = ++rowOptions.versionRequestId;
+      rowOptions.versions = [];
+      if (productId === null || productId === undefined || productId === "") {
+        return Promise.resolve();
+      }
+      return getVersion({ productId })
+        .then((res) => {
+          if (
+            this.options[record.id] !== rowOptions ||
+            rowOptions.versionRequestId !== requestId ||
+            String(this.editableData[record.id]?.productId) !== String(productId)
+          ) {
+            return;
+          }
+          const versions = Array.isArray(res?.data?.list) ? res.data.list : [];
+          rowOptions.versions = versions.map((item) => ({ label: item.name, value: item.id }));
+        })
+        .catch(() => {});
+    },
+    /**
+     * 加载当前部门的人员选项，并忽略已切换部门后的响应。
+     * @param {Object} record 当前可编辑任务行。
+     * @returns {Promise<void>} 人员选项加载完成后的 Promise。
+     */
+    loadRoleOptions(record) {
+      const rowOptions = this.ensureTaskOptions(record);
+      const department = record.department;
+      const requestId = ++rowOptions.roleRequestId;
+      rowOptions.developer = [];
+      rowOptions.creator = [];
+      rowOptions.entryAuditor = [];
+      rowOptions.translator = [];
+      rowOptions.translationAuditor = [];
+      return getRoleUserByDepartment({ department })
+        .then((res) => {
+          if (
+            this.options[record.id] !== rowOptions ||
+            rowOptions.roleRequestId !== requestId ||
+            this.editableData[record.id]?.department !== department
+          ) {
+            return;
+          }
+          const data = res?.data || {};
+          if (data.DEVELOPER) {
+            rowOptions.developer = this.mapRoleOptions(data.DEVELOPER);
+            rowOptions.creator = rowOptions.developer;
+          }
+          if (data.ENTRY_AUDITOR) {
+            rowOptions.entryAuditor = this.mapRoleOptions(data.ENTRY_AUDITOR);
+          }
+          if (data.TRANSLATOR) {
+            rowOptions.translator = this.mapRoleOptions(data.TRANSLATOR);
+          }
+          if (data.TRANSLATE_AUDITOR) {
+            rowOptions.translationAuditor = this.mapRoleOptions(data.TRANSLATE_AUDITOR);
+          }
+        })
+        .catch(() => {});
+    },
+    /**
+     * 将部门人员转换为任务表使用的选项结构。
+     * @param {Array<Object>} users 部门人员列表。
+     * @returns {Array<Object>} 含“无”选项的人员选项。
+     */
+    mapRoleOptions(users) {
+      return (Array.isArray(users) ? users : [])
+        .map((item) => ({ label: item.userName, value: item.userName }))
+        .concat({ label: "无", value: "" });
+    },
+    /**
+     * 判断当前产品 ID 是否已被产品树解析。
+     * @param {Object} record 当前可编辑任务行。
+     * @returns {boolean} 当前产品可由树选择器安全显示时返回 true。
+     */
+    isProductTreeSelectable(record) {
+      const rowOptions = this.options[record.id];
+      const productId = this.editableData[record.id]?.productId;
+      if (!rowOptions || rowOptions.productTreeStatus !== "success") {
+        return false;
+      }
+      return productId === null || productId === undefined || productId === "" ||
+        this.containsProduct(rowOptions.products, productId);
+    },
+    /**
+     * 递归查找产品节点，避免将未解析的 ID 交给树选择器。
+     * @param {Array<Object>} nodes 当前层级的树节点。
+     * @param {string|number} productId 待匹配产品 ID。
+     * @returns {boolean} 找到产品节点时返回 true。
+     */
+    containsProduct(nodes, productId) {
+      return (Array.isArray(nodes) ? nodes : []).some((node) =>
+        (node.type === "product" && String(node.key) === String(productId)) ||
+          this.containsProduct(node.children, productId)
+      );
+    },
+    /**
+     * 为尚未解析的产品 ID 生成不含原始 ID 的安全显示文本。
+     * @param {Object} record 当前可编辑任务行。
+     * @returns {string} 产品名称或对应加载状态文本。
+     */
+    getProductFallbackText(record) {
+      const row = this.editableData[record.id];
+      const rowOptions = this.options[record.id];
+      const productName = row?.productName;
+      const productId = row?.productId;
+      if (rowOptions?.productTreeStatus === "loading") {
+        return productName ? `${productName}（加载中）` : "正在加载产品...";
+      }
+      if (rowOptions?.productTreeStatus === "error") {
+        return productName || "产品加载失败";
+      }
+      if (productId !== null && productId !== undefined && productId !== "") {
+        return productName || "当前产品不在可选列表中";
+      }
+      return productName || "请选择产品";
+    },
+    /**
+     * 判断产品树失败或当前产品缺失时是否应显示重试操作。
+     * @param {Object} record 当前可编辑任务行。
+     * @returns {boolean} 可通过重载产品树恢复时返回 true。
+     */
+    canRetryProductTree(record) {
+      const rowOptions = this.options[record.id];
+      const productId = this.editableData[record.id]?.productId;
+      return rowOptions?.productTreeStatus === "error" || (
+        rowOptions?.productTreeStatus === "success" &&
+        productId !== null && productId !== undefined && productId !== "" &&
+        !this.containsProduct(rowOptions.products, productId)
+      );
+    },
+    /**
+     * 重试当前行的产品树请求。
+     * @param {Object} record 当前任务行。
+     * @returns {Promise<void>} 重试请求完成后的 Promise。
+     */
+    retryProductTree(record) {
+      return this.loadProductTree(this.editableData[record.id], true);
+    },
+    /**
+     * 清空部门关联值并加载新部门的产品树和人员选项。
+     * @param {Object} record 当前任务行。
+     * @returns {Promise<void[]>} 新部门选项加载结果。
+     */
     changeDepartment(record) {
       // console.log(this.editableData[record.id])
       // 部门选择时  将产品和版本清空
@@ -1119,14 +1277,18 @@ export default {
       this.editableData[record.id].productName = null;
       this.editableData[record.id].versionId = null;
       this.editableData[record.id].versionName = null;
-      this.getOptions(this.editableData[record.id]);
+      return this.getOptions(this.editableData[record.id]);
     },
-    // 产品选择触发事件
+    /**
+     * 清空旧版本并仅刷新新产品对应的版本选项。
+     * @param {Object} record 当前任务行。
+     * @returns {Promise<void>} 版本选项加载结果。
+     */
     changeProduct(record) {
       // 将版本清空
       this.editableData[record.id].versionId = null;
       this.editableData[record.id].versionName = null;
-      this.getOptions(this.editableData[record.id]);
+      return this.loadVersionOptions(this.editableData[record.id]);
     },
     // 复制
     copy() {
@@ -1218,9 +1380,14 @@ export default {
       this.addProductVisible = true;
       setModalAriaHidden(this, document);
     },
+    /**
+     * 添加产品成功后刷新当前部门的产品树。
+     * @param {Object} record 当前任务行。
+     * @returns {Promise<void>} 产品树刷新结果。
+     */
     addProductOk(record) {
       this.addProductVisible = false;
-      this.getOptions(record);
+      return this.loadProductTree(record, true);
     },
     addProductClose() {
       this.addProductVisible = false;
@@ -1237,9 +1404,14 @@ export default {
       this.addVersionVisible = true;
       setModalAriaHidden(this, document);
     },
+    /**
+     * 添加版本成功后刷新当前产品的版本列表。
+     * @param {Object} record 当前任务行。
+     * @returns {Promise<void>} 版本选项刷新结果。
+     */
     addVersionOk(record) {
       this.addVersionVisible = false;
-      this.getOptions(record);
+      return this.loadVersionOptions(record);
     },
     addVersionClose() {
       this.addVersionVisible = false;
