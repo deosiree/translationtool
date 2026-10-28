@@ -34,6 +34,10 @@ import com.shr.translationtoolservice.util.EntryUtils;
 import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils;
 import com.shr.translationtoolservice.util.ExcelUtils.MethodUtils.MethodEntity;
 
+import io.micrometer.core.instrument.util.StringUtils;
+
+import com.shr.translationtoolservice.util.LocalTimeUtils;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -68,10 +72,10 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
 
 
     @Transactional(rollbackFor = Exception.class)
-    protected boolean updatetTranslationsInternal(Collection<EntryInfoEntity> updateEntryInfoTemplates,Collection<TranslateEntity> translateEntities) {
+    protected boolean updateTranslationsInternal(Collection<EntryInfoEntity> updateEntryInfoTemplates,Collection<String> transTypes,Collection<TranslateEntity> translateEntities) {
         // 使用常量定义批次大小
         final int BATCH_SIZE = 500;
-        
+
         try {
             // 处理词条信息更新
             if (updateEntryInfoTemplates != null && !updateEntryInfoTemplates.isEmpty()) {
@@ -121,6 +125,38 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
                 
                 log.info("翻译数据批量插入完成，总条数：{}", totalSize);
             }
+
+            /* 更新复用的术语的最后一次更新时间 */
+            Map<String, MethodEntity> transIDMethodRelationMap = this.buildTransIDMethodRelationMap(EntryInfoEntity.class, transTypes);
+
+            Set<String> newTransIDs = translateEntities.stream().map((translateEntity)->{return translateEntity.getId();}).collect(Collectors.toSet());
+            Set<String> translateIDs = new HashSet<>();
+
+            updateEntryInfoTemplates.stream().forEach((updateEntryInfoTemplate)->{
+
+                transIDMethodRelationMap.forEach((transType, getTransIDMethod)->{
+
+                    Object transID = getTransIDMethod.invoke(updateEntryInfoTemplate);
+                    if(transID == null){
+                        log.error("翻译ID为空, 请检查代码");
+                        return;
+                    }
+                    String transIDStr = String.valueOf(transID);
+                    if(newTransIDs.contains(transIDStr)){
+                        return; // 如果是新增的翻译，不需要再更新翻译的最后一次使用时间
+                    }
+                    translateIDs.add(transIDStr);
+
+                });
+
+            });
+
+            if(!translateIDs.isEmpty()){
+                int updateResult = translateMapper.updateTransLastUseTime(translateIDs);
+                log.info(String.format("更新翻译的最后使用时间的行记录个数为: %d", updateResult));
+            }
+
+
             return true;
             
         } catch (Exception e) {
@@ -142,6 +178,28 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
             translateMethodMap.put(getMethod, setMethod);
         });
         return translateMethodMap;
+    }
+
+    private Map<String, MethodEntity> buildTransIDMethodRelationMap(Class<?> clazz, Collection<String> transTypes){
+
+        Map<String, String> translateIDFieldMap = ConstantInterface.translateIDFieldMap();
+
+        Map<String, MethodEntity> transIDFieldMap = new HashMap<>();
+
+        transTypes.forEach((transType)->{
+            
+            String transIDField = translateIDFieldMap.get(transType);
+            if(transIDField == null || StringUtils.isBlank(transIDField)){
+                return;
+            }
+
+            Method getMethod = MethodUtils.acquireMethod(clazz, transIDField, MethodUtils.DEFAULT_GET_METHOD_NAME_GENERATOR);
+
+            transIDFieldMap.put(transType, new MethodEntity(getMethod));
+        });
+
+        return transIDFieldMap;
+
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -169,7 +227,7 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
             /* 文件中该词条每种语言的翻译结果 */
             transTypeMethodRelationMap.forEach((getterMethod,setterMethod)->{
                 try {
-                    String translation = getterMethod.invoke(entryInfoEntity) != null ? String.valueOf(getterMethod.invoke(entryInfoEntity)) : null;
+                    String translation = getterMethod.invoke(entryInfoEntity) != null ? String.valueOf(getterMethod.invoke(entryInfoEntity)) : null;    // 前端提供的翻译
 
                     if(translation == null || translation.trim().isEmpty()){
                         return; // 不会将词条的翻译更新为null或""
@@ -194,7 +252,12 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
             setMethodValues.stream().forEach((setMethodValue)->{setMethodValue.invoke(buildTransEntryInfoTemplate);});
             buildTransEntryInfoTemplates.add(buildTransEntryInfoTemplate);  // buildTranslateEntity 需要利用完整的词条信息
         }
-        List<TranslateEntity> translateEntities = this.batchInsertEntryHandler.buildTranslateEntity(buildTransEntryInfoTemplates, new ArrayList<>(transTypes), kwargs.get("department", String.class),this.executor);
+        List<TranslateEntity> translateEntities = this.batchInsertEntryHandler.buildTranslateEntity(
+            buildTransEntryInfoTemplates, 
+            new ArrayList<>(transTypes), 
+            kwargs.get("department", String.class),
+            kwargs.get("translateState", Integer.class),
+            this.executor);
         Consumer<TranslateEntity> translateEntiityProcessor = kwargs != null ? kwargs.get("translateProcessor", new TypeToken<Consumer<TranslateEntity>>(){}) : null;
         if(translateEntiityProcessor != null){
             translateEntities.stream().forEach(translateEntiityProcessor);
@@ -222,6 +285,6 @@ public class TranslationStorageServiceImpl implements TranslationStorageService{
             return updateEntryInfoTemplate;
         }).collect(Collectors.toList());
 
-        return this.updatetTranslationsInternal(updateEntryInfoTemplates, translateEntities);
+        return this.updateTranslationsInternal(updateEntryInfoTemplates, transTypes, translateEntities);
     }
 }

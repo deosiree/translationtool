@@ -193,6 +193,13 @@
         </foreach>
     </update>
 
+    <update id="updateTransLastUseTime">
+        update t_translate set last_use_time = NOW() where id in
+        <foreach collection="ids" item="id" index="index" separator="," open = "(" close = ")">
+            #{id}
+        </foreach>
+    </update>
+
     <update id="updateEntity">
         update t_translate set translate = #{translateEntity.translate,jdbcType=VARCHAR} where id = #{translateEntity.id,jdbcType=VARCHAR}
     </update>

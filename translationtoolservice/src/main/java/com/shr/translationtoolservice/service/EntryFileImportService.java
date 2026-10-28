@@ -53,9 +53,9 @@ public interface EntryFileImportService {
      * @param transType
      * @return
      */
-    UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType,String encoding ,Map<String, Set<String>> idRelationMap);
+    UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy, String token, String transType,String encoding, boolean isTransMarkedReviewed, Map<String, Set<String>> idRelationMap);
 
-    UpdateEntryInfoByFileVO importTransExcle(Collection<EntryInfoEntity> entryInfoEntities, String token, String transType,Map<String, Set<String>> idRelationMap);
+    UpdateEntryInfoByFileVO importTransExcle(Collection<EntryInfoEntity> entryInfoEntities, String token, String transType,boolean isTransMarkedReviewed,Map<String, Set<String>> idRelationMap);
 
 
     TaskCheckResultVO checkBeforeUpdateTranslationByFile(
