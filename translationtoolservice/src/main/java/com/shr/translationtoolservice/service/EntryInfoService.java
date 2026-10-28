@@ -4,6 +4,7 @@ import com.shr.translationtoolservice.common.HttpResponse;
 import com.shr.translationtoolservice.entity.*;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.shr.translationtoolservice.entity.vo.*;
+import com.shr.translationtoolservice.entity.vo.exception.ExceptionEntryInfoVO;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -101,6 +102,18 @@ public interface EntryInfoService extends IService<EntryInfoEntity>,EntryFileImp
     void doWeight();
 
     List<String> updateEntryByEntrySource(List<SourceEntryVO> sourceEntryVOS,HttpServletRequest request);
+
+    EntryInfoVO getEntryByIDs(Set<String> entryIDs);
+
+    /**
+     * 将词条的状态更新为（已审核，待审核，审核不通过）
+     * @param entryInfoEntities
+     * @param transTypes
+     * @param translateState
+     * @param department
+     * @return
+     */
+    int updateEntryTransState(List<EntryInfoEntity> entryInfoEntities,Set<String> transTypes,String department, int translateState);
 
     EntryInfoVO getEntryByClassfy(EntryInfoEntityQO entryInfoEntityTemplate,Set<String> clearMatchSet,String classfyID,String startTime,String endTime,Integer pageIndex,Integer pageSize);
     

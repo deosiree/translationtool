@@ -412,8 +412,8 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
         return ConstantInterface.OK_STR;
     }
 
-    //翻译如果更新的情况下 查找翻译表存在相同的 挂在已存在的额id 没有新增一个翻译
-    //此方法只适用已审核的翻译
+    // //翻译如果更新的情况下 查找翻译表存在相同的 挂在已存在的额id 没有新增一个翻译
+    // //此方法只适用已审核的翻译
     private void updateTrans(EntryInfoEntity entryInfoEntity, String department) {
         String id = "";
         String transType = "";
@@ -1844,13 +1844,13 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
     @Transactional
     @Override
-    public UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy,  String token, String transType,String encoding,Map<String, Set<String>> idRelationMap){
+    public UpdateEntryInfoByFileVO importTransExcle(FileInputStreamEntity fileInputStreamEntitiy,  String token, String transType,String encoding,boolean isTransMarkedReviewed, Map<String, Set<String>> idRelationMap){
     
         try {
             KeyValueArguments<String> kwargs = new KeyValueArguments<>();
             kwargs.set("encoding", encoding);
             Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), kwargs).getParsedObjects();
-            return this.importTransExcle(entryInfosParsedOnFile, token, transType, idRelationMap);
+            return this.importTransExcle(entryInfosParsedOnFile, token, transType,isTransMarkedReviewed, idRelationMap);
         } catch (Exception e) {
             log.error("更新词条翻译时出现异常", e); 
             throw new RuntimeException(e);
@@ -1859,7 +1859,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
 
 
     @Override
-    public UpdateEntryInfoByFileVO importTransExcle(Collection<EntryInfoEntity> entryInfosParsedOnFile, String token,String transType, Map<String, Set<String>> idRelationMap) {
+    public UpdateEntryInfoByFileVO importTransExcle(Collection<EntryInfoEntity> entryInfosParsedOnFile, String token,String transType,boolean isTransMarkedReviewed, Map<String, Set<String>> idRelationMap) {
         
         UpdateEntryInfoByFileVO updateTranslationByFileVO = new UpdateEntryInfoByFileVO();
 
@@ -1868,14 +1868,17 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             String department = JWTTokenUtils.getDepartment(token);
             Map<String,Object> kwargs = new HashMap<>();
             kwargs.put("department", department);
-            Consumer<TranslateEntity> translateEntiityProcessor = new Consumer<TranslateEntity>() {
-                @Override
-                public void accept(TranslateEntity translateEntity) {
-                    // TODO Auto-generated method stub
-                    translateEntity.setTranslateState("3");
-                }
-            };
-            kwargs.put("translateProcessor", translateEntiityProcessor);    // 利用excel文件更新翻译，默认更新为已审核
+            if(isTransMarkedReviewed){
+                Consumer<TranslateEntity> translateEntiityProcessor = new Consumer<TranslateEntity>() {
+                    @Override
+                    public void accept(TranslateEntity translateEntity) {
+                        // TODO Auto-generated method stub
+                        translateEntity.setTranslateState("3");
+                    }
+                };
+                kwargs.put("translateProcessor", translateEntiityProcessor);    // 利用excel文件更新翻译，默认更新为已审核
+            }
+            kwargs.put("isTransMarkedReviewed", isTransMarkedReviewed);
             /* 解析文件, 生成词条 */
             // Collection<EntryInfoEntity> entryInfosParsedOnFile = excelUtils.parseFileToEntity(EntryInfoEntity.class,fileInputStreamEntitiy.getInputStream(), fileInputStreamEntitiy.getFileName(), null).getParsedObjects();
             
@@ -2068,10 +2071,11 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
                 throw new RuntimeException("部门参数为空, 联系研发");
             }
             List<ExceptionEntryInfoVO> problematicEntryInfoEntities = new ArrayList<>();
-
+            
             KeyValueArguments<String> keyValueArguments = new KeyValueArguments<>();
             keyValueArguments.set("department", department);
             keyValueArguments.set("translateProcessor", kwargs.get("translateProcessor"));
+            keyValueArguments.set("translateState", (boolean)kwargs.get("isTransMarkedReviewed") ? 3 : 1);
             translationStorageService.updateEntryInfoTranslations(entryEntitys, Arrays.asList(transType), keyValueArguments);
             /* 校验导入的翻译是否超过了最大字符长度,仅警告用户存在问题 */
             BatchMaxLengthTranslateAnalyzer batchMaxLengthTranslateAnalyzer = new BatchMaxLengthTranslateAnalyzer(entryInfoMapper,productRelationMapper,entryClassifyMapper);
@@ -3952,6 +3956,7 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             
             if(updateTemplates != null && !updateTranslationTypes.isEmpty() && keyValueArguments != null){
                 keyValueArguments.set("translateProcessor", translateEntiityProcessor);
+                keyValueArguments.set("translateState", 3);
                 boolean updateTransResult = translationStorageService.updateEntryInfoTranslations(updateTemplates,updateTranslationTypes,keyValueArguments);
                 if(!updateTransResult){
                     /* 更新失败 */
@@ -4121,6 +4126,32 @@ public class EntryInfoServiceImpl extends ServiceImpl<EntryInfoMapper, EntryInfo
             // 捕获所有 IO 相关异常
             throw new RuntimeException("读取/写入日志文件时发生 IO 错误：" + logPath);
         }
+    }
+
+    @Override
+    public EntryInfoVO getEntryByIDs(Set<String> entryIDs) {
+        List<EntryInfoEntityDO> entryInfoEntities = entryInfoMapper.selectEntryInfosByIDs(entryIDs.stream().collect(Collectors.toList()));
+        EntryInfoVO entryInfoVO = new EntryInfoVO();
+        entryInfoVO.setEntryInfoEntities(EntryInfoEntityDO.convertFromEntities(entryInfoEntities, EntryInfoEntityDO.newConverterForEntryInfoEntitiy()).collect(Collectors.toList()));
+        entryInfoVO.setTotalSize(entryInfoEntities.size());    // 暂不考虑int溢出的问题
+        return entryInfoVO;
+    }
+
+    @Override
+    public int updateEntryTransState(List<EntryInfoEntity> entryInfoEntities, Set<String> transTypes, String department, int translateState) {
+
+        if(translateState >= 1 && translateState <= 3){
+            KeyValueArguments<String> kwargs = new KeyValueArguments<>();
+            kwargs.set("department", department);
+            kwargs.set("translateState", translateState);
+
+            boolean result = translationStorageService.updateEntryInfoTranslations(entryInfoEntities, transTypes,kwargs);
+            return result ? 0 : -1;
+        }else{
+            log.error("暂不支持更新翻译状态为: " + translateState);
+            return -1;
+        }
+
     }
     
 

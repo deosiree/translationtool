@@ -549,16 +549,16 @@ public class BatchInsertEntryHandler {
     //     return entryInfoEntities;
     // }
 
-
     /**
      * 根据给定的entryInfoEntities, 构建TranslateEntitiy对象(多种语言的)(通用的)
+     * 1. 如果术语库没有匹配的行记录，例如在t_translate表寻找翻译为xxx,状态为已审核的行记录，则新建一个行记录，状态为待审核
      * @param entryInfoEntities
      * @param targetLanguageTypes
      * @param department
      * @return 返回要插入的翻译, 如果没有，则为空列表
      */
     @Transactional
-    public List<TranslateEntity> buildTranslateEntity(List<EntryInfoEntity> entryInfoEntities,List<String> targetLanguageTypes,String department){
+    public List<TranslateEntity> buildTranslateEntity(List<EntryInfoEntity> entryInfoEntities,List<String> targetLanguageTypes,String department, int translateState){
 
         List<TranslateEntity> translateEntities = new ArrayList<>();
         for(String targetLanguageType : targetLanguageTypes){
@@ -601,7 +601,7 @@ public class BatchInsertEntryHandler {
                 TranslateEntitiyReplicateCheckVO translateEntitiyReplicateCheckVO = new TranslateEntitiyReplicateCheckVO();
                 translateEntitiyReplicateCheckVO.setEntry(t.getEntry());
                 translateEntitiyReplicateCheckVO.setTranslate(translate);
-                translateEntitiyReplicateCheckVO.setTranslateState(3);
+                translateEntitiyReplicateCheckVO.setTranslateState(translateState);
                 translateEntitiyReplicateCheckVO.setTranslateType(targetLanguageType);
                 translateEntitiyReplicateCheckVO.setVisualRange(department);
 
@@ -633,7 +633,7 @@ public class BatchInsertEntryHandler {
                     checkVOs.add(checkVO);
                 }
             }
-
+            String translateStateStr = String.valueOf(translateState);
             for(Map.Entry<TranslateEntitiyReplicateCheckVO,List<EntryInfoEntity>> entity : entryInfoGroups.entrySet()){
                 TranslateEntitiyReplicateCheckVO checkVO = entity.getKey();
                 List<EntryInfoEntity> entryInfos = entity.getValue();
@@ -654,13 +654,14 @@ public class BatchInsertEntryHandler {
                     
                 }else{
                     /* 没有重复的就新建 */
+
                     TranslateEntity translateEntity = new TranslateEntity();
                     translateEntity.setId(commonUtils.getUUID());
                     translateEntity.setEntry(entry);
                     translateEntity.setType(targetLanguageType);
                     translateEntity.setTranslate(translate);
                     translateEntity.setLastUseTime(localTimeUtils.getBeijingTime());
-                    translateEntity.setTranslateState("1");
+                    translateEntity.setTranslateState(translateStateStr);
                     translateEntity.setDeleteState(0);
                     translateEntity.setVisualRange(department);
                     translateEntity.setPublicState(0);
@@ -686,14 +687,24 @@ public class BatchInsertEntryHandler {
         return translateEntities;
     }
 
-
     public List<TranslateEntity> buildTranslateEntity(
         List<EntryInfoEntity> entryInfoEntities,
         List<String> targetLanguageTypes,
         String department,
         ThreadPoolExecutor executor){
+
+        return buildTranslateEntity(entryInfoEntities, targetLanguageTypes, department, 3, executor);
+
+    }
+
+    public List<TranslateEntity> buildTranslateEntity(
+        List<EntryInfoEntity> entryInfoEntities,
+        List<String> targetLanguageTypes,
+        String department,
+        int translateState,
+        ThreadPoolExecutor executor){
         if(executor == null){
-            return buildTranslateEntity(entryInfoEntities, targetLanguageTypes, department);
+            return buildTranslateEntity(entryInfoEntities, targetLanguageTypes, department, translateState);
         }
         int totalNum = entryInfoEntities.size();
         int taskNumber = (totalNum + batchSize - 1) / batchSize;
@@ -711,7 +722,7 @@ public class BatchInsertEntryHandler {
                     // TODO Auto-generated method stub
                     try {
                         // 执行分片处理（传入提前截取的batchList，避免闭包引用问题）
-                        List<TranslateEntity> _translateEntitiy = buildTranslateEntity(batchList, targetLanguageTypes, department);
+                        List<TranslateEntity> _translateEntitiy = buildTranslateEntity(batchList, targetLanguageTypes, department, translateState);
                         translateEntities.addAll(_translateEntitiy);
                     } catch (Exception e) {
                         // 日志记录：建议用日志框架（SLF4J），这里简化打印

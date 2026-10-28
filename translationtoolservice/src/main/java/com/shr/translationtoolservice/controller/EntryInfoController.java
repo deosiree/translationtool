@@ -268,6 +268,51 @@ public class EntryInfoController extends BaseController {
         return checkResult(responseListModel);
     }
 
+
+    /**
+     * 已选词条界面中更新词条的信息使用，实时获取最新结果
+     * @param entryIDs
+     * @return
+     */
+    @PostMapping("/getEntryByIDs")
+    @ApiOperation("获取ID获取词条信息")
+    @CrossOrigin
+    @Token
+    public HttpResponse<ResponseListModel<EntryInfoEntity>> getEntryByIDs(@RequestBody Set<String> entryIDs){
+        ResponseListModel<EntryInfoEntity> responseListModel = new ResponseListModel<EntryInfoEntity>();
+
+        EntryInfoVO entryInfoVO = entryInfoService.getEntryByIDs(entryIDs);
+        List<EntryInfoEntity> entryInfoEntities = entryInfoVO.getEntryInfoEntities();
+        responseListModel.setTotalNum(entryInfoVO.getTotalSize());
+        responseListModel.setList(entryInfoEntities);
+
+        return checkResult(responseListModel);
+    }
+
+    @PostMapping("/updateTransState")
+    @ApiOperation("更新翻译状态")
+    @CrossOrigin
+    @Transactional
+    public HttpResponse<String> updateTranslateStates(
+        @RequestBody List<EntryInfoEntity> entryInfoEntities, 
+        @RequestParam(name = "transTypes[]", required = true) Set<String> transTypes,
+        @RequestParam(name = "transState", required = true) int translateState,
+        HttpServletRequest request
+    ){
+        try {
+            String token = request.getHeader("token");
+            String department = JWTTokenUtils.getDepartment(token);
+
+            int updated = entryInfoService.updateEntryTransState(entryInfoEntities, transTypes, department, translateState);
+            return ok("更新成功");
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return error(null, String.format("更新失败, 失败原因: %s", e.getMessage()));
+        }
+
+    }
+
+
     @PostMapping("/getEntryByClassfyOnPage")
     @ApiOperation("分页查询词条(无条件)")
     @CrossOrigin
@@ -305,8 +350,13 @@ public class EntryInfoController extends BaseController {
     @PostMapping("/entryImportExcle")
     @ApiOperation("词条excle导入(更新翻译)")
     @CrossOrigin
-    public HttpResponse<UpdateEntryInfoByFileVO> entryImportExcle(@RequestParam("file") MultipartFile multipartFile,@RequestParam("transType") String transType,@RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
-        @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding,HttpServletRequest httpServletRequest
+    public HttpResponse<UpdateEntryInfoByFileVO> entryImportExcle(
+        @RequestParam("file") MultipartFile multipartFile,
+        @RequestParam("transType") String transType,
+        @RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
+        @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding,
+        @RequestParam(name = "isTransMarkedReview", defaultValue = "true", required = false) boolean isTransMarkedReview,
+        HttpServletRequest httpServletRequest
     ) {
         
         FileInputStreamEntity fileInputStreamEntity = FileInputStreamEntity.convertFrom(multipartFile);
@@ -316,7 +366,7 @@ public class EntryInfoController extends BaseController {
             }
             Type mapType = new TypeToken<Map<String, Set<String>>>() {}.getType();
             Map<String, Set<String>> toJson = relationFile != null ? JSONUtils.parseToJson(relationFile.getInputStream(), StandardCharsets.UTF_8.name(), mapType) : null;
-            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(fileInputStreamEntity, httpServletRequest.getHeader("token"),transType,encoding,toJson);
+            UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(fileInputStreamEntity, httpServletRequest.getHeader("token"),transType,encoding,isTransMarkedReview,toJson);
             
             HttpResponse<UpdateEntryInfoByFileVO> responseResult = new HttpResponse<>();
             responseResult.setData(updateTranslationByFileVO);
@@ -349,6 +399,7 @@ public class EntryInfoController extends BaseController {
         @RequestParam("transType") String transType,
         @RequestParam(value = "relationFile",required = false) MultipartFile relationFile,
         @RequestParam(name = "encoding",defaultValue = "GBK",required = false) String encoding,
+        @RequestParam(name = "isTransMarkedReview", defaultValue = "true", required = false) boolean isTransMarkedReview,
         HttpServletRequest httpServletRequest
     ) {
         final TaskType taskType = TaskType.UPDATE_TRANSLATION;
@@ -373,10 +424,9 @@ public class EntryInfoController extends BaseController {
 
                 @Override
                 protected HttpResponse<UpdateEntryInfoByFileVO> runInternal() {
-                    // // TODO Auto-generated method stub
-                    // HttpResponse<UpdateEntryInfoByFileVO> resultVO = entryImportExcleInternal(entryInfosParsedOnFile, token, transType, toJson);
+
                     try {
-                        UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(entryInfosParsedOnFile,token,transType,toJson);
+                        UpdateEntryInfoByFileVO updateTranslationByFileVO = entryInfoService.importTransExcle(entryInfosParsedOnFile,token,transType,isTransMarkedReview,toJson);
                         
                         HttpResponse<UpdateEntryInfoByFileVO> responseResult = new HttpResponse<>();
                         responseResult.setData(updateTranslationByFileVO);
@@ -1431,8 +1481,6 @@ public class EntryInfoController extends BaseController {
         responseListModel.setTotalNum(entryInfoEntities1.size());
         return checkResult(responseListModel);
     }
-
-
 
     @Autowired
     TranslateMapper translateMapper;

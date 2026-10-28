@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 
@@ -31,6 +32,8 @@ public interface TranslateMapper extends BaseMapper<TranslateEntity> {
                                          @Param("offset") int offset,@Param("limit")  Integer pageSize);
 
     int updateTranslation(@Param("translateEntityList") List<TranslateEntity> translateEntityList);
+
+    int updateTransLastUseTime(@Param("ids") Set<String> transIDs);
 
     int updateEntity(@Param("translateEntity") TranslateEntity translateEntity);
 
