@@ -36,6 +36,7 @@ import {
   createEntrysourceListByClassfyTask,
   getPublicEntry,
   getEntryByClassfy,
+  getEntryByIDs,
 } from '@/http/api/entryManage'
 
 describe('entryManage API - v1/v2 版本', () => {
@@ -68,6 +69,23 @@ describe('entryManage API - v1/v2 版本', () => {
       data: productData,
     })
     expect(request).not.toHaveBeenCalled()
+  })
+
+  it('按 ID 查询已选词条使用现有批量读取接口', /**
+   * 验证按 ID 查询复用现有后端路径并以 POST 数组发送 ID。
+   * @param {void} none - 测试用例不接收参数。
+   * @returns {void} 请求配置断言完成后结束。
+   */
+  () => {
+    const entryIDs = ['entry-1', 'entry-2']
+
+    getEntryByIDs(entryIDs)
+
+    expect(request).toHaveBeenCalledWith({
+      url: '/entryInfo/getEntryByIDs',
+      method: 'POST',
+      data: entryIDs,
+    })
   })
 
   describe('entryImportExcle (v1 更新接口)', () => {

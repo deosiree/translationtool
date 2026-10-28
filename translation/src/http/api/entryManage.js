@@ -148,6 +148,19 @@ export function updateEntryInfoList(data, params) {
   });
 }
 
+/**
+ * 按词条 ID 批量读取最新词条和翻译数据。
+ * @param {Array<string|number>} entryIDs - 需要刷新的词条 ID。
+ * @returns {Promise<Object>} 按 ID 查询的词条列表响应。
+ */
+export function getEntryByIDs(entryIDs) {
+  return request({
+    url: "/entryInfo/getEntryByIDs",
+    method: "POST",
+    data: entryIDs,
+  });
+}
+
 // 禁用词条
 export function forbiddenEntryInfo(data) {
   return request({

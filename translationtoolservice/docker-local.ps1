@@ -93,8 +93,9 @@ $readyHeaders = @{
     "Access-Control-Request-Headers" = "content-type,token"
 }
 $ready = $false
+$readinessDeadline = [DateTime]::UtcNow.AddSeconds(60)
 $lastReadinessError = $null
-for ($attempt = 0; $attempt -lt 20; $attempt++) {
+while (!$ready -and [DateTime]::UtcNow -lt $readinessDeadline) {
     try {
         $response = Invoke-WebRequest -Uri $readyUri -Method Options -Headers $readyHeaders -TimeoutSec 2
         $allowOrigin = [string]$response.Headers["Access-Control-Allow-Origin"]
@@ -113,7 +114,9 @@ for ($attempt = 0; $attempt -lt 20; $attempt++) {
     } catch {
         $lastReadinessError = $_.Exception.GetType().Name
     }
-    Start-Sleep -Seconds 1
+    if (!$ready -and [DateTime]::UtcNow -lt $readinessDeadline) {
+        Start-Sleep -Seconds 1
+    }
 }
 if (!$ready) {
     throw "Java backend did not pass the HTTP CORS readiness check within 60 seconds. Last HTTP error: $lastReadinessError. Check Docker Compose logs."

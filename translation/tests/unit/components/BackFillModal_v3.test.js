@@ -137,4 +137,46 @@ describe("BackFillModal_v3 locked csv utf-8", () => {
     const arg = notification.error.mock.calls[0][0];
     expect(arg.description).toBe("请选择 .csv 格式的文件！");
   });
+
+  it("完整成功和部分成功通知刷新，全部失败不触发刷新", /**
+   * 验证完整或部分成功通知调用方刷新，而全部失败不通知刷新。
+   * @param {void} none - 测试用例不接收参数。
+   * @returns {Promise<void>} 三种导入结果断言完成后结束。
+   */
+  async () => {
+    await wrapper.vm.handleImportResponse({
+      code: 200,
+      success: ["english"],
+      failed: {},
+    });
+
+    await wrapper.vm.handleImportResponse({
+      code: 201,
+      success: ["english"],
+      failed: {
+        russian: {
+          code: 201,
+          globalMessage: "俄文更新失败",
+          failedEntryInfos: [],
+          exceptionVos: [],
+        },
+      },
+    });
+
+    expect(wrapper.emitted("importSuccess")).toHaveLength(2);
+    await wrapper.vm.handleImportResponse({
+      code: 201,
+      success: [],
+      failed: {
+        english: {
+          code: 201,
+          globalMessage: "英文更新失败",
+          failedEntryInfos: [],
+          exceptionVos: [],
+        },
+      },
+    });
+
+    expect(wrapper.emitted("importSuccess")).toHaveLength(2);
+  });
 });

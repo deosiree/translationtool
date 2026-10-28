@@ -16,6 +16,9 @@ const changeColumnMock = vi.hoisted(() => vi.fn())
 const getEntryByClassfyMock = vi.hoisted(() =>
   vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } }))
 )
+const getEntryByIDsMock = vi.hoisted(() =>
+  vi.fn(() => Promise.resolve({ data: { list: [], totalNum: 0 } }))
+)
 
 import { createUserStoreMock, createNullUserStoreMock } from '../../testUtils/userStoreMock'
 import { createDeferred } from '../../testUtils/deferred'
@@ -33,6 +36,7 @@ vi.mock('@/http/api/entryManage', () => ({
   getClassfy: vi.fn(),
   getClassTree: vi.fn(),
   entryImportExcle: vi.fn(),
+  getEntryByIDs: getEntryByIDsMock,
 }))
 
 vi.mock('@/http/api/translate', () => ({
@@ -98,7 +102,7 @@ vi.mock('ant-design-vue', () => ({
   notification: {},
 }))
 
-import { deleteEntryInfo, getEntryByClassfy, updateEntryInfoList } from '@/http/api/entryManage'
+import { deleteEntryInfo, getEntryByClassfy, getEntryByIDs, updateEntryInfoList } from '@/http/api/entryManage'
 import { getVersionByName } from '@/http/api/productVersion'
 import { checkNotUseEntry, getCheckNotUseEntry } from '@/http/api/check'
 import { EDIT_NOTES } from '@/constants/editNotes.js'
@@ -1469,6 +1473,211 @@ describe('ProductEntry - 全选加载状态', () => {
 
     expect(wrapper.vm.selectAllLoading).toBe(false)
     expect(wrapper.vm.selectEntry).toHaveLength(1)
+  })
+})
+
+describe('ProductEntry - 文件更新后刷新已选词条', /**
+ * 注册文件更新后已选词条刷新场景。
+ * @param {void} none - 测试套件不接收参数。
+ * @returns {void} 套件用例注册完成后结束。
+ */
+() => {
+  let wrapper
+
+  afterEach(/**
+   * 清理当前用例挂载的组件和模拟调用。
+   * @param {void} none - 清理回调不接收参数。
+   * @returns {void} 清理完成后结束。
+   */
+  () => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  it('刷新全部已选 ID，保留产品上下文、顺序和选择状态', /**
+   * 验证刷新全部已选 ID 时保留产品上下文、顺序和选择状态。
+   * @param {void} none - 测试用例不接收参数。
+   * @returns {Promise<void>} 刷新结果断言完成后结束。
+   */
+  async () => {
+    const firstEntry = {
+      id: 'e1',
+      productID: 'product-1',
+      english: 'old first',
+      localContext: 'keep first',
+    }
+    const secondEntry = {
+      id: 'e2',
+      productID: 'product-2',
+      english: 'old second',
+      localContext: 'keep second',
+    }
+    getEntryByIDsMock.mockResolvedValueOnce({
+      data: {
+        list: [
+          { id: 'e2', english: 'new second' },
+          { id: 'e1', english: 'new first' },
+        ],
+      },
+    })
+
+    wrapper = mountProductEntry()
+    wrapper.vm.selectEntry = [firstEntry, secondEntry]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = ['e1', 'e2']
+    wrapper.vm.getEntryByClassfy = vi.fn()
+
+    wrapper.vm.handleFileImportSuccess()
+    await flushPromises()
+
+    expect(getEntryByIDs).toHaveBeenCalledWith(['e1', 'e2'])
+    expect(wrapper.vm.getEntryByClassfy).toHaveBeenCalledTimes(1)
+    expect(wrapper.vm.selectEntry).toEqual([
+      { ...firstEntry, english: 'new first' },
+      { ...secondEntry, english: 'new second' },
+    ])
+    expect(wrapper.vm.selectedRows).toBe(wrapper.vm.selectEntry)
+    expect(wrapper.vm.selectedRowKeys).toEqual(['e1', 'e2'])
+    expect(wrapper.vm.selectedProducts.totalNum).toBe(2)
+    expect(wrapper.vm.selectedProducts.products).toEqual(
+      new Map([
+        ['product-1', 1],
+        ['product-2', 1],
+      ])
+    )
+  })
+
+  it('没有已选词条时跳过按 ID 请求，仍刷新主查询', /**
+   * 验证空选择跳过按 ID 请求，但仍刷新词条主查询。
+   * @param {void} none - 测试用例不接收参数。
+   * @returns {Promise<void>} 主查询与空请求断言完成后结束。
+   */
+  async () => {
+    wrapper = mountProductEntry()
+    wrapper.vm.selectEntry = []
+    wrapper.vm.getEntryByClassfy = vi.fn()
+    getEntryByIDsMock.mockClear()
+
+    wrapper.vm.handleFileImportSuccess()
+    await flushPromises()
+
+    expect(getEntryByIDs).not.toHaveBeenCalled()
+    expect(wrapper.vm.getEntryByClassfy).toHaveBeenCalledTimes(1)
+  })
+
+  it('按 ID 查询失败时保留原已选数据', /**
+   * 验证按 ID 查询失败时保留已有选中行、行键和错误反馈。
+   * @param {void} none - 测试用例不接收参数。
+   * @returns {Promise<void>} 失败路径断言完成后结束。
+   */
+  async () => {
+    const cachedEntry = {
+      id: 'e1',
+      productID: 'product-1',
+      english: 'cached translation',
+    }
+    getEntryByIDsMock.mockRejectedValueOnce(new Error('查询失败'))
+    wrapper = mountProductEntry()
+    wrapper.vm.selectEntry = [cachedEntry]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = ['e1']
+
+    await wrapper.vm.refreshSelectedEntries()
+
+    expect(wrapper.vm.selectEntry).toEqual([cachedEntry])
+    expect(wrapper.vm.selectedRows).toBe(wrapper.vm.selectEntry)
+    expect(wrapper.vm.selectedRowKeys).toEqual(['e1'])
+    expect(message.error).toHaveBeenCalledWith('查询失败')
+  })
+
+  it('忽略较早的刷新响应', /**
+   * 验证较早的并发刷新响应不能覆盖较新的结果。
+   * @param {void} none - 测试用例不接收参数。
+   * @returns {Promise<void>} 响应顺序断言完成后结束。
+   */
+  async () => {
+    const olderRequest = createDeferred()
+    const newerRequest = createDeferred()
+    getEntryByIDsMock
+      .mockReturnValueOnce(olderRequest.promise)
+      .mockReturnValueOnce(newerRequest.promise)
+    wrapper = mountProductEntry()
+    wrapper.vm.selectEntry = [{ id: 'e1', productID: 'p1', english: 'cached' }]
+
+    const oldRefresh = wrapper.vm.refreshSelectedEntries()
+    const newRefresh = wrapper.vm.refreshSelectedEntries()
+    olderRequest.resolve({ data: { list: [{ id: 'e1', english: 'stale' }] } })
+    await flushPromises()
+
+    expect(wrapper.vm.selectEntry[0].english).toBe('cached')
+
+    newerRequest.resolve({ data: { list: [{ id: 'e1', english: 'latest' }] } })
+    await Promise.all([oldRefresh, newRefresh])
+
+    expect(wrapper.vm.selectEntry[0].english).toBe('latest')
+  })
+
+  it('刷新请求期间取消的词条不会被迟到响应重新加入', /**
+   * 验证刷新请求期间取消的选择不会被迟到响应重新加入。
+   * @param {void} none - 测试用例不接收参数。
+   * @returns {Promise<void>} 取消选择断言完成后结束。
+   */
+  async () => {
+    const pendingRequest = createDeferred()
+    getEntryByIDsMock.mockReturnValueOnce(pendingRequest.promise)
+    wrapper = mountProductEntry()
+    wrapper.vm.selectEntry = [
+      { id: 'e1', productID: 'p1', english: 'cached first' },
+      { id: 'e2', productID: 'p2', english: 'cached second' },
+    ]
+
+    const refresh = wrapper.vm.refreshSelectedEntries()
+    wrapper.vm.selectEntry = [wrapper.vm.selectEntry[1]]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = ['e2']
+    pendingRequest.resolve({
+      data: {
+        list: [
+          { id: 'e1', english: 'new first' },
+          { id: 'e2', english: 'new second' },
+        ],
+      },
+    })
+    await refresh
+
+    expect(wrapper.vm.selectEntry).toEqual([
+      { id: 'e2', productID: 'p2', english: 'new second' },
+    ])
+    expect(wrapper.vm.selectedRowKeys).toEqual(['e2'])
+  })
+
+  it('刷新请求期间保存的新值不会被旧查询响应覆盖', /**
+   * 验证请求开始后成功保存的新译文不会被旧查询覆盖。
+   * @param {void} none - 测试用例不接收参数。
+   * @returns {Promise<void>} 保存与旧响应交错断言完成后结束。
+   */
+  async () => {
+    const pendingRequest = createDeferred()
+    getEntryByIDsMock.mockReturnValueOnce(pendingRequest.promise)
+    wrapper = mountProductEntry()
+    const cachedEntry = {
+      id: 'e1',
+      productID: 'p1',
+      english: 'old translation',
+    }
+    wrapper.vm.selectEntry = [cachedEntry]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = ['e1']
+    wrapper.vm.getEntryByClassfy = vi.fn()
+
+    const refresh = wrapper.vm.refreshSelectedEntries()
+    wrapper.vm.afterSave({ ...cachedEntry, english: 'saved translation' })
+    pendingRequest.resolve({
+      data: { list: [{ id: 'e1', english: 'stale translation' }] },
+    })
+    await refresh
+
+    expect(wrapper.vm.selectEntry[0].english).toBe('saved translation')
   })
 })
 

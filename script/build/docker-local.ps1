@@ -11,12 +11,11 @@ if (!(Test-Path -LiteralPath $serviceScript -PathType Leaf)) {
     throw "Backend startup script was not found: $serviceScript"
 }
 
-$arguments = @()
 if ($Build) {
-    $arguments += "-Build"
+    & $serviceScript -Build
+} else {
+    & $serviceScript
 }
-
-& $serviceScript @arguments
 if ($LASTEXITCODE -ne 0) {
     throw "Backend startup failed with exit code $LASTEXITCODE."
 }

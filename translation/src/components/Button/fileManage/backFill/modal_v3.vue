@@ -1178,6 +1178,11 @@ export default {
       this.validationClose(); // 关闭校验结果模态框
     },
     // 处理导入-响应
+    /**
+     * 按导入结果展示反馈，并在至少一个语种成功时通知调用方刷新数据。
+     * @param {Object} result - 异步文件更新的聚合结果。
+     * @returns {Promise<void>} 结果展示状态更新完成后结束。
+     */
     async handleImportResponse(result) {
       let notifyTask = null;
 
@@ -1197,7 +1202,6 @@ export default {
           this.showUpdateTabs = false; // 多个语种，显示tab页
           this.activeFailedLangTab = ""; // 失败语种
           this.detailsByLang = {};
-          // 按钮模式需要立即 emit importSuccess 事件（在组件关闭前），确保父组件能接收到
           if (this.mode === "button") {
             this.$emit("importSuccess");
           }
@@ -1231,6 +1235,10 @@ export default {
               exceptionVos: [],
             };
           });
+
+          if (this.mode === "button" && successLangs.length > 0) {
+            this.$emit("importSuccess");
+          }
 
           // 处理失败语种：直接从 failed 对象中获取每个语种的错误信息
           Object.keys(failed).forEach((langValue) => {

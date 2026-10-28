@@ -400,7 +400,7 @@
               size="small"
               :showFileTypeSelect="true"
               :defaultAccept="'.csv'"
-              @importSuccess="refreshTable"
+              @importSuccess="handleFileImportSuccess"
             />
 
             <SelectionToolbarButton
@@ -907,6 +907,7 @@ import {
   getClassTree,
   entryImportExcle,
   getEntryByClassfy,
+  getEntryByIDs,
   getEntrySourcesByClassify,
   getWriteFileNamesByClassify,
 } from "@/http/api/entryManage";
@@ -1157,6 +1158,7 @@ export default {
       currentVersion: null,
       productVersions: [],
       selectEntry: [], // 已选词条（可能会跨产品，还涉及了分页）
+      selectedEntriesRefreshRequestId: 0,
       createVisible: false,
       rules: {},
       cellErrors: {},
@@ -1293,6 +1295,7 @@ export default {
   beforeUnmount() {
     this.queryVersionGuard.invalidate();
     this.selectionOperations.invalidate();
+    this.selectedEntriesRefreshRequestId += 1;
     this.stopRedundantPolling();
   },
   watch: {
@@ -2634,6 +2637,51 @@ export default {
             ? this.lastAccurate
             : this.accurSearch;
         this.getEntryByClassfy(false, accurate);
+      }
+    },
+    /**
+     * 文件更新完成后刷新主查询与跨页、跨产品的已选词条缓存。
+     * @returns {void} 启动两条独立的数据刷新流程。
+     */
+    handleFileImportSuccess() {
+      this.refreshTable();
+      this.refreshSelectedEntries();
+    },
+    /**
+     * 以服务端词条替换已选缓存中同 ID 的字段，并保留列表补充上下文。
+     * @returns {Promise<void>} 刷新完成或失败后结束。
+     */
+    async refreshSelectedEntries() {
+      const requestId = ++this.selectedEntriesRefreshRequestId;
+      const entriesAtRequest = new Map(
+        this.selectEntry.map((entry) => [entry.id, entry])
+      );
+      const entryIDs = this.selectEntry
+        .map((entry) => entry?.id)
+        .filter((id) => id != null);
+      if (entryIDs.length === 0) return;
+
+      try {
+        const response = await getEntryByIDs(entryIDs);
+        if (requestId !== this.selectedEntriesRefreshRequestId) return;
+
+        const refreshedById = new Map(
+          (response?.data?.list || []).map((entry) => [entry.id, entry])
+        );
+        this.selectEntry = this.selectEntry.map((entry) => {
+          if (entriesAtRequest.get(entry.id) !== entry) return entry;
+          const refreshed = refreshedById.get(entry.id);
+          if (!refreshed) return entry;
+          const nextEntry = { ...entry, ...refreshed };
+          this.selectionOperations.refresh(nextEntry);
+          return nextEntry;
+        });
+        this.selectedRows = this.selectEntry;
+        this.selectedRowKeys = this.selectEntry.map((entry) => entry.id);
+        this.syncSelectedProducts();
+      } catch (error) {
+        if (requestId !== this.selectedEntriesRefreshRequestId) return;
+        message.error(error?.message || "刷新已选词条失败");
       }
     },
     /**
