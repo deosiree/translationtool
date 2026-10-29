@@ -134,6 +134,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     writeBackMock.mockResolvedValue({ code: 200, data: '后端返回的成功详情' })
 
     await wrapper.vm.handleOK()
+    await wrapper.vm.$nextTick()
 
     expect(writeBackMock).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -156,8 +157,13 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     wrapper.vm.writeBack.ip = 'http://i18n.example.test'
     wrapper.vm.writeBack.language = ['俄文']
     writeBackMock.mockResolvedValue({ code: 203, data: '部分成功详情未使用固定文案' })
+    let closeEmittedWhenNotified = 0
+    notification.warning.mockImplementationOnce(() => {
+      closeEmittedWhenNotified = wrapper.emitted('handleClose')?.length ?? 0
+    })
 
     await wrapper.vm.handleOK()
+    await wrapper.vm.$nextTick()
 
     expect(notification.warning).toHaveBeenCalledWith({
       message: '回写结果',
@@ -166,6 +172,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     })
     expect(notification.success).not.toHaveBeenCalled()
     expect(notification.error).not.toHaveBeenCalled()
+    expect(closeEmittedWhenNotified).toBe(1)
   })
 
   it('混合成功、部分成功和请求失败时在同一通知中汇总全部语种', async () => {
@@ -178,6 +185,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
       .mockRejectedValueOnce(new Error('网络错误'))
 
     await wrapper.vm.handleOK()
+    await wrapper.vm.$nextTick()
 
     expect(notification.warning).toHaveBeenCalledOnce()
     expect(notification.warning).toHaveBeenCalledWith({
@@ -201,6 +209,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
       .mockRejectedValueOnce(new Error('网络错误'))
 
     await wrapper.vm.handleOK()
+    await wrapper.vm.$nextTick()
 
     expect(notification.error).toHaveBeenCalledWith({
       message: '回写结果',

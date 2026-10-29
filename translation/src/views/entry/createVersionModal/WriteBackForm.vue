@@ -124,6 +124,7 @@ export default {
         return;
       }
 
+      let notifyTask = null;
       try {
         this.writeBackLoading = true;
         let successLanguages = [];
@@ -180,17 +181,20 @@ export default {
         };
 
         if (failedLanguages.length === this.writeBack.language.length) {
-          notification.error(notificationOptions);
+          notifyTask = () => notification.error(notificationOptions);
         } else if (partialLanguages.length > 0 || failedLanguages.length > 0) {
-          notification.warning(notificationOptions);
+          notifyTask = () => notification.warning(notificationOptions);
         } else {
-          notification.success(notificationOptions);
+          notifyTask = () => notification.success(notificationOptions);
         }
         this.writeBackLoading = false;
       } catch (err) {
         console.log("回写失败:", err);
       } finally {
         this.$emit("handleClose");
+        if (notifyTask) {
+          this.$nextTick(notifyTask);
+        }
       }
     },
     afterClose() {
