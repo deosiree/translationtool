@@ -28,10 +28,12 @@ vi.mock('ant-design-vue', () => ({
   },
   notification: {
     success: vi.fn(),
+    warning: vi.fn(),
+    error: vi.fn(),
   },
 }))
 
-import { message } from 'ant-design-vue'
+import { message, notification } from 'ant-design-vue'
 import WriteBackForm from '@/views/entry/createVersionModal/WriteBackForm.vue'
 
 const SlotStub = {
@@ -129,7 +131,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     wrapper = mountWriteBackForm()
     wrapper.vm.writeBack.ip = 'http://i18n.example.test'
     wrapper.vm.writeBack.language = ['英文']
-    writeBackMock.mockResolvedValue({ data: 'OK' })
+    writeBackMock.mockResolvedValue({ code: 200, data: '后端返回的成功详情' })
 
     await wrapper.vm.handleOK()
 
@@ -140,7 +142,72 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
       }),
       [],
     )
+    expect(notification.success).toHaveBeenCalledWith({
+      message: '回写结果',
+      description: '成功 1 个：英文',
+      duration: 0,
+    })
     expect(wrapper.emitted('handleClose')).toHaveLength(1)
     expect(wrapper.vm.writeBackLoading).toBe(false)
+  })
+
+  it('仅部分成功时将语种计入部分成功，并显示持续通知', async () => {
+    wrapper = mountWriteBackForm()
+    wrapper.vm.writeBack.ip = 'http://i18n.example.test'
+    wrapper.vm.writeBack.language = ['俄文']
+    writeBackMock.mockResolvedValue({ code: 203, data: '部分成功详情未使用固定文案' })
+
+    await wrapper.vm.handleOK()
+
+    expect(notification.warning).toHaveBeenCalledWith({
+      message: '回写结果',
+      description: '部分成功 1 个：俄文',
+      duration: 0,
+    })
+    expect(notification.success).not.toHaveBeenCalled()
+    expect(notification.error).not.toHaveBeenCalled()
+  })
+
+  it('混合成功、部分成功和请求失败时在同一通知中汇总全部语种', async () => {
+    wrapper = mountWriteBackForm()
+    wrapper.vm.writeBack.ip = 'http://i18n.example.test'
+    wrapper.vm.writeBack.language = ['英文', '俄文', '西文']
+    writeBackMock
+      .mockResolvedValueOnce({ code: 200, data: '部分更新成功：此文案不应改变 code 分类' })
+      .mockResolvedValueOnce({ code: 203, data: '其他部分成功详情' })
+      .mockRejectedValueOnce(new Error('网络错误'))
+
+    await wrapper.vm.handleOK()
+
+    expect(notification.warning).toHaveBeenCalledOnce()
+    expect(notification.warning).toHaveBeenCalledWith({
+      message: '回写结果',
+      description: '成功 1 个：英文；部分成功 1 个：俄文；失败 1 个：西文',
+      duration: 0,
+    })
+    expect(notification.success).not.toHaveBeenCalled()
+    expect(notification.error).not.toHaveBeenCalled()
+    expect(message.error).not.toHaveBeenCalled()
+    expect(wrapper.emitted('handleClose')).toHaveLength(1)
+    expect(wrapper.vm.writeBackLoading).toBe(false)
+  })
+
+  it('未知响应和请求拒绝都计入失败，全部失败时显示错误通知', async () => {
+    wrapper = mountWriteBackForm()
+    wrapper.vm.writeBack.ip = 'http://i18n.example.test'
+    wrapper.vm.writeBack.language = ['英文', '俄文']
+    writeBackMock
+      .mockResolvedValueOnce({ code: 201, data: 'OK' })
+      .mockRejectedValueOnce(new Error('网络错误'))
+
+    await wrapper.vm.handleOK()
+
+    expect(notification.error).toHaveBeenCalledWith({
+      message: '回写结果',
+      description: '失败 2 个：英文, 俄文',
+      duration: 0,
+    })
+    expect(notification.success).not.toHaveBeenCalled()
+    expect(notification.warning).not.toHaveBeenCalled()
   })
 })

@@ -127,9 +127,8 @@ export default {
       try {
         this.writeBackLoading = true;
         let successLanguages = [];
+        let partialLanguages = [];
         let failedLanguages = [];
-        let successmsg = "";
-        let failedmsg = "";
         const promises = [];
 
         // 遍历选中的语种列表，依次执行回写操作
@@ -145,38 +144,47 @@ export default {
           promises.push(writeBack(params, this.dataSource));
         }
 
-        await Promise.allSettled(promises).then((rls) => {
-          rls.forEach((item, index) => {
-            if (item.status === "rejected") {
-              failedLanguages.push(
-                `${this.writeBack.language[index]}: ${item.data}`
-              );
-            } else {
-              if (item.value.data != "OK") {
-                failedLanguages.push(`${this.writeBack.language[index]}`);
-                const lastIndex = item.value.data.lastIndexOf("！");
-                if (lastIndex !== -1) {
-                  failedmsg = item.value.data.substring(0, lastIndex + 1);
-                } else {
-                  failedmsg = item.value.data;
-                }
-              } else {
-                successLanguages.push(this.writeBack.language[index]);
-              }
-            }
-          });
+        const results = await Promise.allSettled(promises);
+        results.forEach((item, index) => {
+          const language = this.writeBack.language[index];
+          if (item.status === "rejected") {
+            failedLanguages.push(language);
+            return;
+          }
+
+          const responseCode = item.value?.code;
+          if (responseCode === 200) {
+            successLanguages.push(language);
+          } else if (responseCode === 203) {
+            partialLanguages.push(language);
+          } else {
+            failedLanguages.push(language);
+          }
         });
 
-        if (successLanguages.length > 0) {
-          successmsg += `以下语种回写成功：${successLanguages.join(", ")}。`;
-          notification.success({
-            message: successmsg,
-            duration: 0,
-          });
-        }
-        if (failedLanguages.length > 0) {
-          failedmsg += `以下语种回写失败：${failedLanguages.join(", ")}。`;
-          message.error(failedmsg);
+        const summary = [
+          { label: "成功", languages: successLanguages },
+          { label: "部分成功", languages: partialLanguages },
+          { label: "失败", languages: failedLanguages },
+        ]
+          .filter(({ languages }) => languages.length > 0)
+          .map(
+            ({ label, languages }) =>
+              `${label} ${languages.length} 个：${languages.join(", ")}`
+          )
+          .join("；");
+        const notificationOptions = {
+          message: "回写结果",
+          description: summary,
+          duration: 0,
+        };
+
+        if (failedLanguages.length === this.writeBack.language.length) {
+          notification.error(notificationOptions);
+        } else if (partialLanguages.length > 0 || failedLanguages.length > 0) {
+          notification.warning(notificationOptions);
+        } else {
+          notification.success(notificationOptions);
         }
         this.writeBackLoading = false;
       } catch (err) {
