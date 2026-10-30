@@ -35,9 +35,20 @@ vi.mock('ant-design-vue', () => ({
 
 import { message, notification } from 'ant-design-vue'
 import WriteBackForm from '@/views/entry/createVersionModal/WriteBackForm.vue'
+import { isLoading, resetLoading } from '@/composables/useLoading'
 
 const SlotStub = {
   template: '<div><slot /><slot name="title" /></div>',
+}
+
+const CustomModalStub = {
+  props: ['okLoading'],
+  template: '<div><slot /><slot name="title" /></div>',
+}
+
+const SpinStub = {
+  props: ['spinning'],
+  template: '<div><slot /></div>',
 }
 
 const FormStub = {
@@ -65,9 +76,9 @@ function mountWriteBackForm(visible = true) {
     props: { visible },
     global: {
       stubs: {
-        CustomModal: SlotStub,
+        CustomModal: CustomModalStub,
         QuestionCircleOutlined: true,
-        'a-spin': SlotStub,
+        'a-spin': SpinStub,
         'a-form': FormStub,
         'a-form-item': SlotStub,
         'a-select': true,
@@ -84,6 +95,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
   let wrapper
 
   beforeEach(() => {
+    resetLoading()
     localStorage.clear()
     writeBackMock.mockReset()
     formValidateMock.mockReset().mockResolvedValue([])
@@ -92,6 +104,8 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
   afterEach(() => {
     if (wrapper) wrapper.unmount()
     vi.clearAllMocks()
+    vi.restoreAllMocks()
+    resetLoading()
   })
 
   it.each([
@@ -108,7 +122,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     expect(formValidateMock).toHaveBeenCalledOnce()
     expect(wrapper.emitted('handleClose')).toBeUndefined()
     expect(writeBackMock).not.toHaveBeenCalled()
-    expect(wrapper.vm.writeBackLoading).toBe(false)
+    expect(isLoading()).toBe(false)
   })
 
   it.each([
@@ -149,7 +163,53 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
       duration: 0,
     })
     expect(wrapper.emitted('handleClose')).toHaveLength(1)
-    expect(wrapper.vm.writeBackLoading).toBe(false)
+    expect(isLoading()).toBe(false)
+  })
+
+  it('请求进行中共享遮罩和确认 loading 生效，重复提交与关闭被拦截', async () => {
+    wrapper = mountWriteBackForm()
+    wrapper.vm.writeBack.ip = 'http://i18n.example.test'
+    wrapper.vm.writeBack.language = ['英文']
+    let resolveRequest
+    writeBackMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveRequest = resolve
+      }),
+    )
+
+    const firstSubmit = wrapper.vm.handleOK()
+    await wrapper.vm.handleOK()
+    await vi.waitFor(() => expect(writeBackMock).toHaveBeenCalledOnce())
+
+    expect(isLoading()).toBe(true)
+    expect(wrapper.findComponent(SpinStub).props('spinning')).toBe(true)
+    expect(wrapper.findComponent(CustomModalStub).props('okLoading')).toBe(true)
+    wrapper.vm.handleClose()
+    expect(wrapper.emitted('handleClose')).toBeUndefined()
+
+    resolveRequest({ code: 200, data: '' })
+    await firstSubmit
+    await wrapper.vm.$nextTick()
+
+    expect(isLoading()).toBe(false)
+    expect(wrapper.findComponent(SpinStub).props('spinning')).toBe(false)
+    expect(wrapper.emitted('handleClose')).toHaveLength(1)
+  })
+
+  it('同步请求异常时仍释放共享 loading', async () => {
+    wrapper = mountWriteBackForm()
+    wrapper.vm.writeBack.ip = 'http://i18n.example.test'
+    wrapper.vm.writeBack.language = ['英文']
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    writeBackMock.mockImplementationOnce(() => {
+      throw new Error('同步请求异常')
+    })
+
+    await wrapper.vm.handleOK()
+
+    expect(writeBackMock).toHaveBeenCalledOnce()
+    expect(isLoading()).toBe(false)
+    expect(wrapper.emitted('handleClose')).toHaveLength(1)
   })
 
   it('仅部分成功时将语种计入部分成功，并显示持续通知', async () => {
@@ -173,6 +233,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     expect(notification.success).not.toHaveBeenCalled()
     expect(notification.error).not.toHaveBeenCalled()
     expect(closeEmittedWhenNotified).toBe(1)
+    expect(isLoading()).toBe(false)
   })
 
   it('混合成功、部分成功和请求失败时在同一通知中汇总全部语种', async () => {
@@ -197,7 +258,7 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     expect(notification.error).not.toHaveBeenCalled()
     expect(message.error).not.toHaveBeenCalled()
     expect(wrapper.emitted('handleClose')).toHaveLength(1)
-    expect(wrapper.vm.writeBackLoading).toBe(false)
+    expect(isLoading()).toBe(false)
   })
 
   it('未知响应和请求拒绝都计入失败，全部失败时显示错误通知', async () => {
@@ -218,5 +279,6 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     })
     expect(notification.success).not.toHaveBeenCalled()
     expect(notification.warning).not.toHaveBeenCalled()
+    expect(isLoading()).toBe(false)
   })
 })

@@ -1,10 +1,10 @@
 <template>
   <!-- 回写：词条管理-已选词条-回写的二级表单弹窗 -->
   <CustomModal modalTitle="回写" modalWidth="500px" :modalVisible="visible" @handleClose="handleClose"
-    @handleOK="handleOK" @afterClose="afterClose">
+    :okLoading="loading" @handleOK="handleOK" @afterClose="afterClose">
     <div style="width:100%;height:100%">
       <p style="margin: 0 0 12px; color: #666">将所选词条译文写入指定 IP 服务器，不会改变任务状态。</p>
-      <a-spin :spinning="writeBackLoading">
+      <a-spin :spinning="loading">
         <a-form :model="writeBack" autocomplete="off" ref="writeBackForm" :label-col="{ span: 4 }">
           <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
             <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
@@ -55,9 +55,18 @@ import { getI18nAdress } from "@/http/api/workbench.js";
 import { getFileListByLang, getDictionary } from "@/http/api/i18Server";
 import commonParam from "@/constants/commonParam.js";
 import { setModalAriaHidden } from "@/utils/domUtils";
+import { loading, isLoading, withLoading } from "@/composables/useLoading";
 export default {
   components: { CustomModal, QuestionCircleOutlined },
   emits: ["handleClose"],
+  /**
+   * 暴露统一 loading 状态，供回写弹窗绑定遮罩和确认按钮。
+   * @param {void} none - 无输入参数。
+   * @returns {{ loading: import('vue').ComputedRef<boolean> }} 弹窗 loading 状态。
+   */
+  setup() {
+    return { loading };
+  },
   props: {
     visible: {
       type: Boolean,
@@ -69,6 +78,11 @@ export default {
       default: () => [],
     },
   },
+  /**
+   * 初始化回写表单与弹窗状态。
+   * @param {void} none - 无输入参数。
+   * @returns {Object} 回写表单状态。
+   */
   data() {
     // 从本地缓存读取用户偏好
     const cachedLanguages = localStorage.getItem("writeBackLanguages");
@@ -91,7 +105,6 @@ export default {
         tagDisabled: false,
         ip: null,
       },
-      writeBackLoading: false,
       ipOptions: [],
     };
   },
@@ -104,7 +117,13 @@ export default {
     },
   },
   methods: {
+    /**
+     * 仅在没有异步操作运行时关闭回写弹窗。
+     * @param {void} none - 不接收业务参数。
+     * @returns {void} 操作运行中保持弹窗打开，否则通知父组件关闭。
+     */
     handleClose() {
+      if (isLoading()) return;
       this.$emit("handleClose");
     },
     /**
@@ -113,6 +132,8 @@ export default {
      * @returns {Promise<void>} 校验及回写流程结束后完成。
      */
     async handleOK() {
+      if (isLoading()) return;
+
       if (this.writeBack.type != "DEFAUT" && this.writeBack.file === null) {
         message.info("请选择" + this.writeBack.label + "!");
         return;
@@ -123,71 +144,73 @@ export default {
       } catch {
         return;
       }
+      // 表单校验是异步的，校验期间可能已有另一次提交开始。
+      if (isLoading()) return;
 
       let notifyTask = null;
       try {
-        this.writeBackLoading = true;
-        let successLanguages = [];
-        let partialLanguages = [];
-        let failedLanguages = [];
-        const promises = [];
+        await withLoading(async () => {
+          let successLanguages = [];
+          let partialLanguages = [];
+          let failedLanguages = [];
+          const promises = [];
 
-        // 遍历选中的语种列表，依次执行回写操作
-        for (const language of this.writeBack.language) {
-          let params = {
-            translateType: language,
-            isTag: this.writeBack.isTag ? 1 : 0,
-            isComment: this.writeBack.isComment ? 1 : 0,
-            writeType: this.writeBack.type,
-            fileName: this.writeBack.file,
-            i18nUrl: this.writeBack.ip,
-          };
-          promises.push(writeBack(params, this.dataSource));
-        }
-
-        const results = await Promise.allSettled(promises);
-        results.forEach((item, index) => {
-          const language = this.writeBack.language[index];
-          if (item.status === "rejected") {
-            failedLanguages.push(language);
-            return;
+          // 遍历选中的语种列表，依次执行回写操作
+          for (const language of this.writeBack.language) {
+            const params = {
+              translateType: language,
+              isTag: this.writeBack.isTag ? 1 : 0,
+              isComment: this.writeBack.isComment ? 1 : 0,
+              writeType: this.writeBack.type,
+              fileName: this.writeBack.file,
+              i18nUrl: this.writeBack.ip,
+            };
+            promises.push(writeBack(params, this.dataSource));
           }
 
-          const responseCode = item.value?.code;
-          if (responseCode === 200) {
-            successLanguages.push(language);
-          } else if (responseCode === 203) {
-            partialLanguages.push(language);
+          const results = await Promise.allSettled(promises);
+          results.forEach((item, index) => {
+            const language = this.writeBack.language[index];
+            if (item.status === "rejected") {
+              failedLanguages.push(language);
+              return;
+            }
+
+            const responseCode = item.value?.code;
+            if (responseCode === 200) {
+              successLanguages.push(language);
+            } else if (responseCode === 203) {
+              partialLanguages.push(language);
+            } else {
+              failedLanguages.push(language);
+            }
+          });
+
+          const summary = [
+            { label: "成功", languages: successLanguages },
+            { label: "部分成功", languages: partialLanguages },
+            { label: "失败", languages: failedLanguages },
+          ]
+            .filter(({ languages }) => languages.length > 0)
+            .map(
+              ({ label, languages }) =>
+                `${label} ${languages.length} 个：${languages.join(", ")}`
+            )
+            .join("；");
+          const notificationOptions = {
+            message: "回写结果",
+            description: summary,
+            duration: 0,
+          };
+
+          if (failedLanguages.length === this.writeBack.language.length) {
+            notifyTask = () => notification.error(notificationOptions);
+          } else if (partialLanguages.length > 0 || failedLanguages.length > 0) {
+            notifyTask = () => notification.warning(notificationOptions);
           } else {
-            failedLanguages.push(language);
+            notifyTask = () => notification.success(notificationOptions);
           }
         });
-
-        const summary = [
-          { label: "成功", languages: successLanguages },
-          { label: "部分成功", languages: partialLanguages },
-          { label: "失败", languages: failedLanguages },
-        ]
-          .filter(({ languages }) => languages.length > 0)
-          .map(
-            ({ label, languages }) =>
-              `${label} ${languages.length} 个：${languages.join(", ")}`
-          )
-          .join("；");
-        const notificationOptions = {
-          message: "回写结果",
-          description: summary,
-          duration: 0,
-        };
-
-        if (failedLanguages.length === this.writeBack.language.length) {
-          notifyTask = () => notification.error(notificationOptions);
-        } else if (partialLanguages.length > 0 || failedLanguages.length > 0) {
-          notifyTask = () => notification.warning(notificationOptions);
-        } else {
-          notifyTask = () => notification.success(notificationOptions);
-        }
-        this.writeBackLoading = false;
       } catch (err) {
         console.log("回写失败:", err);
       } finally {
