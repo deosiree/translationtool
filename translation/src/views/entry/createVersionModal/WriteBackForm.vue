@@ -1,11 +1,10 @@
 <template>
   <!-- 回写：词条管理-已选词条-回写的二级表单弹窗 -->
   <CustomModal modalTitle="回写" modalWidth="500px" :modalVisible="visible" @handleClose="handleClose"
-    :okLoading="loading" @handleOK="handleOK" @afterClose="afterClose">
+    :modalLoading="loading" @handleOK="handleOK" @afterClose="afterClose">
     <div style="width:100%;height:100%">
       <p style="margin: 0 0 12px; color: #666">将所选词条译文写入指定 IP 服务器，不会改变任务状态。</p>
-      <a-spin :spinning="loading">
-        <a-form :model="writeBack" autocomplete="off" ref="writeBackForm" :label-col="{ span: 4 }">
+      <a-form :model="writeBack" autocomplete="off" ref="writeBackForm" :label-col="{ span: 4 }">
           <a-form-item label="IP" name="ip" :rules="[{ required: true, message: '请选择IP!' }]">
             <a-select v-model:value="writeBack.ip" :options="ipOptions" placeholder="请选择IP" allowClear></a-select>
           </a-form-item>
@@ -41,8 +40,7 @@
               <QuestionCircleOutlined style="color:#00000066;float:right;margin-top:3px" />
             </a-tooltip>
           </a-form-item>
-        </a-form>
-      </a-spin>
+      </a-form>
     </div>
   </CustomModal>
 </template>
@@ -139,17 +137,17 @@ export default {
         return;
       }
 
-      try {
-        await this.$refs.writeBackForm.validate();
-      } catch {
-        return;
-      }
-      // 表单校验是异步的，校验期间可能已有另一次提交开始。
-      if (isLoading()) return;
-
       let notifyTask = null;
+      let validationPassed = false;
       try {
         await withLoading(async () => {
+          try {
+            await this.$refs.writeBackForm.validate();
+          } catch {
+            return;
+          }
+          validationPassed = true;
+
           let successLanguages = [];
           let partialLanguages = [];
           let failedLanguages = [];
@@ -165,7 +163,11 @@ export default {
               fileName: this.writeBack.file,
               i18nUrl: this.writeBack.ip,
             };
-            promises.push(writeBack(params, this.dataSource));
+            try {
+              promises.push(Promise.resolve(writeBack(params, this.dataSource)));
+            } catch (error) {
+              promises.push(Promise.reject(error));
+            }
           }
 
           const results = await Promise.allSettled(promises);
@@ -214,9 +216,11 @@ export default {
       } catch (err) {
         console.log("回写失败:", err);
       } finally {
-        this.$emit("handleClose");
-        if (notifyTask) {
-          this.$nextTick(notifyTask);
+        if (validationPassed) {
+          this.$emit("handleClose");
+          if (notifyTask) {
+            this.$nextTick(notifyTask);
+          }
         }
       }
     },

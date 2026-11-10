@@ -42,13 +42,11 @@ const SlotStub = {
 }
 
 const CustomModalStub = {
-  props: ['okLoading'],
+  props: {
+    okLoading: { default: false },
+    modalLoading: { default: false },
+  },
   template: '<div><slot /><slot name="title" /></div>',
-}
-
-const SpinStub = {
-  props: ['spinning'],
-  template: '<div><slot /></div>',
 }
 
 const FormStub = {
@@ -78,7 +76,6 @@ function mountWriteBackForm(visible = true) {
       stubs: {
         CustomModal: CustomModalStub,
         QuestionCircleOutlined: true,
-        'a-spin': SpinStub,
         'a-form': FormStub,
         'a-form-item': SlotStub,
         'a-select': true,
@@ -166,7 +163,37 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     expect(isLoading()).toBe(false)
   })
 
-  it('请求进行中共享遮罩和确认 loading 生效，重复提交与关闭被拦截', async () => {
+  it('异步表单校验期间立即锁定 loading 并拦截重复提交', async () => {
+    wrapper = mountWriteBackForm()
+    wrapper.vm.writeBack.ip = 'http://i18n.example.test'
+    wrapper.vm.writeBack.language = ['英文']
+    let resolveValidation
+    formValidateMock.mockReturnValue(
+      new Promise((resolve) => {
+        resolveValidation = resolve
+      }),
+    )
+    writeBackMock.mockResolvedValue({ code: 200, data: '' })
+
+    const firstSubmit = wrapper.vm.handleOK()
+    const duplicateSubmit = wrapper.vm.handleOK()
+    await wrapper.vm.$nextTick()
+    const loadingDuringValidation = isLoading()
+    const modalLoadingDuringValidation = wrapper.findComponent(CustomModalStub).props('modalLoading')
+    const validationCallCount = formValidateMock.mock.calls.length
+
+    resolveValidation([])
+    await Promise.all([firstSubmit, duplicateSubmit])
+
+    expect(loadingDuringValidation, 'hook should lock before asynchronous validation settles').toBe(true)
+    expect(modalLoadingDuringValidation, 'the whole modal should use the hook state').toBe(true)
+    expect(validationCallCount, 'duplicate submit should not run validation twice').toBe(1)
+    expect(writeBackMock).toHaveBeenCalledOnce()
+    expect(isLoading()).toBe(false)
+    expect(wrapper.emitted('handleClose')).toHaveLength(1)
+  })
+
+  it('请求进行中显示整窗遮罩并禁用确认，重复提交与关闭被拦截', async () => {
     wrapper = mountWriteBackForm()
     wrapper.vm.writeBack.ip = 'http://i18n.example.test'
     wrapper.vm.writeBack.language = ['英文']
@@ -182,8 +209,8 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     await vi.waitFor(() => expect(writeBackMock).toHaveBeenCalledOnce())
 
     expect(isLoading()).toBe(true)
-    expect(wrapper.findComponent(SpinStub).props('spinning')).toBe(true)
-    expect(wrapper.findComponent(CustomModalStub).props('okLoading')).toBe(true)
+    expect(wrapper.findComponent(CustomModalStub).props('okLoading')).toBe(false)
+    expect(wrapper.findComponent(CustomModalStub).props('modalLoading')).toBe(true)
     wrapper.vm.handleClose()
     expect(wrapper.emitted('handleClose')).toBeUndefined()
 
@@ -192,7 +219,6 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     await wrapper.vm.$nextTick()
 
     expect(isLoading()).toBe(false)
-    expect(wrapper.findComponent(SpinStub).props('spinning')).toBe(false)
     expect(wrapper.emitted('handleClose')).toHaveLength(1)
   })
 
@@ -208,6 +234,36 @@ describe('WriteBackForm - 表单校验与弹窗关闭', () => {
     await wrapper.vm.handleOK()
 
     expect(writeBackMock).toHaveBeenCalledOnce()
+    expect(isLoading()).toBe(false)
+    expect(wrapper.emitted('handleClose')).toHaveLength(1)
+  })
+
+  it('单个请求同步异常时仍等待同批未完成请求再释放 loading', async () => {
+    wrapper = mountWriteBackForm()
+    wrapper.vm.writeBack.ip = 'http://i18n.example.test'
+    wrapper.vm.writeBack.language = ['英文', '俄文']
+    let resolveFirstRequest
+    writeBackMock
+      .mockReturnValueOnce(
+        new Promise((resolve) => {
+          resolveFirstRequest = resolve
+        }),
+      )
+      .mockImplementationOnce(() => {
+        throw new Error('同步请求异常')
+      })
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+
+    const submit = wrapper.vm.handleOK()
+    await vi.waitFor(() => expect(writeBackMock).toHaveBeenCalledTimes(2))
+    const loadingWhileFirstRequestPending = isLoading()
+    const closeEventsWhileFirstRequestPending = wrapper.emitted('handleClose')?.length ?? 0
+
+    resolveFirstRequest({ code: 200, data: '' })
+    await submit
+
+    expect(loadingWhileFirstRequestPending).toBe(true)
+    expect(closeEventsWhileFirstRequestPending).toBe(0)
     expect(isLoading()).toBe(false)
     expect(wrapper.emitted('handleClose')).toHaveLength(1)
   })

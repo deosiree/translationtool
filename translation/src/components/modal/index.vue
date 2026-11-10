@@ -8,6 +8,7 @@
     :footer="!footer ? null : undefined"
     :afterClose="afterClose"
     :maskClosable='false'
+    :keyboard="!modalLoading"
     :wrap-class-name="wrapClassNames"
     centered
     ok-text="确定"
@@ -34,10 +35,19 @@
                 <slot v-if="collapsed" />
             </a-spin>
         </div>
+        <div
+            v-if="modalLoading"
+            class="modal-loading-overlay"
+            style="top: 35px; right: 0; bottom: 0; left: 0; border-radius: 0 0 8px 8px;"
+            role="status"
+            aria-label="处理中"
+        >
+            <a-spin />
+        </div>
         <template #footer>
             <slot name="leftBottomBtn"/>
-            <a-button key="back" @click="cancel" v-if="showCancel">{{cancelText}}</a-button>
-            <a-button key="submit" type="primary" @click="ok" v-if="showOk" :loading="okLoading" :disabled="okDisabled">{{okText}}</a-button>
+            <a-button key="back" @click="cancel" v-if="showCancel" :disabled="modalLoading">{{cancelText}}</a-button>
+            <a-button key="submit" type="primary" @click="ok" v-if="showOk" :loading="okLoading" :disabled="okDisabled || modalLoading">{{okText}}</a-button>
         </template>
         <template #modalRender="{ originVNode }">
             <div :style="{transform: `translate(${transformX}px, ${transformY}px)`,}">
@@ -107,6 +117,10 @@ export default {
             type: Boolean,
             default: false
         },
+        modalLoading: {
+            type: Boolean,
+            default: false
+        },
         contentLoadingTip: {
             type: String,
             default: ''
@@ -143,9 +157,15 @@ export default {
         }
     },
     computed: {
+        /**
+         * 合成全屏、整窗 loading 与调用方传入的弹窗 class。
+         * @param {void} none - 不接收参数。
+         * @returns {string|null} 供 a-modal 使用的 class 列表。
+         */
         wrapClassNames() {
             const names = []
             if (this.fullScreen) names.push('full-modal')
+            if (this.modalLoading) names.push('modal-loading')
             if (this.wrapClassName) names.push(this.wrapClassName)
             return names.length ? names.join(' ') : null
         },
@@ -195,11 +215,23 @@ export default {
                 // ignore
             }
         },
+        /**
+         * 请求关闭弹窗；整窗 loading 期间忽略所有关闭入口。
+         * @param {void} none - 不接收参数。
+         * @returns {void} 弹窗空闲时发出关闭事件。
+         */
         cancel(){
+            if (this.modalLoading) return
             this.blurActiveElement()
             this.$emit("handleClose")
         },
+        /**
+         * 请求确认弹窗；整窗 loading 期间忽略重复确认。
+         * @param {void} none - 不接收参数。
+         * @returns {void} 弹窗空闲时发出确认事件。
+         */
         ok(){
+            if (this.modalLoading) return
             this.blurActiveElement()
             this.$emit("handleOK")
         },
@@ -335,6 +367,26 @@ export default {
   }
   .ant-modal-body {
     flex: 1;
+  }
+}
+
+.modal-loading {
+  .ant-modal-content {
+    position: relative;
+  }
+
+  .ant-modal-body {
+    position: static;
+  }
+
+  .modal-loading-overlay {
+    position: absolute;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.68);
+    cursor: wait;
   }
 }
 </style>
