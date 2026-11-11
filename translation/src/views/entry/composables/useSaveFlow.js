@@ -136,21 +136,23 @@ async function rehydrateFailedRow(vm, record, before, effective) {
  * @param {string} [options.notes] - updateEntryInfoList notes
  * @param {Object[]} [options.snapshot] - 对比改动用快照
  * @param {boolean} [options.removeOnSuccess=false] - 成功行是否从 remaining 剔除（预翻译处理表）
+ * @param {boolean} [options.allowPartialValidation=false] - 校验失败时是否仍提交通过校验的变更行
  * @param {(ctx: {savedRecords:Object[],successIdSet:Set,remaining:Object[]}) => void} [options.onSync]
- * @returns {Promise<{allPassed:boolean,savedRecords:Object[],failedCount:number,remaining:Object[],remainingCount:number}>}
+ * @returns {Promise<{allPassed:boolean,savedRecords:Object[],failedCount:number,validationFailedCount:number,remaining:Object[],remainingCount:number}>}
  */
 export async function runSaveFlow(vm, options = {}) {
   const {
     notes = EDIT_NOTES,
     snapshot = null,
     removeOnSuccess = false,
+    allowPartialValidation = false,
     onSync = null,
   } = options;
 
   // 先收集「确认前」有效值，避免 confirmAll 提交后丢失草稿对照
   const snap = snapshot || [];
   const beforeById = new Map(snap.map((r) => [r.id, r]));
-  const pendingPayloads = [];
+  let pendingPayloads = [];
   for (const record of vm.dataSource || []) {
     const effective = mergeEditableOntoRecord(
       record,
@@ -167,27 +169,41 @@ export async function runSaveFlow(vm, options = {}) {
   }
 
   const allPassed = confirmAll(vm);
+  const validationFailedCount = allPassed
+    ? 0
+    : Object.keys(vm.editableData || {}).length;
   if (!allPassed) {
     notification.error({
       message: "存在未通过校验的译文",
-      description: "已标红，请修正后再保存。",
+      description: allowPartialValidation
+        ? "未通过项已保留编辑态并标红；有效变更按行保存。"
+        : "已标红，请修正后再保存。",
       duration: 0,
     });
-    return {
-      allPassed: false,
-      savedRecords: [],
-      failedCount: 0,
-      remaining: vm.dataSource || [],
-      remainingCount: (vm.dataSource || []).length,
-    };
+    if (!allowPartialValidation) {
+      return {
+        allPassed: false,
+        savedRecords: [],
+        failedCount: 0,
+        validationFailedCount,
+        remaining: vm.dataSource || [],
+        remainingCount: (vm.dataSource || []).length,
+      };
+    }
+    pendingPayloads = pendingPayloads.filter(
+      ({ record }) => !vm.editableData?.[record.id]
+    );
   }
 
   if (pendingPayloads.length === 0) {
-    message.info("没有需要保存的改动。");
+    message.info(
+      allPassed ? "没有需要保存的改动。" : "没有可保存的有效改动。"
+    );
     return {
-      allPassed: true,
+      allPassed,
       savedRecords: [],
       failedCount: 0,
+      validationFailedCount,
       remaining: vm.dataSource || [],
       remainingCount: (vm.dataSource || []).length,
     };
@@ -214,9 +230,10 @@ export async function runSaveFlow(vm, options = {}) {
       );
     }
     return {
-      allPassed: true,
+      allPassed,
       savedRecords: [],
       failedCount: pendingPayloads.length,
+      validationFailedCount,
       remaining: vm.dataSource || [],
       remainingCount: (vm.dataSource || []).length,
     };
@@ -272,9 +289,10 @@ export async function runSaveFlow(vm, options = {}) {
   }
 
   return {
-    allPassed: true,
+    allPassed,
     savedRecords,
     failedCount,
+    validationFailedCount,
     remaining,
     remainingCount: remaining.length,
   };

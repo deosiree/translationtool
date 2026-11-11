@@ -43,6 +43,7 @@
             :data-source="filteredDataSource"
             :scroll="tableHeight"
             :pagination="pagination"
+            @change="onTableChange"
             :loading="busy"
             :row-class-name="(_record, index) => (index % 2 === 1 ? 'table-striped' : null)"
             :customRow="customRow"
@@ -346,6 +347,15 @@ export default {
       if (!this.editableData[record.id]) return;
       await applyCell(this, record.id, column.dataIndex);
     },
+    /**
+     * 同步 Ant Design Table 的当前页与每页条数，保持受控分页可切换。
+     * @param {Object} pagination 表格变更事件返回的分页状态。
+     * @returns {void} 无返回值。
+     */
+    onTableChange(pagination = {}) {
+      this.pagination.current = pagination.current || 1;
+      this.pagination.pageSize = pagination.pageSize || this.pagination.pageSize;
+    },
     async startEditRow(record) {
       if (this.editableData[record.id]) return;
       await openSetEdit(record, this.editableTextColumns, this);
@@ -409,21 +419,49 @@ export default {
       this.$emit("update:visible", false);
       this.$emit("handleClose");
     },
+    /**
+     * 清除筛选并跳转到首个仍在编辑态的词条。
+     * @param {void} none 无输入参数。
+     * @returns {void} 无返回值。
+     */
+    revealFirstEditingRow() {
+      const index = this.dataSource.findIndex((record) => this.editableData[record.id]);
+      if (index < 0) return;
+      this.keyword = "";
+      this.pagination.current = Math.floor(index / this.pagination.pageSize) + 1;
+    },
+    /**
+     * 保存有效词条，并保留、定位未通过校验或接口保存失败的行。
+     * @param {void} none 无输入参数。
+     * @returns {Promise<void>} 保存流程完成后返回。
+     */
     async onSave() {
       if (isLoading()) return;
       this.busy = true;
       try {
         const result = await withLoading(async () => save(this));
-        if (!result.allPassed) return;
+        if (!result.allPassed && !result.savedRecords.length) {
+          this.revealFirstEditingRow();
+          return;
+        }
         this.$emit("saved", {
           savedRecords: result.savedRecords,
           remainingIds: (result.remaining || []).map((r) => r.id),
-          allDone: result.remainingCount === 0 && result.failedCount === 0,
+          allDone:
+            result.remainingCount === 0 &&
+            result.failedCount === 0 &&
+            result.validationFailedCount === 0,
         });
         this.$emit("refresh");
-        if (result.remainingCount === 0 && result.failedCount === 0) {
+        if (
+          result.remainingCount === 0 &&
+          result.failedCount === 0 &&
+          result.validationFailedCount === 0
+        ) {
           this.$emit("update:visible", false);
           this.$emit("handleClose");
+        } else {
+          this.revealFirstEditingRow();
         }
       } finally {
         this.busy = false;

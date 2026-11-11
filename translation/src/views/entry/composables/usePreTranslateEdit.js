@@ -204,7 +204,7 @@ export function usePreTranslateEdit() {
   }
 
   /**
-   * 保存：confirmAll → update → 成功行从处理表移除
+   * 保存通过校验的变更行，并将失败行保留在处理表。
    * @param {Object} vm
    * @returns {Promise<Object>}
    */
@@ -214,16 +214,21 @@ export function usePreTranslateEdit() {
       notes: "批量编辑",
       snapshot,
       removeOnSuccess: true,
+      allowPartialValidation: true,
     });
 
-    if (!result.allPassed) {
+    if (
+      !result.allPassed &&
+      result.savedRecords.length === 0 &&
+      result.validationFailedCount === 0
+    ) {
       return result;
     }
 
     // 成功行移出处理表
     vm.dataSource = result.remaining;
 
-    if (result.failedCount === 0) {
+    if (result.failedCount === 0 && result.validationFailedCount === 0) {
       vm.reviewActive = false;
       vm.preTranslateSnapshot = null;
     } else {
