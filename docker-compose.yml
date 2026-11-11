@@ -1,30 +1,50 @@
-name: translationtool-local
+name: translation
 
 services:
-  java-backend:
-    container_name: translationtoolservice-local
-    image: translationtool-local-java-backend:latest
+  translationui:
+    container_name: translationui
+    image: translationui:latest
+    build:
+      context: ./translation
+      dockerfile: Dockerfile
+      args:
+        NPM_REGISTRY: ${NPM_REGISTRY:-https://registry.npmmirror.com/}
+        ELECTRON_MIRROR: ${ELECTRON_MIRROR:-https://npmmirror.com/mirrors/electron/}
+        TRANSLATION_API_URL: ${TRANSLATION_API_URL:-http://127.0.0.1:18001/}
+    ports:
+      - "127.0.0.1:18000:80"
+    restart: "no"
+
+  translationtoolservice:
+    container_name: translationtoolservice
+    image: translationtoolservice:latest
     build:
       context: ./translationtoolservice
       dockerfile: Dockerfile
-    env_file:
-      - ./translationtoolservice/.env.local
     environment:
       SERVER_PORT: "18001"
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
       SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: "6379"
+      SPRING_REDIS_PASSWORD: ${SPRING_REDIS_PASSWORD:?Set SPRING_REDIS_PASSWORD in translationtoolservice/.env.local}
+      SPRING_DATASOURCE_URL: "jdbc:mysql://mysql:3306/translationtool?useUnicode=true&characterEncoding=UTF-8&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&socketTimeout=30000&allowMultiQueries=true"
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:?Set SPRING_DATASOURCE_USERNAME in translationtoolservice/.env.local}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in translationtoolservice/.env.local}
       SPRING_CONFIG_ADDITIONAL_LOCATION: file:/run/config/
     volumes:
       - ./translationtoolservice/src/main/resources/application.yml:/run/config/application.yml:ro
     depends_on:
+      mysql:
+        condition: service_healthy
       redis:
         condition: service_healthy
     ports:
       - "127.0.0.1:18001:18001"
-    restart: unless-stopped
+    restart: "no"
 
   redis:
     image: redis:7-alpine
-    container_name: translationtool-redis-local
+    container_name: translation-redis
     environment:
       SPRING_REDIS_PASSWORD: ${SPRING_REDIS_PASSWORD:?Set SPRING_REDIS_PASSWORD in translationtoolservice/.env.local}
     command:
@@ -32,13 +52,36 @@ services:
       - -c
       - exec redis-server --appendonly yes --requirepass "$${SPRING_REDIS_PASSWORD}"
     volumes:
-      - translationtool-local-redis:/data
+      - redis:/data
     healthcheck:
       test: ["CMD-SHELL", "redis-cli --no-auth-warning -a \"$${SPRING_REDIS_PASSWORD}\" ping | grep -q PONG"]
       interval: 5s
       timeout: 3s
       retries: 10
-    restart: unless-stopped
+    restart: "no"
+
+  mysql:
+    image: 10.17.196.52:12888/mysql:8.0
+    container_name: translation-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:?Set SPRING_DATASOURCE_PASSWORD in translationtoolservice/.env.local}
+      MYSQL_DATABASE: translationtool
+    volumes:
+      - mysql:/var/lib/mysql
+    ports:
+      - "127.0.0.1:3306:3306"
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping --silent -h 127.0.0.1 -uroot -p\"$${MYSQL_ROOT_PASSWORD}\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: "no"
 
 volumes:
-  translationtool-local-redis:
+  mysql:
+    external: true
+    name: ${MYSQL_DATA_VOLUME:?Set MYSQL_DATA_VOLUME in translationtoolservice/.env.local}
+  redis:
+    external: true
+    name: ${REDIS_DATA_VOLUME:?Set REDIS_DATA_VOLUME in translationtoolservice/.env.local}

@@ -22,9 +22,12 @@ if ($LASTEXITCODE -ne 0) {
     throw "Docker Desktop is not running. Start it and retry."
 }
 
-$imageName = "translationtool-local-java-backend:latest"
-$null = & docker image inspect $imageName 2>&1
-$imageMissing = $LASTEXITCODE -ne 0
+$imageName = "translationtoolservice:latest"
+$imageId = & docker image ls -q $imageName
+if ($LASTEXITCODE -ne 0) {
+    throw "Could not list local Docker images."
+}
+$imageMissing = [string]::IsNullOrWhiteSpace(($imageId | Select-Object -First 1))
 $buildArtifacts = $Build -or $imageMissing -or !(Test-Path $appJar)
 
 if ($buildArtifacts) {
@@ -79,7 +82,7 @@ if ($buildArtifacts) {
 } else {
     $composeArgs += "--no-build"
 }
-$composeArgs += "java-backend"
+$composeArgs += "translationtoolservice"
 
 & docker compose @composeArgs
 if ($LASTEXITCODE -ne 0) {

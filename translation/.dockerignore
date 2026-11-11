@@ -1,0 +1,8 @@
+.git
+node_modules
+dist
+coverage
+prototype/syncManagement
+.env
+.env.*
+*.log
