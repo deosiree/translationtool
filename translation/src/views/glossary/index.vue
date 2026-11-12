@@ -162,12 +162,7 @@
           :loading="loading"
           :rowClassName="getRowClassName"
           ref="glossaryTable"
-          :row-selection="{
-            columnWidth: 48,
-            selectedRowKeys: tableSelectedRowKeys,
-            onSelect: onSelect,
-            onSelectAll: onSelectAll,
-          }"
+          :row-selection="rowSelection"
         >
             <template #headerCell="{ title, column }">
               <TableHeaderHint
@@ -297,6 +292,8 @@ import SelectionToolbarButton from "@/components/selectToolBar/SelectionToolbarB
 import { useSelectedEntries } from "@/components/selectToolBar/composables/useSelectedEntries";
 import { useSelectionOperations } from "@/components/selectToolBar/composables/useSelectionOperations";
 import { useSelectionToolbarState } from "@/components/selectToolBar/composables/useSelectionToolbarState";
+import SelectionHeaderCheckbox from "@/components/table/SelectionHeaderCheckbox.vue";
+import { useSelectionHeaderState } from "@/composables/useSelectionHeaderState";
 import { clickInput, setModalAriaHidden } from "@/utils/domUtils";
 import commonParam, {
   glossaryParams,
@@ -352,6 +349,7 @@ export default {
     CellOverflowTooltip,
     TableCellText,
     TableHeaderHint,
+    SelectionHeaderCheckbox,
     ColumnFilter,
     PlusOutlined,
     DeleteOutlined,
@@ -363,6 +361,7 @@ export default {
   },
   data() {
     return {
+      selectionHeader: useSelectionHeaderState(),
       locale: locale,
       labelCol: { style: { width: "84px" } },
       search: {
@@ -425,6 +424,23 @@ export default {
     };
   },
   computed: {
+    /**
+     * 返回绑定全局查询状态的表头复选框及行选择回调。
+     * @returns {Object} 术语库表格行选择配置。
+     */
+    rowSelection() {
+      return {
+        columnWidth: 48,
+        columnTitle: () => createVNode(SelectionHeaderCheckbox, {
+          state: this.selectionHeader.state,
+          disabled: this.loading || !this.selectionScope || this.pagination.total <= 0,
+          onChange: this.handleSelectionHeaderChange,
+        }),
+        selectedRowKeys: this.tableSelectedRowKeys,
+        onSelect: this.onSelect,
+        onSelectAll: this.onSelectAll,
+      };
+    },
     /**
      * 返回当前页与待处理全量选择意图对应的行键。
      * @returns {Array<string|number>} 当前页应显示为已选的行键。
@@ -516,6 +532,14 @@ export default {
   },
   methods: {
     /**
+     * 按当前表头状态切换当前查询范围的全选或取消全选。
+     * @param {boolean} selected - 表头点击后的目标状态。
+     * @returns {Promise<void>} 全量选择操作完成后结束。
+     */
+    handleSelectionHeaderChange(selected) {
+      return this.onSelectAll(selected);
+    },
+    /**
      * 将列偏好重新投影到表格后，按当前视口重新分配自适应列宽。
      * @returns {void} 无返回值。
      */
@@ -545,20 +569,23 @@ export default {
      */
     getSearchClick() {
       this.pagination.current = 1;
-      return this.getSearch();
+      return this.getSearch(true);
     },
     /**
      * 查询当前术语库范围，并只提交最新请求的结果。
+     * @param {boolean} [isQuerySubmission=false] 是否为用户显式提交或主动刷新。
      * @returns {Promise<Array>} 当前页或本地完整结果。
      */
-    async getSearch() {
+    async getSearch(isQuerySubmission = false) {
       const option = this.search.searchType || "getSykEntry";
       const search = { ...this.search, searchType: option };
       const scope = JSON.stringify({ option, search });
-      if (scope !== this.selectionScope) {
+      const isNewScope = scope !== this.selectionScope;
+      if (isNewScope) {
         this.stopSelectionCollection();
         this.selectionScope = scope;
       }
+      if (isNewScope || isQuerySubmission) this.selectionHeader.beginQuery(scope);
       const token = this.queryGuard.next();
       this.dataSource = [];
       // 选择模式比较原始查询条件；默认空 searchType 仍由 option 解析为 getSykEntry。
@@ -589,6 +616,7 @@ export default {
         if (this.queryGuard.isCurrent(token)) {
           this.dataSource = [];
           this.pagination.total = 0;
+          await this.refreshSelectionHeaderState();
           message.error("查询失败：" + (error?.message || error));
           await waitForRender(this);
         }
@@ -637,6 +665,70 @@ export default {
       this.cancelSelectionRequests();
     },
     /**
+     * 使当前表头状态缓存和进行中的跨页判断失效。
+     * @returns {void} 无返回值。
+     */
+    invalidateSelectionHeaderState() {
+      this.selectionHeader.invalidate();
+    },
+    /**
+     * 按当前查询范围和全局已选 ID 判定全选、半选或未选状态。
+     * @returns {Promise<void>} 状态判定完成或失效后结束。
+     */
+    async refreshSelectionHeaderState() {
+      const scope = this.selectionScope;
+      if (!scope) {
+        this.selectionHeader.invalidate();
+        return this.selectionHeader.state;
+      }
+      const rows = this.dataSource || [];
+      const search = this.lastSearch && Object.keys(this.lastSearch).length
+        ? { ...this.lastSearch, searchType: this.lastSearch.searchType || "getSykEntry" }
+        : { ...this.search, searchType: this.search.searchType || "getSykEntry" };
+      const option = search.searchType;
+      const isCompleteResult = option === "checkSykEntry" ||
+        option === "getSykNotUsed" ||
+        (this.pagination.current === 1 && rows.length >= this.pagination.total);
+      return this.selectionHeader.refresh({
+        scope,
+        selectedIds: this.selectedRowKeys,
+        rows,
+        total: this.pagination.total,
+        isCompleteResult,
+        fetchAllIds: async () => {
+          const response = await this.requestSearchPage(
+            option,
+            -1,
+            -1,
+            search
+          );
+          const resultRows = option === "checkSykEntry"
+            ? response?.data
+            : response?.data?.list;
+          return {
+            ids: Array.isArray(resultRows)
+              ? resultRows.map((row) => row?.id)
+              : null,
+            total: option === "checkSykEntry"
+              ? Array.isArray(resultRows) ? resultRows.length : NaN
+              : Number(response?.data?.totalNum),
+          };
+        },
+      });
+    },
+    /**
+     * 将全量选择操作已确定的表头状态写入当前查询缓存。
+     * @param {string} state - 已确认的 checked、indeterminate 或 unchecked 状态。
+     * @returns {void} 无返回值。
+     */
+    cacheSelectionHeaderState(state) {
+      this.selectionHeader.setKnownState(
+        state,
+        this.selectionScope,
+        this.selectedRowKeys
+      );
+    },
+    /**
      * 为当前行加载关联信息，忽略查询已过期后的回调。
      * @param {Array<Object>} rows - 当前页行。
      * @param {string} option - 搜索类型。
@@ -669,12 +761,15 @@ export default {
     },
     /**
      * 同步已选行、行键和数量来源数组。
+     * @param {string} [knownHeaderState] - 操作已确定的表头状态。
      * @returns {void} 无返回值。
      */
-    syncSelectionState() {
+    syncSelectionState(knownHeaderState) {
       this.selectEntry = this.selectedEntryOperations.merge([], this.selectEntry);
       this.selectedRows = this.selectEntry;
       this.selectedRowKeys = this.selectEntry.map((row) => row.id);
+      if (knownHeaderState) this.cacheSelectionHeaderState(knownHeaderState);
+      else this.refreshSelectionHeaderState();
     },
     /**
      * 清空已选项并使进行中的全量操作失效。
@@ -686,6 +781,7 @@ export default {
       this.selectedRows = [];
       this.selectedRowKeys = [];
       this.batchSelectVisible = false;
+      this.refreshSelectionHeaderState();
     },
     /**
      * 打开已选词条列表。
@@ -767,14 +863,34 @@ export default {
           this.selectEntry,
           this.selectionScope
         );
-        this.syncSelectionState();
+        const selectedIds = new Set(this.selectEntry.map((row) => row.id));
+        const resultIds = new Set(rows.map((row) => row.id));
+        const total = Number(this.pagination.total);
+        if (rows.length !== total || resultIds.size !== total) {
+          this.selectionHeader.invalidate();
+          this.syncSelectionState();
+          return;
+        }
+        const selectedQueryCount = [...resultIds].reduce(
+          (count, id) => count + Number(selectedIds.has(id)),
+          0
+        );
+        const knownHeaderState = selectedQueryCount === 0
+          ? "unchecked"
+          : selectedQueryCount === resultIds.size ? "checked" : "indeterminate";
+        this.selectionHeader.setKnownIds([...resultIds], total, this.selectionScope);
+        this.syncSelectionState(knownHeaderState);
       } catch (error) {
         const isCurrent = this.selectionOperations.isCurrent(
           operation,
           this.selectionScope
         );
         this.selectionOperations.reject(operation);
-        if (isCurrent) message.error("全量选择失败：" + (error?.message || error));
+        if (isCurrent) {
+          this.selectionHeader.invalidate();
+          this.refreshSelectionHeaderState();
+          message.error("全量选择失败：" + (error?.message || error));
+        }
       } finally {
         await waitForRender(this);
         this.selectionSettlingCount = Math.max(this.selectionSettlingCount - 1, 0);
@@ -787,7 +903,7 @@ export default {
         .then((res) => {
           message.success("编辑成功！");
           delete this.editableData[id];
-          this.getSearch();
+          this.getSearch(true);
         })
         .catch((err) => {
           message.error("编辑失败！", err.message);

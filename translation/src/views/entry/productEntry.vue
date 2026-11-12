@@ -445,6 +445,7 @@
               :data-source="dataSource"
               :row-selection="{
                 columnWidth: 48,
+                columnTitle: getSelectionHeaderTitle,
                 selectedRowKeys: tableSelectedRowKeys,
                 onChange: onSelectChange,
                 onSelect: onSelect,
@@ -941,6 +942,8 @@ import SelectionToolbarButton from "@/components/selectToolBar/SelectionToolbarB
 import { useSelectionOperations } from "@/components/selectToolBar/composables/useSelectionOperations";
 import { useSelectedEntries } from "@/components/selectToolBar/composables/useSelectedEntries";
 import { useSelectionToolbarState } from "@/components/selectToolBar/composables/useSelectionToolbarState";
+import SelectionHeaderCheckbox from "@/components/table/SelectionHeaderCheckbox.vue";
+import { useSelectionHeaderState } from "@/composables/useSelectionHeaderState";
 import {
   applyTable,
   mergeColumnSelection,
@@ -1046,6 +1049,7 @@ export default {
     CaretRightOutlined,
     SelectionToolbar,
     SelectionToolbarButton,
+    SelectionHeaderCheckbox,
   },
   emits: [],
   props: {
@@ -1058,6 +1062,7 @@ export default {
       "searchCondition-productEntry"
     );
     return {
+      selectionHeader: useSelectionHeaderState(),
       locale: zhCN,
       box: 0,
       admin: false,
@@ -1119,6 +1124,7 @@ export default {
       columns: [],
       dataSource: [],
       pagination: {
+        showSizeChanger: true,
         pageSizeOptions: ["20", "50", "100"],
         defaultPageSize: 20,
         total: 0,
@@ -1176,6 +1182,8 @@ export default {
       accurSearch: [], // 用于分页时的查询参数
       lastSearchType: "getEntryByClassfy", // 记录最近一次查询类型
       lastAccurate: [], // 记录最近一次全量查询的accurate参数
+      selectionHeaderQuery: null,
+      selectionHeaderQueryPending: false,
       showForbbiden: false, // 显示/隐藏禁用
       classifyLimit: {},
       entrySourceOptions: [], // 词条来源下拉框
@@ -1227,7 +1235,8 @@ export default {
     tableSelectedRowKeys() {
       this.selectionOperations.revision;
       const selectedIds = new Set(this.selectEntry.map((item) => item.id));
-      const currentScopeKey = this.selectionScopeKey;
+      const currentScopeKey =
+        this.selectionHeaderQuery?.scopeKey || this.getCurrentSelectionScopeKey();
       this.dataSource.forEach((row) => {
         if (row?.id == null) return;
         const selected = this.selectionOperations.project(
@@ -1323,6 +1332,9 @@ export default {
        */
       handler(newval) {
         this.queryVersionGuard.invalidate();
+        this.selectionHeader.invalidate();
+        this.selectionHeaderQueryPending = false;
+        this.selectionHeaderQuery = null;
         this.loading = false;
         this.stopRedundantPolling();
         // 切换后的初始化
@@ -1416,6 +1428,17 @@ export default {
   unmounted() {},
   methods: {
     /**
+     * 创建反映当前已提交查询范围状态的共享表头复选框。
+     * @returns {Object} 表头复选框虚拟节点。
+     */
+    getSelectionHeaderTitle() {
+      return createVNode(SelectionHeaderCheckbox, {
+        state: this.selectionHeader.state,
+        disabled: this.loading || !this.selectionHeaderQuery || this.pagination.total <= 0,
+        onChange: this.handleSelectionHeaderChange,
+      });
+    },
+    /**
      * 初始化词条管理筛选项、版本及列表。
      * @returns {Promise<void>} 初始化流程。
      */
@@ -1465,7 +1488,7 @@ export default {
       } else {
         this.search.entryState_ = [0, 1, 2, 3];
       }
-      this.getEntryByClassfy();
+      this.getEntryByClassfy(false, this.accurSearch, true);
     },
     // 处理词条来源的搜索输入
     handleEntrySourceSearch(value) {
@@ -1538,6 +1561,7 @@ export default {
     conditionalQuery(accurate = [], isInit = false) {
       this.stopRedundantPolling();
       this.queryVersionGuard.invalidate();
+      this.restorePendingSelectionHeaderQuery();
       this.loading = false;
       // 将页码变为第一页
       this.pagination.current = 1;
@@ -1559,7 +1583,7 @@ export default {
           this.accurSearch = [];
         }
         this.lastAccurate = this.accurSearch;
-        this.getEntryByClassfy(isInit, this.accurSearch);
+        this.getEntryByClassfy(isInit, this.accurSearch, true);
       } else if (this.search.searchType == "checkNotUseEntry") {
         // 冗余校验查询
         this.lastSearchType = "checkNotUseEntry";
@@ -1573,11 +1597,13 @@ export default {
      * 根据当前分类和筛选条件查询词条。
      * @param {boolean} [isInit=false] 是否为首次点击状态树。
      * @param {Array} [accurate=[]] 全量查询条件。
+     * @param {boolean} [isQuerySubmission=false] 是否为显式新查询或结果刷新。
      * @returns {void}
      */
-    getEntryByClassfy(isInit = false, accurate = []) {
+    getEntryByClassfy(isInit = false, accurate = [], isQuerySubmission = false) {
       this.stopRedundantPolling();
       const queryToken = this.queryVersionGuard.next();
+      this.restorePendingSelectionHeaderQuery();
       if (isInit) {
         if (this.product.type == "department") {
           this.dataSource = [];
@@ -1597,6 +1623,7 @@ export default {
         !this.search.language
       ) {
         message.info("请选择翻译语种！");
+        this.restoreCommittedSelectionPage();
         this.loading = false;
         return;
       }
@@ -1650,6 +1677,19 @@ export default {
       if (accurate.length > 0) {
         params.accurate = accurate;
       }
+      const selectionQuery = this.getCurrentSelectionQuery();
+      const selectionHeaderQuery = {
+        scopeKey: this.getCurrentSelectionScopeKey(),
+        searchType: "getEntryByClassfy",
+        params: selectionQuery.params,
+        data: selectionQuery.data,
+        currentPage: this.pagination.current,
+        pageSize: this.pagination.pageSize,
+      };
+      if (isQuerySubmission) {
+        this.selectionHeaderQueryPending = true;
+        this.selectionHeader.beginQuery(selectionHeaderQuery.scopeKey);
+      }
       this.loading = true;
       // 获取对应分类的词条
       getEntryByClassfy(params, data)
@@ -1657,10 +1697,16 @@ export default {
           if (!this.queryVersionGuard.isCurrent(queryToken)) return;
           this.dataSource = res.data.list;
           this.pagination.total = res.data.totalNum;
+          this.selectionHeaderQueryPending = false;
+          this.setSelectionHeaderQuery(selectionHeaderQuery);
+          this.refreshSelectionHeaderState();
           this.paintModuleLimits();
         })
         .catch((err) => {
           if (!this.queryVersionGuard.isCurrent(queryToken)) return;
+          this.selectionHeaderQueryPending = false;
+          this.restoreCommittedSelectionPage();
+          this.refreshSelectionHeaderState();
           message.error(err.message);
         })
         .finally(() => {
@@ -1685,6 +1731,7 @@ export default {
      * @returns {Promise<void>} 状态查询处理结果。
      */
     async getCheckNotUseEntry() {
+      this.restorePendingSelectionHeaderQuery();
       if (!this.search.i18nURL) {
         message.info("请选择i18nURL！");
         this.queryVersionGuard.invalidate();
@@ -1693,6 +1740,12 @@ export default {
       }
       const queryToken = this.queryVersionGuard.next();
       const pollToken = this.redundantPollingToken;
+      this.setSelectionHeaderQuery({
+        scopeKey: this.getCurrentSelectionScopeKey(),
+        searchType: "checkNotUseEntry",
+      });
+      this.selectionHeaderQueryPending = true;
+      this.selectionHeader.beginQuery(this.selectionHeaderQuery.scopeKey);
       const params = {
         i18nURL: this.search.i18nURL,
         classfyID: this.currentProduct.key,
@@ -1708,6 +1761,7 @@ export default {
           !this.queryVersionGuard.isCurrent(queryToken)
         )
           return;
+        this.selectionHeaderQueryPending = false;
         const state = Number(res.data?.state);
         this.handleRedundantCheckStatus(
           state,
@@ -1725,6 +1779,8 @@ export default {
           return;
         this.loading = false;
         this.search.hasRedundantRls = true;
+        this.selectionHeaderQueryPending = false;
+        this.refreshSelectionHeaderState();
         message.error(err?.message || "冗余校验状态查询失败");
       }
     },
@@ -1735,6 +1791,7 @@ export default {
      */
     async reGetCheckNotUseEntry() {
       this.stopRedundantPolling();
+      this.restorePendingSelectionHeaderQuery();
       if (!this.search.i18nURL) {
         message.info("请选择i18nURL！");
         this.queryVersionGuard.invalidate();
@@ -1747,6 +1804,12 @@ export default {
         i18nURL: this.search.i18nURL,
         classfyID: this.currentProduct.key,
       };
+      this.setSelectionHeaderQuery({
+        scopeKey: this.getCurrentSelectionScopeKey(),
+        searchType: "checkNotUseEntry",
+      });
+      this.selectionHeaderQueryPending = true;
+      this.selectionHeader.beginQuery(this.selectionHeaderQuery.scopeKey);
       this.loading = true;
       this.search.hasRedundantRls = false;
       this.pagination.current = 1;
@@ -1770,6 +1833,7 @@ export default {
           !this.queryVersionGuard.isCurrent(queryToken)
         )
           return;
+        this.selectionHeaderQueryPending = false;
         const state = Number(res.data?.state);
         if (state === 3) {
           this.loading = true;
@@ -1781,6 +1845,8 @@ export default {
         if (state !== 0 && state !== 1) {
           this.loading = false;
           this.search.hasRedundantRls = true;
+          this.selectionHeaderQueryPending = false;
+          this.refreshSelectionHeaderState();
           message.error(
             state === 2
               ? "冗余词条校验执行异常，请重新查询"
@@ -1902,6 +1968,7 @@ export default {
         this.pagination.total =
           response?.data?.totalNum ?? this.dataSource.length;
         this.pagination.current = 1;
+        this.refreshSelectionHeaderState();
         this.paintModuleLimits();
         this.loading = false;
         message.info(
@@ -1915,6 +1982,7 @@ export default {
         this.stopRedundantPolling();
         this.dataSource = [];
         this.pagination.total = 0;
+        this.refreshSelectionHeaderState();
         this.search.hasRedundantRls = true;
         this.loading = false;
         message.error("冗余词条校验执行异常，请重新查询");
@@ -1923,6 +1991,7 @@ export default {
       if (state === 3) {
         this.dataSource = [];
         this.pagination.total = 0;
+        this.refreshSelectionHeaderState();
         this.search.hasRedundantRls = false;
         this.loading = true;
         if (!fromPolling) {
@@ -1935,6 +2004,7 @@ export default {
         this.stopRedundantPolling();
         this.dataSource = [];
         this.pagination.total = 0;
+        this.refreshSelectionHeaderState();
         this.search.hasRedundantRls = true;
         this.loading = false;
         message.warning(
@@ -1947,6 +2017,7 @@ export default {
       this.stopRedundantPolling();
       this.dataSource = [];
       this.pagination.total = 0;
+      this.refreshSelectionHeaderState();
       this.search.hasRedundantRls = true;
       this.loading = false;
       message.warning(
@@ -2033,7 +2104,7 @@ export default {
       }
       this.pagination.current = 1;
       // 查询版本词条
-      this.getEntryByClassfy(false, this.accurSearch);
+      this.getEntryByClassfy(false, this.accurSearch, true);
     },
 
     // 添加表格行点击事件
@@ -2177,7 +2248,7 @@ export default {
           };
           deleteEntryInfo(this.selectedRowKeys, params).then((res) => {
             message.success("删除成功！");
-            this.getEntryByClassfy(false, this.accurSearch);
+            this.getEntryByClassfy(false, this.accurSearch, true);
             this.selectedRowKeys = [];
             this.selectedRows = [];
           });
@@ -2327,7 +2398,7 @@ export default {
       }
       this.syncSelectedProducts();
       delete this.rowClassify2Option[entry.id];
-      this.getEntryByClassfy(false, this.accurSearch);
+      this.getEntryByClassfy(false, this.accurSearch, true);
     },
 
     // 关闭流程操作区
@@ -2537,6 +2608,130 @@ export default {
       });
     },
     /**
+     * 保存已提交表头查询快照，并在查询范围变化时取消旧判定。
+     * @param {Object} query - 已提交查询范围和分页请求参数。
+     * @returns {void} 无返回值。
+     */
+    setSelectionHeaderQuery(query) {
+      if (this.selectionHeaderQuery?.scopeKey !== query.scopeKey) {
+        this.selectionHeader.invalidate();
+      }
+      this.selectionHeaderQuery = query;
+    },
+    /**
+     * 恢复已显示查询的表头状态，并结束被新操作取消的查询等待态。
+     * @returns {void} 无返回值。
+     */
+    restorePendingSelectionHeaderQuery() {
+      if (!this.selectionHeaderQueryPending) return;
+      this.selectionHeaderQueryPending = false;
+      this.refreshSelectionHeaderState();
+    },
+    /**
+     * 查询失败时恢复与当前表格数据对应的已提交页码。
+     * @returns {void} 无返回值。
+     */
+    restoreCommittedSelectionPage() {
+      const committedPage = Number(this.selectionHeaderQuery?.currentPage);
+      const committedPageSize = Number(this.selectionHeaderQuery?.pageSize);
+      if (Number.isInteger(committedPage) && committedPage > 0) {
+        this.pagination.current = committedPage;
+      }
+      if (Number.isInteger(committedPageSize) && committedPageSize > 0) {
+        this.pagination.pageSize = committedPageSize;
+      }
+    },
+    /**
+     * 使用共享 hook 判定词条管理当前查询的全选状态。
+     * @returns {Promise<string>} 当前表头状态。
+     */
+    refreshSelectionHeaderState() {
+      const query = this.selectionHeaderQuery;
+      if (this.selectionHeaderQueryPending) {
+        return Promise.resolve(this.selectionHeader.state);
+      }
+      if (!query) return Promise.resolve(this.selectionHeader.state);
+      const rows = this.dataSource || [];
+      return this.selectionHeader.refresh({
+        scope: query.scopeKey,
+        selectedIds: this.tableSelectedRowKeys,
+        rows,
+        total: this.pagination.total,
+        isCompleteResult: query.searchType === "checkNotUseEntry" ||
+          (this.pagination.current === 1 && rows.length >= this.pagination.total),
+        fetchAllIds: async () => {
+          const response = await getEntryByClassfy(
+            { ...query.params, pageIndex: -1, pageSize: -1 },
+            query.data
+          );
+          return {
+            ids: Array.isArray(response?.data?.list)
+              ? response.data.list.map((row) => row?.id)
+              : null,
+            total: Number(response?.data?.totalNum),
+          };
+        },
+      });
+    },
+    /**
+     * 根据完整查询结果缓存表头的全选、半选或未选状态。
+     * @param {Array<Object>} rows - 当前查询的完整结果集。
+     * @param {string} [scopeKey] - 产生结果时对应的已提交查询范围。
+     * @returns {void} 无返回值。
+     */
+    cacheSelectionHeaderStateFromRows(
+      rows,
+      scopeKey = this.selectionHeaderQuery?.scopeKey || ""
+    ) {
+      if (
+        this.selectionHeaderQuery?.scopeKey &&
+        this.selectionHeaderQuery.scopeKey !== scopeKey
+      ) {
+        this.refreshSelectionHeaderState();
+        return;
+      }
+      const queryIds = new Set((rows || []).map((row) => row.id));
+      const total = Number(this.pagination.total);
+      if (rows.length !== total || queryIds.size !== total) {
+        this.selectionHeader.invalidate();
+        this.refreshSelectionHeaderState();
+        return;
+      }
+      const selectedIds = this.selectEntry.map((item) => item.id);
+      const selectedSet = new Set(selectedIds);
+      const selectedCount = [...queryIds].filter((id) => selectedSet.has(id)).length;
+      const state = selectedCount === 0
+        ? "unchecked"
+        : selectedCount === queryIds.size
+          ? "checked"
+          : "indeterminate";
+      this.selectionHeader.setKnownIds([...queryIds], total, scopeKey);
+      this.selectionHeader.setKnownState(
+        state,
+        scopeKey,
+        selectedIds
+      );
+    },
+    /**
+     * 处理共享表头复选框并发起当前查询范围的全选或取消选择。
+     * @param {boolean} selected - 是否全选当前查询结果。
+     * @returns {void} 启动全量选择操作。
+     */
+    handleSelectionHeaderChange(selected) {
+      const query = this.selectionHeaderQuery;
+      this.selectionHeader.setKnownState(
+        selected ? "checked" : "unchecked",
+        query?.scopeKey || "",
+        this.selectEntry.map((item) => item.id)
+      );
+      return this.onSelectAll(
+        selected,
+        this.tableSelectedRowKeys,
+        this.dataSource,
+        query
+      );
+    },
+    /**
      * 创建并登记一次全量选择或取勾请求。
      * @param {string} action - 请求类型，select 或 deselect。
      * @param {string} scopeKey - 发起请求时的完整查询范围键。
@@ -2544,7 +2739,7 @@ export default {
      */
     createSelectionRequest(
       action,
-      scopeKey = this.selectionScopeKey
+      scopeKey = this.getCurrentSelectionScopeKey()
     ) {
       return this.selectionOperations.begin(scopeKey, action === "select");
     },
@@ -2563,9 +2758,10 @@ export default {
      * 从全局清单移除当前完整查询结果，并保护请求期间较新的行级勾选。
      * @param {Array} rows - 当前查询的完整结果集。
      * @param {Object} request - 当前取勾请求。
+     * @param {string} [scopeKey] - 查询结果对应的已提交范围。
      * @returns {void}
      */
-    removeCurrentQuerySelection(rows, request) {
+    removeCurrentQuerySelection(rows, request, scopeKey = request.scope) {
       this.selectEntry = this.selectionOperations.resolve(
         request,
         rows,
@@ -2575,28 +2771,37 @@ export default {
       this.selectedRows = this.selectEntry;
       this.selectedRowKeys = this.selectEntry.map((item) => item.id);
       this.syncSelectedProducts();
+      this.cacheSelectionHeaderStateFromRows(rows, scopeKey);
     },
     /**
      * 移除当前搜索结果的已选词条，其他查询和产品的选择保持不变。
-     * @param {void} none - 本方法不接收参数。
+     * @param {Object|null} [querySnapshot] - 表头点击时已提交的查询快照。
      * @returns {void}
      */
-    clearCurrentQuerySelection() {
-      const request = this.createSelectionRequest("deselect");
-      if (this.lastSearchType === "checkNotUseEntry") {
-        this.removeCurrentQuerySelection(this.dataSource, request);
+    clearCurrentQuerySelection(querySnapshot = null) {
+      const scopeKey = querySnapshot?.scopeKey || this.getCurrentSelectionScopeKey();
+      const searchType = querySnapshot?.searchType || this.lastSearchType;
+      const request = this.createSelectionRequest("deselect", scopeKey);
+      if (searchType === "checkNotUseEntry") {
+        this.removeCurrentQuerySelection(this.dataSource, request, scopeKey);
         return;
       }
 
-      const { params, data } = this.getCurrentSelectionQuery();
+      const { params, data } = querySnapshot || this.getCurrentSelectionQuery();
       getEntryByClassfy(params, data)
         .then((res) => {
           if (!this.isCurrentSelectionRequest(request)) return;
-          this.removeCurrentQuerySelection(res.data?.list || [], request);
+          this.removeCurrentQuerySelection(
+            res.data?.list || [],
+            request,
+            scopeKey
+          );
         })
         .catch((err) => {
           if (!this.isCurrentSelectionRequest(request)) return;
           this.selectionOperations.reject(request);
+          this.selectionHeader.invalidate();
+          this.refreshSelectionHeaderState();
           message.error(err?.message || "取消当前查询选择失败");
         })
         .finally(() => {
@@ -2636,7 +2841,7 @@ export default {
           this.lastAccurate && this.lastAccurate.length
             ? this.lastAccurate
             : this.accurSearch;
-        this.getEntryByClassfy(false, accurate);
+        this.getEntryByClassfy(false, accurate, true);
       }
     },
     /**
@@ -2704,30 +2909,34 @@ export default {
     // 选择全部词条
     /**
      * 查询当前筛选下的全部词条并合并到已选列表。
-     * @param {void} none 本方法不接收参数。
+     * @param {Object|null} [querySnapshot] - 表头点击时已提交的查询快照。
      * @returns {void}
      */
-    selectAllEntry() {
+    selectAllEntry(querySnapshot = null) {
       // 获取所有的词条
       if (Object.keys(this.product).length === 0) {
         return;
       }
 
-      const request = this.createSelectionRequest("select");
-      if (this.lastSearchType === "checkNotUseEntry") {
+      const scopeKey = querySnapshot?.scopeKey || this.getCurrentSelectionScopeKey();
+      const searchType = querySnapshot?.searchType || this.lastSearchType;
+      const request = this.createSelectionRequest("select", scopeKey);
+      if (searchType === "checkNotUseEntry") {
+        const rows = this.dataSource;
         this.selectEntry = this.selectionOperations.resolve(
           request,
-          this.dataSource,
+          rows,
           this.selectEntry,
           request.scope
         );
         this.selectedRows = this.selectEntry;
         this.selectedRowKeys = this.selectEntry.map((item) => item.id);
         this.syncSelectedProducts();
+        this.cacheSelectionHeaderStateFromRows(rows, scopeKey);
         return;
       }
 
-      const { params, data } = this.getCurrentSelectionQuery();
+      const { params, data } = querySnapshot || this.getCurrentSelectionQuery();
       getEntryByClassfy(params, data)
         .then((res) => {
           if (!this.isCurrentSelectionRequest(request)) return;
@@ -2740,10 +2949,13 @@ export default {
           this.selectedRows = this.selectEntry;
           this.selectedRowKeys = this.selectedRows.map((item) => item.id);
           this.syncSelectedProducts();
+          this.cacheSelectionHeaderStateFromRows(res.data?.list || [], scopeKey);
         })
         .catch((err) => {
           if (!this.isCurrentSelectionRequest(request)) return;
           this.selectionOperations.reject(request);
+          this.selectionHeader.invalidate();
+          this.refreshSelectionHeaderState();
           message.error(err?.message || "全量选择失败");
         })
         .finally(() => {
@@ -2762,6 +2974,7 @@ export default {
       this.selectEntry = this.selectedEntryOperations.clear();
       this.selectedRowKeys = [];
       this.selectedRows = [];
+      this.refreshSelectionHeaderState();
     },
     /**
      * 清空全部已选词条并关闭已选词条弹窗。
@@ -2805,6 +3018,7 @@ export default {
       this.selectedRows = this.selectEntry;
       this.selectedRowKeys = this.selectEntry.map((item) => item.id);
       this.syncSelectedProducts();
+      this.refreshSelectionHeaderState();
     },
     /**
      * 将单行或弹窗中的选择变化同步到所有进行中的全量请求。
@@ -3087,6 +3301,7 @@ export default {
     onSelectChange() {
       this.selectedRows = this.selectEntry;
       this.selectedRowKeys = this.selectEntry.map((item) => item.id);
+      this.refreshSelectionHeaderState();
     },
     /**
      * 同步单行勾选到跨页、跨产品的已选词条列表。
@@ -3098,7 +3313,7 @@ export default {
       this.recordPendingSelectionChanges(
         selected ? [] : [record.id],
         selected ? [record.id] : [],
-        this.getCurrentSelectionScopeKey()
+        this.selectionHeaderQuery?.scopeKey || this.getCurrentSelectionScopeKey()
       );
       if (selected) {
         this.selectEntry = this.selectedEntryOperations.update(
@@ -3114,17 +3329,19 @@ export default {
       this.selectedRows = this.selectEntry;
       this.selectedRowKeys = this.selectEntry.map((item) => item.id);
       this.syncSelectedProducts();
+      this.refreshSelectionHeaderState();
     },
     /**
      * 将表头勾选应用到当前筛选结果全集，取勾时仅移除当前查询结果。
      * @param {boolean} selected - 表头复选框是否处于勾选状态。
      * @param {Array} _selectedRows - 表格当前勾选行。
      * @param {Array} changeRows - 本次表头操作影响的当前页词条。
+     * @param {Object|null} [querySnapshot] - 表头点击时已提交的查询快照。
      * @returns {void}
      */
-    onSelectAll(selected, _selectedRows, changeRows) {
+    onSelectAll(selected, _selectedRows, changeRows, querySnapshot = null) {
       const changedIds = (changeRows || []).map((item) => item.id);
-      const scope = this.getCurrentSelectionScopeKey();
+      const scope = querySnapshot?.scopeKey || this.getCurrentSelectionScopeKey();
       if (selected) {
         this.recordPendingSelectionChanges(
           [],
@@ -3138,11 +3355,11 @@ export default {
         this.selectedRows = this.selectEntry;
         this.selectedRowKeys = this.selectEntry.map((item) => item.id);
         this.syncSelectedProducts();
-        this.selectAllEntry();
+        this.selectAllEntry(querySnapshot);
         return;
       }
       this.recordPendingSelectionChanges(changedIds, [], scope);
-      this.clearCurrentQuerySelection();
+      this.clearCurrentQuerySelection(querySnapshot);
     },
     /**
      * 切换表格分页；冗余校验结果已完整载入，只进行本地分页。

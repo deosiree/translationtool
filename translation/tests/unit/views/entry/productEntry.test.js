@@ -10,6 +10,7 @@ import ColumnFilter from '@/components/ColumnFilter/ColumnFilter.vue'
 import { entryAllCols, entryPresets, entryParams } from '@/constants/commonParam.js'
 import { resolvePresetCols } from '@/components/ColumnFilter/colPreset.js'
 import { setTableHeight as setTableHeightMock } from '@/utils/tableUtils'
+import SelectionHeaderCheckbox from '@/components/table/SelectionHeaderCheckbox.vue'
 
 const applyTableMock = vi.hoisted(() => vi.fn())
 const changeColumnMock = vi.hoisted(() => vi.fn())
@@ -1279,6 +1280,353 @@ describe('ProductEntry - 缺失产品 ID 的请求参数', () => {
   })
 })
 
+describe('ProductEntry - 共享表头全选状态', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  it('使用共享复选框，并只根据已提交查询快照刷新状态', async () => {
+    const row = { id: 'row-1', entry: '断路器' }
+    getEntryByClassfyMock.mockResolvedValueOnce({
+      data: { list: [row], totalNum: 40 },
+    })
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.product = testProduct
+    wrapper.vm.lastSearchType = 'getEntryByClassfy'
+    wrapper.vm.search.entry = 'submitted query'
+    wrapper.vm.selectEntry = [row]
+    wrapper.vm.selectedRows = [row]
+    wrapper.vm.selectedRowKeys = [row.id]
+
+    expect(wrapper.vm.getSelectionHeaderTitle().type).toBe(SelectionHeaderCheckbox)
+    wrapper.vm.getEntryByClassfy()
+    await flushPromises()
+    const submittedScope = wrapper.vm.selectionHeaderQuery.scopeKey
+
+    expect(submittedScope).toBe(wrapper.vm.getCurrentSelectionScopeKey())
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getEntryByClassfyMock).toHaveBeenCalledTimes(1)
+
+    wrapper.vm.search.entry = 'unsubmitted edit'
+    await nextTick()
+
+    expect(wrapper.vm.selectionHeaderQuery.scopeKey).toBe(submittedScope)
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getEntryByClassfyMock).toHaveBeenCalledTimes(1)
+  })
+
+  it('显式查询提交后立即显示等待重算状态，回包后显示核对结果', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    const pendingQuery = createDeferred()
+    getEntryByClassfyMock.mockReturnValueOnce(pendingQuery.promise)
+    wrapper.vm.product = testProduct
+    wrapper.vm.search.entry = '俄文未翻译'
+    wrapper.vm.search.language = '俄文'
+    wrapper.vm.search.translateState = 0
+
+    wrapper.vm.conditionalQuery()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('querying')
+    const headerWrapper = mount(SelectionHeaderCheckbox, {
+      props: { state: wrapper.vm.selectionHeader.state },
+    })
+    expect(headerWrapper.text()).toContain('查询已提交，等待重算表头状态')
+    expect(headerWrapper.vm.isBusy).toBe(true)
+
+    pendingQuery.resolve({ data: { list: [{ id: 'row-1' }], totalNum: 40 } })
+    await flushPromises()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('unchecked')
+    headerWrapper.unmount()
+  })
+
+  it('跨页核对期间显示可见提示并保持表头禁用', () => {
+    const headerWrapper = mount(SelectionHeaderCheckbox, {
+      props: { state: 'checking' },
+    })
+
+    expect(headerWrapper.text()).toContain('正在判断全选状态')
+    expect(headerWrapper.vm.isBusy).toBe(true)
+    headerWrapper.unmount()
+  })
+
+  it('表头状态包含当前页的待处理勾选投影', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    const row = { id: 'projected-row' }
+    const scope = 'query-with-pending-selection'
+    wrapper.vm.selectionHeaderQuery = {
+      scopeKey: scope,
+      searchType: 'getEntryByClassfy',
+      params: { pageIndex: -1, pageSize: -1 },
+      data: {},
+      currentPage: 1,
+      pageSize: 20,
+    }
+    wrapper.vm.dataSource = [row]
+    wrapper.vm.pagination.total = 40
+    wrapper.vm.selectEntry = []
+    wrapper.vm.selectionOperations.begin(scope, true)
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.tableSelectedRowKeys).toContain(row.id)
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getEntryByClassfyMock).not.toHaveBeenCalled()
+  })
+
+  it('接口返回 5381 条但查询总数为 6484 时不缓存为全选', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    const scopeKey = 'query-5381-of-6484'
+    const currentPageRows = Array.from({ length: 20 }, (_, index) => ({
+      id: `entry-${index}`,
+    }))
+    const returnedRows = Array.from({ length: 5381 }, (_, index) => ({
+      id: `entry-${index}`,
+    }))
+    wrapper.vm.selectionHeaderQuery = {
+      scopeKey,
+      searchType: 'getEntryByClassfy',
+      params: { pageIndex: -1, pageSize: -1 },
+      data: {},
+      currentPage: 1,
+      pageSize: 20,
+    }
+    wrapper.vm.pagination.total = 6484
+    wrapper.vm.pagination.current = 1
+    wrapper.vm.pagination.pageSize = 20
+    wrapper.vm.dataSource = currentPageRows
+    wrapper.vm.selectEntry = returnedRows
+
+    wrapper.vm.cacheSelectionHeaderStateFromRows(returnedRows, scopeKey)
+
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getEntryByClassfyMock).not.toHaveBeenCalled()
+  })
+
+  it('表头全选继续使用已提交查询快照，不读取未提交筛选草稿', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    const query = {
+      scopeKey: 'submitted-scope',
+      searchType: 'getEntryByClassfy',
+      params: { classfyID: 'submitted-product', pageIndex: -1, pageSize: -1 },
+      data: { entry: 'submitted query' },
+    }
+    getEntryByClassfyMock.mockResolvedValueOnce({
+      data: { list: [{ id: 'selected-row', productID: 'product-id-1' }], totalNum: 1 },
+    })
+    wrapper.vm.product = testProduct
+    wrapper.vm.lastSearchType = 'getEntryByClassfy'
+    wrapper.vm.selectionHeaderQuery = query
+    wrapper.vm.dataSource = [{ id: 'visible-row', productID: 'product-id-1' }]
+    wrapper.vm.search.entry = 'unsubmitted edit'
+
+    wrapper.vm.handleSelectionHeaderChange(true)
+    await flushPromises()
+
+    expect(getEntryByClassfyMock).toHaveBeenCalledWith(query.params, query.data)
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toContain('selected-row')
+  })
+
+  it('表头取消选择继续使用已提交查询快照，不读取未提交筛选草稿', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    const query = {
+      scopeKey: 'submitted-scope',
+      searchType: 'getEntryByClassfy',
+      params: { classfyID: 'submitted-product', pageIndex: -1, pageSize: -1 },
+      data: { entry: 'submitted query' },
+    }
+    getEntryByClassfyMock.mockResolvedValueOnce({
+      data: {
+        list: [{ id: 'query-row', productID: 'product-id-1' }],
+        totalNum: 1,
+      },
+    })
+    wrapper.vm.product = testProduct
+    wrapper.vm.lastSearchType = 'getEntryByClassfy'
+    wrapper.vm.selectionHeaderQuery = query
+    wrapper.vm.dataSource = [{ id: 'query-row', productID: 'product-id-1' }]
+    wrapper.vm.selectEntry = [
+      { id: 'query-row', productID: 'product-id-1' },
+      { id: 'outside-row', productID: 'product-id-2' },
+    ]
+    wrapper.vm.search.entry = 'unsubmitted edit'
+
+    wrapper.vm.handleSelectionHeaderChange(false)
+    await flushPromises()
+
+    expect(getEntryByClassfyMock).toHaveBeenCalledWith(query.params, query.data)
+    expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual(['outside-row'])
+  })
+
+  it('批量选择未完成时，行级取消仍按已提交范围立即投影', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    const row = { id: 'query-row', productID: 'product-id-1' }
+    const pendingSelection = createDeferred()
+    const query = {
+      scopeKey: 'submitted-scope',
+      searchType: 'getEntryByClassfy',
+      params: { classfyID: 'submitted-product', pageIndex: -1, pageSize: -1 },
+      data: { entry: 'submitted query' },
+    }
+    getEntryByClassfyMock.mockReturnValueOnce(pendingSelection.promise)
+    wrapper.vm.product = testProduct
+    wrapper.vm.selectionHeaderQuery = query
+    wrapper.vm.dataSource = [row]
+
+    wrapper.vm.handleSelectionHeaderChange(true)
+    wrapper.vm.search.entry = 'unsubmitted edit'
+    wrapper.vm.onSelect(row, false)
+
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain(row.id)
+
+    pendingSelection.resolve({ data: { list: [row], totalNum: 1 } })
+    await flushPromises()
+
+    expect(wrapper.vm.tableSelectedRowKeys).not.toContain(row.id)
+  })
+
+  it('新查询失败时保留旧表格数据和已提交范围', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.product = testProduct
+    const submittedQuery = {
+      scopeKey: 'old-scope',
+      searchType: 'getEntryByClassfy',
+      params: { classfyID: 'old-product', pageIndex: -1, pageSize: -1 },
+      data: {},
+      currentPage: 2,
+      pageSize: 2,
+    }
+    wrapper.vm.selectionHeaderQuery = submittedQuery
+    wrapper.vm.dataSource = [{ id: 'old-page-two-row' }]
+    wrapper.vm.pagination.current = 2
+    wrapper.vm.pagination.pageSize = 3
+    wrapper.vm.pagination.total = 4
+    getEntryByClassfyMock.mockRejectedValueOnce(new Error('query failed'))
+
+    wrapper.vm.conditionalQuery()
+    await flushPromises()
+
+    expect(wrapper.vm.dataSource.map((row) => row.id)).toEqual(['old-page-two-row'])
+    expect(wrapper.vm.pagination.current).toBe(2)
+    expect(wrapper.vm.pagination.pageSize).toBe(2)
+    expect(wrapper.vm.selectionHeaderQuery).toEqual(submittedQuery)
+    expect(wrapper.vm.selectionHeaderQueryPending).toBe(false)
+    expect(wrapper.vm.getSelectionHeaderTitle().props.disabled).toBe(false)
+  })
+
+  it('表头判定按已提交页快照解释旧页数据', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    const pageTwoRows = [{ id: 'page-two-a' }, { id: 'page-two-b' }]
+    wrapper.vm.selectionHeaderQuery = {
+      scopeKey: 'query-with-page-two',
+      searchType: 'getEntryByClassfy',
+      params: { classfyID: 'module-id-1', pageIndex: -1, pageSize: -1 },
+      data: {},
+      currentPage: 2,
+      pageSize: 2,
+    }
+    wrapper.vm.pagination.current = 1
+    wrapper.vm.pagination.pageSize = 3
+    wrapper.vm.pagination.total = 4
+    wrapper.vm.dataSource = pageTwoRows
+    wrapper.vm.selectEntry = [
+      ...pageTwoRows,
+      { id: 'outside-a' },
+      { id: 'outside-b' },
+    ]
+    getEntryByClassfyMock.mockImplementation(async (params) => ({
+      data: {
+        totalNum: 4,
+        list: params.pageIndex === -1 && params.pageSize === -1
+          ? [
+              { id: 'page-one-a' },
+              { id: 'page-one-b' },
+              ...pageTwoRows,
+            ]
+          : pageTwoRows,
+      },
+    }))
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getEntryByClassfyMock).toHaveBeenCalledTimes(1)
+    expect(getEntryByClassfyMock).toHaveBeenCalledWith(
+      expect.objectContaining({ pageIndex: -1, pageSize: -1 }),
+      {},
+    )
+  })
+
+  it('同一查询范围翻页复用已确认的表头状态', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionHeaderQuery = {
+      scopeKey: 'same-query',
+      searchType: 'getEntryByClassfy',
+      params: { classfyID: 'module-id-1', pageIndex: -1, pageSize: -1 },
+      data: {},
+    }
+    wrapper.vm.pagination.total = 4
+    wrapper.vm.pagination.current = 1
+    wrapper.vm.pagination.pageSize = 2
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.selectEntry = [
+      { id: 'row-1' },
+      { id: 'row-2' },
+      { id: 'row-3' },
+      { id: 'row-4' },
+    ]
+    getEntryByClassfyMock.mockResolvedValue({
+      data: {
+        list: [
+          { id: 'row-1' },
+          { id: 'row-2' },
+          { id: 'row-3' },
+          { id: 'row-4' },
+        ],
+        totalNum: 4,
+      },
+    })
+
+    await wrapper.vm.refreshSelectionHeaderState()
+    expect(wrapper.vm.selectionHeader.state).toBe('checked')
+    expect(getEntryByClassfyMock).toHaveBeenCalledTimes(1)
+    expect(getEntryByClassfyMock).toHaveBeenCalledWith(
+      expect.objectContaining({ pageIndex: -1, pageSize: -1 }),
+      {},
+    )
+
+    wrapper.vm.pagination.current = 2
+    wrapper.vm.dataSource = [{ id: 'row-3' }, { id: 'row-4' }]
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('checked')
+    expect(getEntryByClassfyMock).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('ProductEntry - 查询响应竞态', () => {
   let wrapper
 
@@ -2219,6 +2567,7 @@ describe('ProductEntry - 选择范围', () => {
     getEntryByClassfyMock.mockClear()
     getEntryByClassfyMock.mockReturnValueOnce(pendingSelection.promise)
     wrapper.vm.product = { type: 'product', key: 'product-a', title: '产品 A' }
+    wrapper.vm.search.entry = '原始查询条件'
     wrapper.vm.selectAllEntry()
     wrapper.vm.dataSource = [{ id: 'next-page-entry', productID: 'product-a' }]
 
@@ -2952,5 +3301,43 @@ describe('ProductEntry - 选择范围', () => {
 
     expect(wrapper.vm.selectionOperations.pendingCount).toBe(0)
     expect(wrapper.vm.selectEntry.map((entry) => entry.id)).toEqual(['selected'])
+  })
+})
+
+describe('ProductEntry - 分页容量选择器', () => {
+  let wrapper
+
+  afterEach(() => {
+    if (wrapper) wrapper.unmount()
+    vi.clearAllMocks()
+  })
+
+  it('查询总数在阈值两侧变化时仍启用容量选择器', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+
+    wrapper.vm.pagination.total = 380
+    expect(wrapper.vm.pagination.showSizeChanger).toBe(true)
+
+    wrapper.vm.pagination.total = 42
+    expect(wrapper.vm.pagination.showSizeChanger).toBe(true)
+  })
+
+  it('切换每页条数后按选定容量重新查询', async () => {
+    wrapper = mountProductEntry()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.product = testProduct
+    wrapper.vm.pagination.total = 380
+
+    wrapper.vm.pageChange(1, 50)
+    await flushPromises()
+
+    expect(wrapper.vm.pagination.current).toBe(1)
+    expect(wrapper.vm.pagination.pageSize).toBe(50)
+    expect(getEntryByClassfyMock).toHaveBeenCalledWith(
+      expect.objectContaining({ pageIndex: 1, pageSize: 50 }),
+      expect.any(Object),
+    )
   })
 })

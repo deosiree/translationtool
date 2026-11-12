@@ -4,7 +4,7 @@ import { nextTick } from 'vue'
 import GlossaryIndex from '@/views/glossary/index.vue'
 import { getTranslateStateLabel } from '@/constants/statusMaps.js'
 import { createUserStoreMock } from '../../testUtils/userStoreMock'
-import { getSykEntry, getSykEntryRelation } from '@/http/api/glossary'
+import { getSykEntry, getSykEntryRelation, getSykNotUsed } from '@/http/api/glossary'
 import { cancelRequest } from '@/http/request'
 import { message } from 'ant-design-vue'
 
@@ -687,5 +687,342 @@ describe('Glossary - 浏览省略与编辑文本域', () => {
       .findAll('.select-toolbar-button')
       .find((button) => button.text().trim() === '已选词条')
     expect(selectedButton.classes()).toContain('resetBtn')
+  })
+
+  it('当前页有选中且已选数少于查询总数时立即半选，不请求其他页', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'query-5381-of-6484'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'selected-row' }]
+    wrapper.vm.pagination.total = 6484
+    wrapper.vm.selectedRowKeys = Array.from({ length: 5381 }, (_, index) => `selected-${index}`)
+    wrapper.vm.selectedRowKeys[0] = 'selected-row'
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getSykEntry).not.toHaveBeenCalled()
+  })
+
+  it('完整收集结果的唯一 ID 少于查询总数时不会缓存为全选', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'query-with-duplicate-ids'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'duplicate-row' }]
+    wrapper.vm.pagination.total = 2
+    wrapper.vm.selectedRowKeys = ['duplicate-row']
+    getSykEntry.mockResolvedValueOnce({
+      data: {
+        totalNum: 2,
+        list: [{ id: 'duplicate-row' }, { id: 'duplicate-row' }],
+      },
+    })
+
+    await wrapper.vm.onSelectAll(true)
+
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getSykEntry).toHaveBeenCalledTimes(1)
+  })
+
+  it('全局没有已选 ID 时立即未选，不请求其他页', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'nothing-selected'
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.total = 100
+    wrapper.vm.selectedRowKeys = []
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('unchecked')
+    expect(getSykEntry).not.toHaveBeenCalled()
+  })
+
+  it('跨页全选期间的最后一次单行操作决定最终表头状态', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'override-query'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }]
+    wrapper.vm.pagination.total = 3
+    wrapper.vm.selectedRowKeys = []
+    let resolveFullSelection
+    getSykEntry.mockImplementationOnce(() => new Promise((resolve) => {
+      resolveFullSelection = resolve
+    }))
+
+    const pendingSelection = wrapper.vm.onSelectAll(true)
+    wrapper.vm.onSelect({ id: 'row-1' }, false)
+    resolveFullSelection({
+      data: { totalNum: 3, list: [{ id: 'row-1' }, { id: 'row-2' }, { id: 'row-3' }] },
+    })
+    await pendingSelection
+
+    expect(wrapper.vm.selectEntry.map((row) => row.id)).toEqual(['row-2', 'row-3'])
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getSykEntry).toHaveBeenCalledTimes(1)
+  })
+
+  it('本地已加载完整查询结果时直接计算，不请求分页', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'complete-local-result'
+    wrapper.vm.lastSearch = { searchType: 'checkSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.total = 2
+    wrapper.vm.selectedRowKeys = ['row-1', 'row-2']
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('checked')
+    expect(getSykEntry).not.toHaveBeenCalled()
+  })
+
+  it('空挂术语本地分页的第 2 页复用完整结果，不额外请求分页', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'complete-unused-result'
+    wrapper.vm.lastSearch = { searchType: 'getSykNotUsed' }
+    wrapper.vm.dataSource = Array.from({ length: 21 }, (_, index) => ({ id: `row-${index + 1}` }))
+    wrapper.vm.pagination.current = 2
+    wrapper.vm.pagination.pageSize = 20
+    wrapper.vm.pagination.total = 21
+    wrapper.vm.selectedRowKeys = wrapper.vm.dataSource.map((row) => row.id)
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('checked')
+    expect(getSykNotUsed).not.toHaveBeenCalled()
+  })
+
+  it('当前页只有部分行选中时立即半选，不请求其他页', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'partial-page'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.total = 100
+    wrapper.vm.selectedRowKeys = ['row-1']
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getSykEntry).not.toHaveBeenCalled()
+  })
+
+  it('当前页全选且数量相等时单次获取完整 ID 并确认全选', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'fully-selected-query'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.current = 1
+    wrapper.vm.pagination.pageSize = 2
+    wrapper.vm.pagination.total = 4
+    wrapper.vm.selectedRowKeys = ['row-1', 'row-2', 'row-3', 'row-4']
+    getSykEntry.mockResolvedValue({
+      data: {
+        totalNum: 4,
+        list: [
+          { id: 'row-1' },
+          { id: 'row-2' },
+          { id: 'row-3' },
+          { id: 'row-4' },
+        ],
+      },
+    })
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(getSykEntry).toHaveBeenCalledTimes(1)
+    expect(getSykEntry).toHaveBeenCalledWith(
+      expect.objectContaining({ pageIndex: -1, pageSize: -1 }),
+      expect.any(Object),
+    )
+    expect(wrapper.vm.selectionHeader.state).toBe('checked')
+
+    wrapper.vm.pagination.current = 2
+    wrapper.vm.dataSource = [{ id: 'row-3' }, { id: 'row-4' }]
+    await wrapper.vm.refreshSelectionHeaderState()
+    expect(getSykEntry).toHaveBeenCalledTimes(1)
+  })
+
+  it('当前页未选但其他页已选时继续核对并尽早判为半选', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'selected-on-later-page'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.current = 1
+    wrapper.vm.pagination.pageSize = 2
+    wrapper.vm.pagination.total = 6
+    wrapper.vm.selectedRowKeys = ['row-3', 'external-1', 'external-2', 'external-3', 'external-4', 'external-5']
+    getSykEntry.mockResolvedValue({
+      data: {
+        totalNum: 6,
+        list: [
+          { id: 'row-1' },
+          { id: 'row-2' },
+          { id: 'row-3' },
+          { id: 'row-4' },
+          { id: 'row-5' },
+          { id: 'row-6' },
+        ],
+      },
+    })
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(getSykEntry.mock.calls.map(([params]) => [params.pageIndex, params.pageSize])).toEqual([[-1, -1]])
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+  })
+
+  it('当前页全选但已选数大于查询总数时仍跨页核对', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'selected-count-over-total'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.current = 1
+    wrapper.vm.pagination.pageSize = 2
+    wrapper.vm.pagination.total = 4
+    wrapper.vm.selectedRowKeys = ['row-1', 'row-2', 'outside-1', 'outside-2', 'outside-3']
+    getSykEntry.mockResolvedValue({
+      data: {
+        totalNum: 4,
+        list: [
+          { id: 'row-1' },
+          { id: 'row-2' },
+          { id: 'row-3' },
+          { id: 'row-4' },
+        ],
+      },
+    })
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(getSykEntry.mock.calls.map(([params]) => [params.pageIndex, params.pageSize])).toEqual([[-1, -1]])
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+  })
+
+  it('跨页响应条数不足时不缓存全选结论', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'short-page-response'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.current = 1
+    wrapper.vm.pagination.pageSize = 2
+    wrapper.vm.pagination.total = 4
+    wrapper.vm.selectedRowKeys = ['row-1', 'row-2', 'row-3', 'row-4']
+    getSykEntry.mockResolvedValue({
+      data: { totalNum: 4, list: [{ id: 'row-3' }] },
+    })
+
+    await wrapper.vm.refreshSelectionHeaderState()
+
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(getSykEntry.mock.calls.map(([params]) => [params.pageIndex, params.pageSize])).toEqual([[-1, -1]])
+  })
+
+  it('跨页状态缓存按查询范围和选择集区分，且旧查询迟到结果不覆盖新状态', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.selectionScope = 'old-query'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.current = 1
+    wrapper.vm.pagination.pageSize = 2
+    wrapper.vm.pagination.total = 4
+    wrapper.vm.selectedRowKeys = ['row-1', 'row-2', 'row-3', 'row-4']
+    let resolveOldPage
+    getSykEntry.mockImplementationOnce(() => new Promise((resolve) => { resolveOldPage = resolve }))
+
+    const oldCheck = wrapper.vm.refreshSelectionHeaderState()
+    expect(wrapper.vm.selectionHeader.state).toBe('checking')
+    const header = wrapper.vm.rowSelection.columnTitle()
+    expect(header.props.state).toBe('checking')
+
+    wrapper.vm.selectionScope = 'new-query'
+    wrapper.vm.selectedRowKeys = []
+    wrapper.vm.dataSource = [{ id: 'new-row' }]
+    wrapper.vm.pagination.total = 1
+    await wrapper.vm.refreshSelectionHeaderState()
+    resolveOldPage({ data: { totalNum: 4, list: [{ id: 'row-3' }, { id: 'row-4' }] } })
+    await oldCheck
+
+    expect(wrapper.vm.selectionHeader.state).toBe('unchecked')
+  })
+
+  it('筛选未提交时不重算，提交同产品新筛选后按重合结果重新判定', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    wrapper.vm.search = { ...wrapper.vm.search, searchType: 'getSykEntry', entry: 'first' }
+    wrapper.vm.selectEntry = [{ id: 'shared-row' }, { id: 'first-only-row' }]
+    wrapper.vm.selectedRows = wrapper.vm.selectEntry
+    wrapper.vm.selectedRowKeys = wrapper.vm.selectEntry.map((row) => row.id)
+    getSykEntry.mockResolvedValueOnce({
+      data: { totalNum: 2, list: [{ id: 'shared-row' }, { id: 'first-only-row' }] },
+    })
+
+    await wrapper.vm.getSearch()
+    const firstScope = wrapper.vm.selectionScope
+    expect(wrapper.vm.selectionHeader.state).toBe('checked')
+
+    wrapper.vm.search.entry = 'second'
+    await nextTick()
+    expect(wrapper.vm.selectionScope).toBe(firstScope)
+    expect(wrapper.vm.selectionHeader.state).toBe('checked')
+
+    getSykEntry.mockResolvedValueOnce({
+      data: { totalNum: 2, list: [{ id: 'shared-row' }, { id: 'second-only-row' }] },
+    })
+    await wrapper.vm.getSearch()
+
+    expect(wrapper.vm.selectionScope).not.toBe(firstScope)
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+  })
+
+  it('新查询范围即使高度重合也重新计算，全局选择变化后立即刷新状态', async () => {
+    wrapper = mountWithTableStub()
+    await flushPromises()
+    vi.clearAllMocks()
+    const uncheckedTitle = wrapper.vm.rowSelection.columnTitle
+    wrapper.vm.selectionScope = 'query-one'
+    wrapper.vm.lastSearch = { searchType: 'getSykEntry' }
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-2' }]
+    wrapper.vm.pagination.total = 2
+    wrapper.vm.selectedRowKeys = ['row-1', 'row-2']
+
+    await wrapper.vm.refreshSelectionHeaderState()
+    expect(wrapper.vm.selectionHeader.state).toBe('checked')
+    const checkedTitle = wrapper.vm.rowSelection.columnTitle
+    expect(checkedTitle).not.toBe(uncheckedTitle)
+
+    wrapper.vm.selectionScope = 'query-two'
+    wrapper.vm.dataSource = [{ id: 'row-1' }, { id: 'row-3' }]
+    await wrapper.vm.refreshSelectionHeaderState()
+    expect(wrapper.vm.selectionHeader.state).toBe('indeterminate')
+    expect(wrapper.vm.rowSelection.columnTitle).not.toBe(checkedTitle)
+
+    wrapper.vm.handleSelectedEntriesChange([{ id: 'outside-query' }])
+    await nextTick()
+    expect(wrapper.vm.selectionHeader.state).toBe('unchecked')
+    expect(getSykEntry).not.toHaveBeenCalled()
   })
 })
