@@ -1028,6 +1028,7 @@ import {
 } from "@/components/FileSelectWithEncoding/constants";
 import { assertCsvEncodingMatch } from "@/utils/encodingDetectUtils";
 const filteredInfo = {};
+const NEW_ISEXIST = "0";
 const ALL_ISEXIST = "-1";
 
 export default {
@@ -1090,7 +1091,7 @@ export default {
       fileEncoding: DEFAULT_ENCODING,
       filediFileName: null,
       keyWords: "",
-      isExist: ALL_ISEXIST,
+      isExist: NEW_ISEXIST,
       isExistOptions: [
         { label: "全部", value: ALL_ISEXIST },
         { label: getIsExistLabel("1"), value: "1" },
@@ -1697,6 +1698,7 @@ export default {
         if (res.data?.list?.length > 0) {
           this.dataSource = res.data.list;
           this.allData = this.dataSource;
+          this.applyCurrentFilters(this.allData);
           refreshTableSelectionById(this, this.dataSource);
         }
       } catch (err) {
@@ -1725,19 +1727,22 @@ export default {
     select() {
       this.queryGuard.invalidate();
       clearTableSelection(this);
-      if (this.filterLanguage === null) {
-        this.dataSource = this.allData.filter(
-          (item) =>
-            item.entry.includes(this.keyWords) &&
-            (this.isExist == ALL_ISEXIST || item.isExist == this.isExist),
-        );
-      } else {
-        this.dataSource = this.filterSource.filter(
-          (item) =>
-            item.entry.includes(this.keyWords) &&
-            (this.isExist == ALL_ISEXIST || item.isExist == this.isExist),
-        );
-      }
+      this.applyCurrentFilters();
+    },
+    /**
+     * 根据当前词条和存在状态筛选展示列表，并同步分页数量。
+     * @param {Array<Object>} [rows] - 本次筛选使用的完整词条集合。
+     * @returns {void} 筛选结果写入当前表格后结束。
+     */
+    applyCurrentFilters(
+      rows = this.filterLanguage === null ? this.allData : this.filterSource,
+    ) {
+      const source = Array.isArray(rows) ? rows : [];
+      this.dataSource = source.filter(
+        (item) =>
+          item.entry.includes(this.keyWords) &&
+          (this.isExist == ALL_ISEXIST || item.isExist == this.isExist),
+      );
       this.pagination.current = 1;
       this.pagination.total = this.dataSource.length;
     },
@@ -2357,6 +2362,12 @@ export default {
                   this.importGuard.isCurrent(token) &&
                   this.task.id === taskId,
               );
+              if (
+                this.importGuard.isCurrent(token) &&
+                this.task.id === taskId
+              ) {
+                this.applyCurrentFilters(this.allData);
+              }
             }
             // 导入成功、失败或被取消都要结束遮罩，允许用户继续选择数据源。
             endLoading();
@@ -2663,7 +2674,7 @@ export default {
       // 关闭后重置编辑缓存、结果集和文件信息，避免下次打开继承上一次导入会话。
       this.editableData = {};
       this.keyWords = "";
-      this.isExist = ALL_ISEXIST;
+      this.isExist = NEW_ISEXIST;
       this.dataType = "file";
       this.dataSource = [];
       this.allData = [];

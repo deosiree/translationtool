@@ -917,6 +917,91 @@ describe('ImportModal - saveEntrys 校验与状态', () => {
     expect(wrapper.vm.dataSource).toEqual([])
     revalidateSpy.mockRestore()
   })
+
+  it('initTaskEntry: 默认选中新建并只显示新建词条', async () => {
+    const { getEntryInfoList } = await import('@/http/api/workbench')
+    getEntryInfoList.mockResolvedValue({
+      data: {
+        list: [
+          { id: 'new-entry', entry: '新建词条', isExist: 0 },
+          { id: 'existing-entry', entry: '已存在词条', isExist: 1 },
+        ],
+      },
+    })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    wrapper.vm.task = { id: 'task-1', transMap: { value: 'english' } }
+
+    expect(wrapper.vm.isExist).toBe('0')
+    expect(
+      wrapper.vm.isExistOptions.find((option) => option.value === wrapper.vm.isExist)?.label,
+    ).toBe('新建')
+
+    await wrapper.vm.initTaskEntry()
+
+    expect(wrapper.vm.dataSource.map((item) => item.id)).toEqual(['new-entry'])
+    expect(wrapper.vm.allData.map((item) => item.id)).toEqual([
+      'new-entry',
+      'existing-entry',
+    ])
+    expect(wrapper.vm.pagination.total).toBe(1)
+  })
+
+  it('importEntryData: 默认只显示新建，并可切换到已存在和全部', async () => {
+    const revalidateSpy = vi.spyOn(validationUtils, 'revalidateLoaded').mockResolvedValue()
+    const { readZZExcle } = await import('@/http/api/workbench')
+    readZZExcle.mockResolvedValue({
+      data: {
+        list: [
+          { id: 'new-entry', entry: '新建词条', isExist: 0 },
+          { id: 'existing-entry', entry: '已存在词条', isExist: 1 },
+        ],
+      },
+    })
+    wrapper = mountWithTableStub()
+    await nextTick()
+    await wrapper.setProps({ classifyLimit: {} })
+    wrapper.vm.dataType = 'file'
+    wrapper.vm.file = { name: 'import.xlsx' }
+    wrapper.vm.templateTypes = null
+    wrapper.vm.task = {
+      id: 'task-1',
+      transMap: { value: 'english' },
+      translateType: '英文',
+    }
+
+    await wrapper.vm.importEntryData()
+    await flushPromises()
+
+    expect(wrapper.vm.isExist).toBe('0')
+    expect(wrapper.vm.dataSource.map((item) => item.id)).toEqual(['new-entry'])
+    expect(wrapper.vm.allData.map((item) => item.id).sort()).toEqual([
+      'existing-entry',
+      'new-entry',
+    ])
+
+    wrapper.vm.isExist = '1'
+    wrapper.vm.select()
+    expect(wrapper.vm.dataSource.map((item) => item.id)).toEqual(['existing-entry'])
+
+    wrapper.vm.isExist = '-1'
+    wrapper.vm.select()
+    expect(wrapper.vm.dataSource.map((item) => item.id).sort()).toEqual([
+      'existing-entry',
+      'new-entry',
+    ])
+    expect(wrapper.vm.pagination.total).toBe(2)
+    revalidateSpy.mockRestore()
+  })
+
+  it('afterClose: 筛选状态恢复为新建', () => {
+    wrapper = mountWithTableStub()
+    wrapper.vm.isExist = '1'
+
+    wrapper.vm.afterClose()
+
+    expect(wrapper.vm.isExist).toBe('0')
+  })
 })
 
 describe('ImportModal - 窄视口横滚仅属于表格内容区', () => {
