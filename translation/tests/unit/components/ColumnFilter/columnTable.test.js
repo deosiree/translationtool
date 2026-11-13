@@ -70,6 +70,47 @@ describe('columnBuilder', () => {
     expect(col.sortDirections).toEqual(['ascend', 'descend'])
   })
 
+  it('entry translation columns keep editing rows first and sort draft values', () => {
+    const col = buildCol(
+      { label: '英文翻译', value: 'english', index: 12 },
+      {
+        translationSort: {
+          fields: ['english'],
+          editableData: {
+            editedA: { english: 'alpha draft' },
+            editedB: { english: 'zulu draft' },
+          },
+        },
+      }
+    )
+    const editedA = { id: 'editedA', english: 'zulu persisted' }
+    const editedB = { id: 'editedB', english: 'alpha persisted' }
+    const browsing = { id: 'browsing', english: 'a browsing value' }
+
+    expect(col.sorter(editedA, editedB, 'ascend')).toBeLessThan(0)
+    expect(col.sorter(editedA, editedB, 'descend')).toBeLessThan(0)
+    expect(col.sorter(editedA, browsing, 'ascend')).toBeLessThan(0)
+    // Ant Design Vue reverses the comparator result for descending order.
+    expect(col.sorter(editedA, browsing, 'descend')).toBeGreaterThan(0)
+    expect(col.sortDirections).toEqual(['ascend', 'descend'])
+  })
+
+  it('entry translation columns sort browsing values and require explicit configuration', () => {
+    const col = buildCol(
+      { label: '英文翻译', value: 'english', index: 12 },
+      { translationSort: { fields: ['english'] } }
+    )
+    const unsortableCol = buildCol(
+      { label: '英文释义', value: 'englishInterpretation', index: 13 },
+      { translationSort: { fields: ['english'] } }
+    )
+
+    expect(col.sorter({ english: 'alpha' }, { english: 'beta' }, 'ascend')).toBeLessThan(0)
+    expect(col.sorter({ english: 'alpha' }, { english: 'beta' }, 'descend')).toBeLessThan(0)
+    expect(col.sorter({ english: null }, { english: 'alpha' }, 'ascend')).toBeLessThan(0)
+    expect(unsortableCol.sorter).toBeUndefined()
+  })
+
   it('buildCol 在 needFilter 时为 entrySource 添加筛选', () => {
     const col = buildCol(
       { label: '词条来源', value: 'entrySource', index: 2 },

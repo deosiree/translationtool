@@ -294,6 +294,21 @@ describe('ProductEntry - user 属性重构测试', () => {
         needFilter: false,
       })
     )
+    const productEntryOptions = applyTableMock.mock.calls
+      .map(([, options]) => options)
+      .find((options) => options.preset === entryPresets.productEntry)
+    expect(productEntryOptions.ctx.translationSort.fields).toEqual(
+      expect.arrayContaining([
+        'english',
+        'russian',
+        'spanish',
+        'french',
+        'chinese',
+      ])
+    )
+    expect(productEntryOptions.ctx.translationSort.editableData).toBe(
+      wrapper.vm.editableData
+    )
   })
 
   it('列偏好持久化由 ColumnFilter 承担，页面无 changeColumn 包装', () => {

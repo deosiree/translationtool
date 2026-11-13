@@ -93,12 +93,63 @@ function applyFilterBehaviors(col, needFilter) {
 }
 
 /**
+ * 比较两个翻译值，并保持空值在升序时置前。
+ * @param {*} leftValue 左侧翻译值
+ * @param {*} rightValue 右侧翻译值
+ * @returns {number} 字典序比较结果
+ */
+function compareTranslationValues(leftValue, rightValue) {
+  const leftEmpty = leftValue == null || leftValue === "";
+  const rightEmpty = rightValue == null || rightValue === "";
+
+  if (leftEmpty) return rightEmpty ? 0 : -1;
+  if (rightEmpty) return 1;
+  return String(leftValue).localeCompare(String(rightValue));
+}
+
+/**
+ * 构建词条管理翻译列排序器，编辑态在升降序下都保持置顶。
+ * @param {string} dataIndex 翻译字段名
+ * @param {Object} editableData 当前编辑行草稿映射
+ * @returns {Function} Ant Design Vue 表格排序比较器
+ */
+function createEntryTranslationSorter(dataIndex, editableData) {
+  /**
+   * 先比较编辑状态，再比较当前有效翻译值。
+   * @param {Object} left 左侧词条
+   * @param {Object} right 右侧词条
+   * @param {string} sortOrder 表格排序方向
+   * @returns {number} Ant Design Vue 使用的比较结果
+   */
+  return function compareEntryTranslationRows(left, right, sortOrder) {
+    const leftDraft = editableData?.[left?.id];
+    const rightDraft = editableData?.[right?.id];
+    const leftEditing = Boolean(leftDraft);
+    const rightEditing = Boolean(rightDraft);
+
+    if (leftEditing !== rightEditing) {
+      const editPriority = leftEditing ? -1 : 1;
+      return sortOrder === "descend" ? -editPriority : editPriority;
+    }
+
+    const leftValue = leftEditing
+      ? leftDraft?.[dataIndex]
+      : left?.[dataIndex];
+    const rightValue = rightEditing
+      ? rightDraft?.[dataIndex]
+      : right?.[dataIndex];
+    return compareTranslationValues(leftValue, rightValue);
+  };
+}
+
+/**
  * 按列 value 附加 fixed、sorter、filters 等业务行为
  * @param {Object} col Ant Table 列配置
  * @param {import('./colPreset.js').ColDef} def 列定义
  * @param {boolean} needFilter 是否启用列头筛选
+ * @param {Object} ctx buildCol 上下文
  */
-function applyValueBehaviors(col, def, needFilter) {
+function applyValueBehaviors(col, def, needFilter, ctx) {
   const v = def.value;
 
   if (["entry", "entryState", "index"].includes(v)) {
@@ -115,17 +166,16 @@ function applyValueBehaviors(col, def, needFilter) {
       col.sortDirections = ["ascend", "descend"];
     }
   }
-  if (v === "translate") {
-    col.sorter = (a, b) => {
-      const aValue = a?.[col.dataIndex];
-      const bValue = b?.[col.dataIndex];
-      const aEmpty = aValue == null || aValue === "";
-      const bEmpty = bValue == null || bValue === "";
-
-      if (aEmpty) return bEmpty ? 0 : -1;
-      if (bEmpty) return 1;
-      return String(aValue).localeCompare(String(bValue));
-    };
+  const translationSort = ctx?.translationSort;
+  const isEntryTranslationColumn = translationSort?.fields?.includes(v);
+  if (v === "translate" || isEntryTranslationColumn) {
+    col.sorter = isEntryTranslationColumn
+      ? createEntryTranslationSorter(
+          col.dataIndex,
+          translationSort.editableData
+        )
+      : (a, b) =>
+          compareTranslationValues(a?.[col.dataIndex], b?.[col.dataIndex]);
     col.sortDirections = ["ascend", "descend"];
   }
   if (v === "isExist") {
@@ -148,7 +198,7 @@ function applyValueBehaviors(col, def, needFilter) {
 /**
  * 将单列定义转为 Ant Table 列配置
  * @param {import('./colPreset.js').ColDef} def 列定义
- * @param {Object} ctx buildCol 上下文
+ * @param {Object} ctx buildCol 上下文；词条翻译排序可含 translationSort.fields 与 editableData
  * @param {number} [normalWidth=100] 默认列宽
  * @param {boolean} [needFilter=false] 是否启用列头筛选
  * @returns {Object} Ant Table 列配置（含 colValue）
@@ -178,7 +228,7 @@ export function buildCol(
     colValue: def.value,
   };
 
-  applyValueBehaviors(col, def, needFilter);
+  applyValueBehaviors(col, def, needFilter, ctx);
   return col;
 }
 

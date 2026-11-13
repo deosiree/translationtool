@@ -301,7 +301,13 @@ export default {
       applyTable(this, {
         allCols: entryAllCols,
         preset: entryPresets.createVersion,
-        ctx: { pagination: this.pagination },
+        ctx: {
+          pagination: this.pagination,
+          translationSort: {
+            fields: commonParam.langValList,
+            editableData: this.editableData,
+          },
+        },
         colPrefName: "colPref-batchEditModal",
         normalWidth: 200,
         needFilter: false,

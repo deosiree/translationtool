@@ -269,6 +269,18 @@ describe('CreateVersionModal - 已选词条（无行编辑）', () => {
     expect(wrapper.vm.batchEditOpen).toBe(true)
   })
 
+  it('selected entry translation columns are sortable', async () => {
+    wrapper = mountShell([{ id: 'e1', entry: '断路器', english: 'breaker' }])
+    await wrapper.setProps({ visible: false })
+    await wrapper.setProps({ visible: true })
+    await nextTick()
+    const translationColumn = wrapper.vm.columns.find(
+      (column) => column.dataIndex === 'english'
+    )
+
+    expect(typeof translationColumn.sorter).toBe('function')
+  })
+
   it('空已选点击编辑：提示且不打开批量编辑', async () => {
     wrapper = mountShell([])
     wrapper.vm.openBatchEdit()
@@ -518,6 +530,15 @@ describe('BatchEditModal - 批量编辑', () => {
     expect(typeof wrapper.vm.handleResizeColumn).toBe('function')
     expect(typeof wrapper.vm.syncColumnsFromPref).toBe('function')
     expect(Array.isArray(wrapper.vm.columnSettingsList)).toBe(true)
+  })
+
+  it('batch edit translation columns are sortable', () => {
+    wrapper = mountBatchEdit([{ id: 'e1', entry: '断路器', english: '' }])
+    const translationColumn = wrapper.vm.columns.find(
+      (column) => column.dataIndex === 'english'
+    )
+
+    expect(typeof translationColumn.sorter).toBe('function')
   })
 
   it('单元格 change 即校验（不必等失焦或 √）', async () => {

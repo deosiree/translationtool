@@ -2486,7 +2486,13 @@ export default {
       applyTable(this, {
         allCols: entryAllCols,
         preset: entryPresets.productEntry,
-        ctx: { pagination: this.pagination },
+        ctx: {
+          pagination: this.pagination,
+          translationSort: {
+            fields: commonParam.langValList,
+            editableData: this.editableData,
+          },
+        },
         colPrefName: "colPref-productEntry",
         normalWidth: 200,
         needFilter: false,
