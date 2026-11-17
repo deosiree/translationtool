@@ -145,8 +145,10 @@
     .dialog-body { padding:16px 20px; overflow:auto; min-height:0; flex:1 1 auto; }
     .binding-field { margin:0 0 12px; }
     .binding-field > label { display:block; margin-bottom:5px; }
-    .binding-field input,.binding-field select,.category-picker-trigger { box-sizing:border-box; width:100%; min-height:36px; padding:8px 10px; border:1px solid #d7dfe2; border-radius:5px; background:#fff; color:inherit; font:inherit; }
-    .binding-category-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:10px; align-items:start; }
+    .binding-field input,.binding-field select,.binding-field textarea,.category-picker-trigger { box-sizing:border-box; width:100%; min-height:36px; padding:8px 10px; border:1px solid #d7dfe2; border-radius:5px; background:#fff; color:inherit; font:inherit; }
+    .binding-field textarea { min-height:104px; resize:vertical; }
+    .binding-category-row { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; align-items:start; }
+    .binding-category-row.has-category-suffix { grid-template-columns:repeat(2,minmax(0,1fr)); }
     .binding-category-row .binding-field { min-width:0; margin-bottom:12px; }
     .category-picker { position:relative; }
     .category-picker-trigger { display:flex; align-items:center; justify-content:space-between; gap:8px; text-align:left; cursor:pointer; }
@@ -154,8 +156,9 @@
     .category-picker-value { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
     .category-picker-caret { flex:0 0 auto; color:#6e7d83; font-size:12px; }
     .category-tree-popup { position:absolute; z-index:20; top:calc(100% + 4px); right:0; left:0; max-height:min(42vh,360px); overflow:auto; border:1px solid #cbd5d9; border-radius:4px; background:#fff; box-shadow:0 4px 14px rgba(29,48,57,.18); }
-    .category-tree { min-width:max-content; margin:0; padding:5px; list-style:none; }
-    .category-tree-group { margin:0; padding-left:19px; list-style:none; }
+    .category-tree-search { position:sticky; top:0; z-index:1; width:100%; min-height:32px; padding:6px 9px; border:0; border-bottom:1px solid var(--soft-line); border-radius:0; background:#fff; font:inherit; }
+    .category-tree { width:100%; min-width:0; margin:0; padding:5px; list-style:none; }
+    .category-tree-group { width:100%; margin:0; padding-left:19px; list-style:none; }
     .category-tree-group[hidden] { display:none; }
     .category-tree-row { display:flex; min-height:28px; align-items:center; gap:2px; }
     .category-tree-expander { display:grid; flex:0 0 20px; width:20px; height:24px; place-items:center; padding:0; border:0; border-radius:3px; background:transparent; color:#53646b; cursor:pointer; }
@@ -614,7 +617,8 @@
     @media (max-width:510px) { .detail-drawer-head { padding:8px 10px 7px; } .detail-tabs { padding:0 8px; overflow-x:auto; } .detail-tab { flex:0 0 auto; padding:0 8px; } .detail-content { padding:8px 9px 10px; } .language-toggle { grid-template-columns:1fr; gap:4px; } .language-summary { justify-content:flex-start; } .language-charts { grid-template-columns:1fr; } .permission-grant { grid-template-columns:minmax(0,1fr); } .permission-composer { grid-template-columns:minmax(0,1fr); } }
     @media (max-width:1100px) { .app { grid-template-columns:190px minmax(0,1fr); } .workflow-grid { grid-template-columns:repeat(3,minmax(0,1fr)); } }
     @media (max-width:800px) { .app { display:block; } .sidebar { min-height:auto; padding:10px; } .brand { padding:2px 9px 10px; } .nav-caption,.sidebar-spacer,.sidebar-note { display:none; } .nav-item { display:inline-flex; width:auto; margin-right:4px; padding:7px 9px; } .top-actions { justify-content:flex-start; } .queue-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; } .queue-item { margin:0; } .workflow-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } .merge-grid { grid-template-columns:1fr; } .merge-content,textarea.merge-editor { min-height:80px; } }
-    @media (max-width:510px) { .queue-list,.workflow-grid,.binding-category-row { grid-template-columns:1fr; } .table-toolbar { align-items:stretch; flex-direction:column; } .table-toolbar .search { flex:0 0 auto; width:100%; } .dialog-head,.dialog-body,.dialog-foot { padding-left:13px; padding-right:13px; } }
+    @media (max-width:700px) { .binding-category-row.has-category-suffix { grid-template-columns:1fr; gap:0; } }
+    @media (max-width:510px) { .queue-list,.workflow-grid { grid-template-columns:1fr; } .table-toolbar { align-items:stretch; flex-direction:column; } .table-toolbar .search { flex:0 0 auto; width:100%; } .dialog-head,.dialog-body,.dialog-foot { padding-left:13px; padding-right:13px; } }
     #entryCurrentFileName:focus-visible,.merge-file-label:focus-visible { outline:2px solid #3276b1; outline-offset:2px; }
     .file-list-item .file-name { display:inline-block; max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:middle; }
     @media (max-width:850px) {
@@ -801,7 +805,8 @@
 
   <dialog id="confirmDialog" aria-labelledby="confirmTitle"><div class="dialog-head"><div><div class="dialog-title" id="confirmTitle">确认修复操作</div><span class="dialog-subtitle">执行前请确认策略效果与代价</span></div><button class="dialog-close" type="button" data-action="close-repair-confirm" aria-label="返回">×</button></div><div class="dialog-body"><div class="confirm-copy" id="confirmCopy"></div></div><div class="dialog-foot"><button class="button" type="button" data-action="close-repair-confirm">返回修改方案</button><button class="button danger" type="button" data-action="confirm-destructive">确认执行</button></div></dialog>
 
-  <dialog id="bindingDialog" aria-labelledby="bindingTitle"><div class="dialog-head"><div><div class="dialog-title" id="bindingTitle">新建绑定关系</div><span class="dialog-subtitle">Mock 数据只保存在当前页面</span></div><button class="dialog-close" type="button" data-action="close-dialog" aria-label="关闭">×</button></div><form id="bindingForm"><div class="dialog-body"><div class="binding-field"><label class="panel-sub" for="newRepo">Git 仓库地址</label><input id="newRepo" required value="git@10.17.196.23:platform/lang.git"></div><div class="binding-field"><label class="panel-sub" for="newBranch">远端分支</label><input id="newBranch" required value="develop"></div><div class="binding-field"><label class="panel-sub" for="newBranchUrl">分支绝对路径</label><input id="newBranchUrl" type="url" required placeholder="https://git.example.com/group/project/-/tree/develop" autocomplete="url"></div><div class="binding-category-row"><div class="binding-field category-path-field"><label class="panel-sub" id="newTargetLabel" for="newTargetDisplay">产品分类路径</label><div class="category-picker" id="bindingCategoryPicker"><input id="newTarget" type="hidden"><button class="category-picker-trigger" id="newTargetDisplay" type="button" data-action="toggle-binding-category-picker" aria-haspopup="tree" aria-expanded="false" aria-labelledby="newTargetLabel newTargetDisplayText"><span class="category-picker-value" id="newTargetDisplayText">请选择可见分类</span><span class="category-picker-caret" aria-hidden="true">⌄</span></button><div class="category-tree-popup" id="categoryTreePopup" hidden><ul class="category-tree" id="categoryTree" role="tree" aria-label="产品分类"></ul></div></div></div><div class="binding-field category-suffix-field" id="newCategoryFields" hidden><label class="panel-sub" for="newCategorySuffix">新分类名称</label><input id="newCategorySuffix" autocomplete="off"><p class="binding-field-help">将在所选父路径下创建分类，并自动启动首次远端拉取。</p></div></div><label class="binding-mode-toggle"><input id="newCategoryMode" type="checkbox" aria-controls="newCategoryFields"><span>为远端分支新建分类</span></label></div><div class="dialog-foot"><button class="button" type="button" data-action="close-dialog">取消</button><button class="button primary" type="submit">保存绑定并拉取</button></div></form></dialog>
+  <dialog id="bindingDialog" aria-labelledby="bindingTitle"><div class="dialog-head"><div><div class="dialog-title" id="bindingTitle">新建绑定关系</div><span class="dialog-subtitle">Mock 数据只保存在当前页面</span></div><button class="dialog-close" type="button" data-action="close-dialog" aria-label="关闭">×</button></div><form id="bindingForm"><div class="dialog-body"><div class="binding-field"><label class="panel-sub" for="newRepo">Git 仓库地址</label><input id="newRepo" required value="git@10.17.196.23:platform/lang.git"></div><div class="binding-field"><label class="panel-sub" for="newBranch">远端分支</label><input id="newBranch" required value="develop"></div><div class="binding-field"><label class="panel-sub" for="newBranchUrl">分支绝对路径</label><input id="newBranchUrl" type="url" required placeholder="https://git.example.com/group/project/-/tree/develop" autocomplete="url"></div><div class="binding-category-row"><div class="binding-field category-path-field"><label class="panel-sub" id="newTargetLabel" for="newTargetDisplay">产品分类路径</label><div class="category-picker" id="bindingCategoryPicker"><input id="newTarget" type="hidden"><button class="category-picker-trigger" id="newTargetDisplay" type="button" data-action="toggle-binding-category-picker" aria-haspopup="tree" aria-expanded="false" aria-labelledby="newTargetLabel newTargetDisplayText"><span class="category-picker-value" id="newTargetDisplayText">请选择可见分类</span><span class="category-picker-caret" aria-hidden="true">⌄</span></button><div class="category-tree-popup" id="categoryTreePopup" hidden><input class="category-tree-search" id="categoryTreeSearch" type="search" placeholder="关键字搜索" aria-label="搜索产品分类" autocomplete="off"><ul class="category-tree" id="categoryTree" role="tree" aria-label="产品分类"></ul></div></div></div><div class="binding-field category-suffix-field" id="newCategoryFields" hidden><label class="panel-sub" for="newCategorySuffix">新分类名称</label><input id="newCategorySuffix" autocomplete="off"><p class="binding-field-help">将在所选父路径下创建分类，并自动启动首次远端拉取。</p></div></div><label class="binding-mode-toggle"><input id="newCategoryMode" type="checkbox" aria-controls="newCategoryFields"><span>为远端分支新建分类</span></label></div><div class="dialog-foot"><button class="button" type="button" data-action="close-dialog">取消</button><button class="button primary" type="submit">保存绑定并拉取</button></div></form></dialog>
+  <dialog id="pendingCommitDialog" aria-labelledby="pendingCommitTitle"><div class="dialog-head"><div><div class="dialog-title" id="pendingCommitTitle">提交并推送</div><span class="dialog-subtitle">提交说明将用于生成本地提交记录。</span></div><button class="dialog-close" type="button" data-action="close-pending-commit" aria-label="关闭">×</button></div><form id="pendingCommitForm" novalidate><div class="dialog-body"><div class="binding-field"><label class="panel-sub" for="pendingCommitMessage">提交说明</label><textarea id="pendingCommitMessage" required rows="4" aria-describedby="pendingCommitHelp"></textarea><p class="binding-field-help" id="pendingCommitHelp">请输入非空提交说明；提交后会继续推送到远端分支。</p></div></div><div class="dialog-foot"><button class="button" type="button" data-action="close-pending-commit">取消</button><button class="button primary" type="submit">提交并推送</button></div></form></dialog>
 
   <div id="pageTooltip" popover="manual" role="tooltip" aria-hidden="true"></div>
 
@@ -2003,7 +2008,7 @@
 
     /** 展平当前身份可见的产品菜单，并保留可选择节点的树路径。
      * @param {string} userId 当前演示身份标识。
-     * @returns {Array<Object<string, any>>} 可见节点及其路径、深度和叶子状态。
+     * @returns {Array<Object<string, any>>} 可见节点及其完整路径、类型、深度和叶子状态。
      */
     function getVisibleCategoryNodes(userId) {
       const user=mockUserDirectory.find((item)=>item.id===userId);
@@ -2067,9 +2072,12 @@
      * @param {Array<Object<string, any>>} nodes 当前身份可见的扁平节点。
      * @param {boolean} createMode 是否处于新建分类模式。
      * @param {string} selectedPath 当前选择的完整内部路径。
+     * @param {string} searchTerm 分类名称搜索词。
      * @returns {string} 分类树节点 HTML。
      */
-    function renderBindingCategoryTree(nodes,createMode,selectedPath) {
+    function renderBindingCategoryTree(nodes,createMode,selectedPath,searchTerm='') {
+      const query=String(searchTerm||'').trim().toLocaleLowerCase();
+      const filterNodes=(items)=>items.map((node)=>({...node,children:filterNodes(node.children)})).filter((node)=>!query||node.name.toLocaleLowerCase().includes(query)||node.children.length>0);
       const renderNodes=(items)=>items.map((node)=>{
         const selectable=canSelectBindingCategory(node,createMode);
         const selected=node.path===selectedPath&&selectable;
@@ -2079,7 +2087,7 @@
         const children=hasChildren?`<ul class="category-tree-group" role="group">${renderNodes(node.children)}</ul>`:'';
         return `<li class="category-tree-item" role="treeitem" aria-level="${node.depth+1}" aria-selected="${selected}" aria-disabled="${!selectable}"${hasChildren?' aria-expanded="true"':''} data-category-path="${escapeHtml(node.path)}" data-category-type="${escapeHtml(node.type)}"><div class="category-tree-row">${expander}<button class="category-tree-select" type="button" data-action="select-binding-category" data-category-path="${escapeHtml(node.path)}" data-category-leaf="${node.isLeaf}" data-category-bound="${node.isBound}" data-category-type="${escapeHtml(node.type)}" aria-selected="${selected}"${selectable?'':' disabled'}><span class="category-node-title" data-type="${escapeHtml(node.type)}">${escapeHtml(node.name)}</span>${boundMark}</button></div>${children}</li>`;
       }).join('');
-      const tree=buildBindingCategoryTree(nodes);
+      const tree=filterNodes(buildBindingCategoryTree(nodes));
       return renderNodes(tree)||'<li class="category-tree-empty">暂无可见分类</li>';
     }
 
@@ -2088,7 +2096,32 @@
      * @returns {void} 更新下拉层和触发按钮状态。
      */
     function setBindingCategoryPickerOpen(isOpen) {
-      document.getElementById('categoryTreePopup').hidden=!isOpen;
+      const popup=document.getElementById('categoryTreePopup');
+      if(isOpen){
+        const trigger=document.getElementById('newTargetDisplay').getBoundingClientRect();
+        const viewport=document.documentElement;
+        const viewportWidth=viewport.clientWidth||1024;
+        const viewportHeight=viewport.clientHeight||720;
+        const desiredHeight=Math.min(viewportHeight*.42,360);
+        const spaceBelow=viewportHeight-trigger.bottom-8;
+        const placeAbove=spaceBelow<Math.min(180,desiredHeight)&&trigger.top>desiredHeight;
+        const maxHeight=Math.max(120,Math.min(desiredHeight,placeAbove?trigger.top-8:spaceBelow));
+        const left=Math.max(8,Math.min(trigger.left,viewportWidth-trigger.width-8));
+        popup.style.position='fixed';
+        popup.style.top=`${placeAbove?Math.max(8,trigger.top-maxHeight-4):Math.max(8,trigger.bottom+4)}px`;
+        popup.style.left=`${left}px`;
+        popup.style.right='auto';
+        popup.style.width=`${Math.min(trigger.width,viewportWidth-left-8)}px`;
+        popup.style.maxHeight=`${maxHeight}px`;
+      }else{
+        popup.style.position='';
+        popup.style.top='';
+        popup.style.left='';
+        popup.style.right='';
+        popup.style.width='';
+        popup.style.maxHeight='';
+      }
+      popup.hidden=!isOpen;
       document.getElementById('newTargetDisplay').setAttribute('aria-expanded',String(isOpen));
     }
 
@@ -2097,6 +2130,15 @@
      */
     function toggleBindingCategoryPicker() {
       setBindingCategoryPickerOpen(document.getElementById('categoryTreePopup').hidden);
+    }
+
+    /** 按名称过滤分类树，同时保留命中节点的上级层级。
+     * @param {void} none 本函数无参数。
+     * @returns {void} 刷新过滤结果并保持下拉打开。
+     */
+    function handleBindingCategorySearch() {
+      syncBindingCategoryControls();
+      setBindingCategoryPickerOpen(true);
     }
 
     /** 展开或折叠分类树中的一个父节点。
@@ -2123,6 +2165,7 @@
       if(control.disabled)return;
       document.getElementById('newTarget').value=control.dataset.categoryPath||'';
       syncBindingCategoryControls();
+      setBindingCategoryPickerOpen(false);
     }
 
     /** 根据身份与模式刷新分类树，并同步后缀字段的显示和必填状态。
@@ -2134,10 +2177,12 @@
       const previousPath=selectedInput.value;
       const nodes=getVisibleCategoryNodes(document.getElementById('roleSelect').value);
       const selectedNode=nodes.find((node)=>node.path===previousPath&&canSelectBindingCategory(node,mode));
+      const pickerWasOpen=!document.getElementById('categoryTreePopup').hidden;
+      document.querySelector('.binding-category-row').classList.toggle('has-category-suffix',mode);
       selectedInput.value=selectedNode?.path||'';
       document.getElementById('newTargetDisplayText').textContent=selectedNode?.name||(mode?'请选择分类父路径':'请选择可见分类');
-      document.getElementById('categoryTree').innerHTML=renderBindingCategoryTree(nodes,mode,selectedNode?.path||'');
-      setBindingCategoryPickerOpen(false);
+      document.getElementById('categoryTree').innerHTML=renderBindingCategoryTree(nodes,mode,selectedNode?.path||'',document.getElementById('categoryTreeSearch').value);
+      setBindingCategoryPickerOpen(pickerWasOpen);
       document.getElementById('newCategoryFields').hidden=!mode;
       document.getElementById('newCategorySuffix').required=mode;
     }
@@ -2216,6 +2261,37 @@
         else relationLabel=profile.workingTreeDirty?'本地待提交 · 三方提交点一致':'已同步';
       }
       return {syncBase,localHead:commitRecords[localHeadId]||null,remoteHead:commitRecords[remoteHeadId]||null,localAheadIds,remoteAheadIds,localAheadCount,remoteAheadCount,workingTreeDirty:Boolean(profile.workingTreeDirty),relationLabel};
+    }
+
+    /** 创建并登记一条新的本地 Mock 提交记录。
+     * @param {string} message 提交说明。
+     * @returns {Object<string,any>|null} 新提交记录；说明为空时返回 null。
+     */
+    function createMockCommitRecord(message) {
+      const normalizedMessage=String(message||'').trim();
+      if(!normalizedMessage)return null;
+      let numericId=Date.now()%0x10000000;
+      let id=numericId.toString(16).padStart(7,'0');
+      while(commitRecords[id]){numericId=(numericId+1)%0x10000000;id=numericId.toString(16).padStart(7,'0');}
+      const record={id,message:normalizedMessage,date:formatBindingRefreshTime(new Date())};
+      commitRecords[id]=record;
+      return record;
+    }
+
+    /** 为已校验的工作区修改生成本地 Mock 提交并更新本地 HEAD。
+     * @param {string} bindingId 绑定关系标识。
+     * @param {string} message 提交说明。
+     * @returns {Object<string,any>|null} 新提交记录；绑定或说明无效时返回 null。
+     */
+    function createLocalCommitRecord(bindingId,message) {
+      const profile=bindingProfiles[bindingId];
+      const normalizedMessage=String(message||'').trim();
+      if(!profile||!normalizedMessage||!profile.workingTreeDirty)return null;
+      const record=createMockCommitRecord(normalizedMessage);
+      if(!record)return null;
+      profile.localCommitsAfterBase=[...(profile.localCommitsAfterBase||[]),record.id];
+      profile.workingTreeDirty=false;
+      return record;
     }
 
     /** 计算浏览器本地时间的下一次每日刷新时刻。
@@ -3390,8 +3466,10 @@
         const initialPull=row.dataset.initialPullPending==='true';
         const failedInitialPull=initialPull&&row.dataset.initialPullFailed==='true';
         markup=renderActionButton('start',failedInitialPull?'重试首次拉取':initialPull?'开始首次拉取':'开始拉取',failedInitialPull?'首次拉取失败；重新尝试拉取该分支。':'拉取该分支的最新更新。',{ 'data-action':'start-pipeline','data-binding':row.dataset.bindingId,'data-operation':'pull','data-requires':'write' });
-      }else if(state==='upload'||state==='pending'){
-        markup=renderActionButton('start','开始推送','提交本地修改并推送到远端分支。',{ 'data-action':'start-pipeline','data-binding':row.dataset.bindingId,'data-operation':'push','data-requires':'write' });
+      }else if(state==='pending'){
+        markup=renderActionButton('start','填写提交说明并推送','输入提交说明后创建本地提交，再推送到远端分支。',{ 'data-action':'open-pending-commit','data-binding':row.dataset.bindingId,'data-requires':'write' });
+      }else if(state==='upload'){
+        markup=renderActionButton('start','开始推送','推送已有本地提交到远端分支。',{ 'data-action':'start-pipeline','data-binding':row.dataset.bindingId,'data-operation':'push','data-requires':'write' });
       }else if(state==='running'||state==='stopping'){
         markup=renderActionButton('stop','中止流水线','请求安全终止当前流水线。',{ 'data-action':'abort-task','data-task':task?.id||'','data-requires':'terminator' });
       }
@@ -5306,6 +5384,11 @@
       }else{
         const commitMessage=document.getElementById('commitMessage').value.trim()||'Merge remote changes';
         const safeMessage=commitMessage.replace(/"/g,'\\"');
+        const profile=bindingProfiles[task.bindingId];
+        const mergeRecord=profile&&createMockCommitRecord(commitMessage);
+        if(!profile||!mergeRecord){showToast('无法创建本地合并提交，请检查提交说明');return;}
+        profile.localCommitsAfterBase=[...(profile.localCommitsAfterBase||[]),mergeRecord.id];
+        task.advanceCommitTopology=true;
         appendTerminal('$ git add -A','command');
         appendTerminal(`$ git commit -m "${safeMessage}"`,'command');
         appendTerminal(`[main mock-merge] ${commitMessage}`);
@@ -5356,6 +5439,47 @@
       commitHistoryChange(before);
     }
 
+    /** 打开本地待提交绑定的提交说明窗口。
+     * @param {string} bindingId 绑定关系标识。
+     * @returns {boolean} 当前绑定可提交并已打开窗口时返回 true。
+     */
+    function openPendingCommitDialog(bindingId) {
+      const userId=document.getElementById('roleSelect').value;
+      const row=document.querySelector(`[data-binding-id="${bindingId}"]`);
+      const profile=bindingProfiles[bindingId];
+      if(!hasPermission(userId,'write',bindingId)){showToast('当前身份没有推送此绑定的权限');return false;}
+      if(!row||!profile?.workingTreeDirty||row.dataset.state!=='pending'){
+        showToast('该绑定没有尚未提交的工作区修改');
+        return false;
+      }
+      if(row.dataset.task||isBranchLocked(row)){showToast('该仓库分支已有活动流水线');return false;}
+      const dialog=document.getElementById('pendingCommitDialog');
+      const input=document.getElementById('pendingCommitMessage');
+      dialog.dataset.binding=bindingId;
+      input.value='';
+      dialog.showModal();
+      input.focus();
+      return true;
+    }
+
+    /** 校验提交说明并启动本地待提交绑定的推送流水线。
+     * @param {SubmitEvent} event 提交说明表单事件。
+     * @returns {boolean} 推送已启动时返回 true，否则保留窗口并返回 false。
+     */
+    function submitPendingCommit(event) {
+      event.preventDefault();
+      const dialog=document.getElementById('pendingCommitDialog');
+      const input=document.getElementById('pendingCommitMessage');
+      const message=input.value.trim();
+      if(!message){showToast('提交说明不能为空');input.focus();return false;}
+      const bindingId=dialog.dataset.binding;
+      if(!bindingId){showToast('请重新选择待提交绑定');return false;}
+      if(!startPipeline(bindingId,'push',message))return false;
+      dialog.dataset.binding='';
+      dialog.close();
+      return true;
+    }
+
     /** 完成流水线、释放分支锁并关闭对应的冲突工作台。
      * @param {Object} task 已完成的 Mock 任务。
      * @param {HTMLElement} row 任务对应的绑定行。
@@ -5366,6 +5490,36 @@
       task.stage='流水线完成';
       task.progress=100;
       const unresolvedConflict=task.hasConflicts&&getConflictCounts().unresolved>0;
+      if(task.operation==='push'&&unresolvedConflict){
+        task.state='conflict';
+        task.stage='等待处理冲突';
+        task.note='推送前仍有未解决冲突';
+        row.dataset.state='conflict';
+        row.dataset.error=task.note;
+        renderBindingRow(row);
+        renderQueue();
+        return;
+      }
+      if(task.operation==='push'&&task.advanceCommitTopology){
+        const profile=bindingProfiles[task.bindingId];
+        const pushedHeadId=profile&&getBindingCommitState(profile).localHead?.id;
+        if(profile&&pushedHeadId){
+          profile.syncBaseId=pushedHeadId;
+          profile.localCommitsAfterBase=[];
+          profile.remoteCommitsAfterBase=[];
+          profile.workingTreeDirty=false;
+          const pushedCommit=commitRecords[pushedHeadId];
+          const summaryCell=row.querySelector('.commit-message')?.closest('td');
+          if(pushedCommit&&summaryCell){
+            const message=summaryCell.querySelector('.commit-message');
+            const fingerprint=summaryCell.querySelector('.fingerprint');
+            const date=summaryCell.querySelector('.commit-date');
+            if(message){message.textContent=pushedCommit.message;message.title=pushedCommit.message;}
+            if(fingerprint)fingerprint.textContent=pushedCommit.id;
+            if(date)date.textContent=pushedCommit.date;
+          }
+        }
+      }
       recordBindingOperation(task.bindingId,task.operation,task.finalResult||(unresolvedConflict?'未解决冲突':'成功'));
       if(task.initialPull){row.dataset.initialPullPending='false';delete row.dataset.initialPullFailed;}
       row.dataset.state='synced';
@@ -5378,6 +5532,9 @@
       renderBindingRow(row);
       renderQueue();
       refreshOpenBindingHistory(task.bindingId);
+      if(typeof activeDetailRow!=='undefined'&&activeDetailRow===row&&!document.getElementById('detailDrawer').hidden){
+        renderBindingDetails(getBindingProfile(row));
+      }
       if(currentBindingId===task.bindingId&&document.getElementById('conflictDialog').open){
         if(!keepConflictEditor)document.getElementById('conflictDialog').close();
       }
@@ -5386,17 +5543,28 @@
     /** 根据绑定状态发起新的 Mock 流水线。
      * @param {string} bindingId 绑定关系标识。
      * @param {string} operation push 或 pull。
+     * @param {string} [commitMessage=''] 本地待提交工作区的提交说明。
      * @returns {boolean} 成功创建流水线时返回 true，否则返回 false。
      */
-function startPipeline(bindingId,operation) {
+    function startPipeline(bindingId,operation,commitMessage='') {
       const userId=document.getElementById('roleSelect').value;
       if(!hasPermission(userId,'write',bindingId)){showToast('当前身份没有推送或拉取此绑定的权限');return false;}
       const row=document.querySelector('[data-binding-id="'+bindingId+'"]');
       if(!row||row.dataset.task||isBranchLocked(row)){showToast('该仓库分支已有活动流水线');return false;}
+      let returnState=row.dataset.state;
+      if(operation==='push'&&row.dataset.state==='pending'){
+        const normalizedMessage=String(commitMessage||'').trim();
+        if(!normalizedMessage){showToast('请填写非空提交说明');return false;}
+        const record=createLocalCommitRecord(bindingId,normalizedMessage);
+        if(!record){showToast('当前工作区没有可提交的修改');return false;}
+        returnState='upload';
+        row.dataset.state=returnState;
+        row.dataset.error='本地提交已创建，等待推送。';
+      }
       const id='sync-'+taskSequence++;
-      const returnState=row.dataset.state;
       const task={
         id,bindingId,operation,returnState,
+        advanceCommitTopology:operation==='push',
         initialPull:operation==='pull'&&row.dataset.initialPullPending==='true',
         simulatedFirstPullFailure:operation==='pull'&&row.dataset.initialPullPending==='true'&&row.dataset.mockFirstPullFailure==='true',
         name:row.querySelector('.binding-name').textContent.split(' › ').pop()+' · '+(operation==='pull'?'拉取':'推送'),
@@ -5414,6 +5582,7 @@ function startPipeline(bindingId,operation) {
       row.dataset.state='running';
       row.dataset.error='流水线运行中，分支和分类暂时只读。';
       renderBindingRow(row);
+      refreshOpenBindingHistory(bindingId);
       renderQueue();
       scheduleTaskProgress(id);
       showToast(id.toUpperCase()+' 已启动，绑定关系已锁定');
@@ -5526,10 +5695,10 @@ function advanceTask(taskId) {
       const task=tasks[index];
       const row=document.querySelector(`[data-binding-id="${task.bindingId}"]`);
       recordBindingOperation(task.bindingId,task.operation,'已终止');
+      tasks.splice(index,1);
       if(row){row.dataset.task='';row.dataset.state=task.returnState||row.dataset.stableState||(task.operation==='push'?'upload':'download');row.dataset.error='流水线已安全终止；当前绑定状态已恢复。';renderBindingRow(row);}
       if(activePreviewTaskId===task.id){activePreviewTaskId='';const preview=document.getElementById('pullPreviewDialog');if(preview.open){preview.close();clearPullPreviewContent();}}
       if(currentBindingId===task.bindingId&&document.getElementById('conflictDialog').open)document.getElementById('conflictDialog').close();
-      tasks.splice(index,1);
       renderQueue();
       refreshOpenBindingHistory(task.bindingId);
       showToast('安全检查点完成，绑定已解锁');
@@ -5971,6 +6140,14 @@ function abortConflictMerge(message) {
         updateBindingRefreshStatus(getNextBindingRefreshAt(checkedAt));
         showToast(row.dataset.refreshSummary);
       }
+      if(action==='open-pending-commit'){openPendingCommitDialog(control.dataset.binding);return;}
+      if(action==='close-pending-commit'){
+        const dialog=document.getElementById('pendingCommitDialog');
+        dialog.dataset.binding='';
+        document.getElementById('pendingCommitMessage').value='';
+        if(dialog.open)dialog.close();
+        return;
+      }
       if(action==='toggle-binding-category-picker'){toggleBindingCategoryPicker();return;}
       if(action==='toggle-binding-category-branch'){toggleBindingCategoryBranch(control);return;}
       if(action==='select-binding-category'){selectBindingCategory(control);return;}
@@ -6131,6 +6308,7 @@ function abortConflictMerge(message) {
     }
 
     document.addEventListener('click',handleDocumentClick);
+    document.getElementById('categoryTreeSearch').addEventListener('input',handleBindingCategorySearch);
     document.addEventListener('keydown',handleBindingRowKeydown);
     document.addEventListener('keydown',handleConflictHistoryKeydown);
     document.addEventListener('keydown',handleDetailDrawerKeydown);
@@ -6236,6 +6414,7 @@ function abortConflictMerge(message) {
     document.getElementById('embeddedTerminalForm').addEventListener('submit',submitTerminal);
     document.getElementById('bindingForm').addEventListener('submit',createBinding);
     document.getElementById('bindingForm').addEventListener('submit',initializeBindingRowFocus);
+    document.getElementById('pendingCommitForm').addEventListener('submit',submitPendingCommit);
     configureConflictExampleBindings();
     initializePermissionDirectories();
     initializeBindingRowFocus();
